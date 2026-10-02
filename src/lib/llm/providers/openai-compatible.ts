@@ -4,6 +4,7 @@ import type {
   ChatParams,
   GenerateQuizParams,
   GenerateScenarioParams,
+  GenerateSkillTreeParams,
   GradeEssayParams,
   GradeSubmissionParams,
   LLMProvider,
@@ -14,11 +15,13 @@ import {
   EssayGradeSchema,
   LabScenarioSchema,
   QuizBatchSchema,
+  SkillTreeSchema,
   SubmissionGradeSchema,
   TerminalOutputSchema,
   type EssayGrade,
   type LabScenario,
   type QuizBatch,
+  type SkillTree,
   type SubmissionGrade,
   type TerminalOutput,
 } from "@/lib/llm/schemas";
@@ -28,6 +31,7 @@ import * as terminalOutput from "@prompts/lab/terminal-output.v1";
 import * as gradeSubmission from "@prompts/lab/grade-submission.v1";
 import * as chatPrompt from "@prompts/tutor/chat.v1";
 import * as gradeEssay from "@prompts/tutor/grade-essay.v1";
+import * as skillTreeGenerate from "@prompts/roadmap/generate-tree.v1";
 
 import type { z } from "zod";
 
@@ -217,6 +221,20 @@ export class OpenAICompatibleProvider implements LLMProvider {
       params.userId,
       EssayGradeSchema,
       gradeEssay.systemPrompt,
+      userPrompt,
+    );
+  }
+
+  async generateSkillTree(params: GenerateSkillTreeParams): Promise<SkillTree> {
+    const userPrompt = skillTreeGenerate.buildUserPrompt({
+      topicName: params.topicName,
+      topicSlug: params.topicSlug,
+    });
+    return this.callJson(
+      "roadmap.generate-tree",
+      params.userId,
+      SkillTreeSchema,
+      skillTreeGenerate.systemPrompt,
       userPrompt,
     );
   }

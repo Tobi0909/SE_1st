@@ -3,6 +3,7 @@ import type {
   EssayGrade,
   LabScenario,
   QuizBatch,
+  SkillTree,
   SubmissionGrade,
   TerminalOutput,
 } from "@/lib/llm/schemas";
@@ -54,6 +55,12 @@ export interface GradeEssayParams {
   answer: string;
 }
 
+export interface GenerateSkillTreeParams {
+  userId: string | null;
+  topicName: string;
+  topicSlug: string;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -72,6 +79,7 @@ export interface LLMProvider {
   terminalRespond(params: TerminalRespondParams): Promise<TerminalOutput>;
   gradeSubmission(params: GradeSubmissionParams): Promise<SubmissionGrade>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGrade>;
+  generateSkillTree(params: GenerateSkillTreeParams): Promise<SkillTree>;
   chatStream(params: ChatParams): AsyncIterable<string>;
 }
 

@@ -2,6 +2,7 @@ import type {
   ChatParams,
   GenerateQuizParams,
   GenerateScenarioParams,
+  GenerateSkillTreeParams,
   GradeEssayParams,
   GradeSubmissionParams,
   LLMProvider,
@@ -11,6 +12,7 @@ import type {
   EssayGrade,
   LabScenario,
   QuizBatch,
+  SkillTree,
   SubmissionGrade,
   TerminalOutput,
 } from "@/lib/llm/schemas";
@@ -94,6 +96,26 @@ export class MockLLMProvider implements LLMProvider {
       score: 50,
       missingPoints: ["[MOCK] Điểm còn thiếu mô phỏng"],
       feedback: `[MOCK] Phản hồi mô phỏng cho câu trả lời: ${params.answer.slice(0, 20)}...`,
+    };
+  }
+
+  async generateSkillTree(params: GenerateSkillTreeParams): Promise<SkillTree> {
+    return {
+      nodes: [
+        {
+          title: `[MOCK] Nhập môn ${params.topicName}`,
+          description: "Chương mô phỏng cho mục đích test.",
+          children: [
+            { title: "Kỹ năng cơ bản", description: "Mô phỏng.", difficulty: "EASY" },
+            { title: "Kỹ năng trung bình", description: "Mô phỏng.", difficulty: "MEDIUM" },
+          ],
+        },
+        {
+          title: `[MOCK] Nâng cao ${params.topicName}`,
+          description: "Chương mô phỏng cho mục đích test.",
+          children: [{ title: "Kỹ năng nâng cao", description: "Mô phỏng.", difficulty: "HARD" }],
+        },
+      ],
     };
   }
 

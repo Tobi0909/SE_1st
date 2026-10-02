@@ -126,3 +126,24 @@ export const EssayGradeSchema = z.object({
   feedback: z.string().min(1),
 });
 export type EssayGrade = z.infer<typeof EssayGradeSchema>;
+
+export interface SkillTreeNode {
+  title: string;
+  description: string;
+  difficulty?: "EASY" | "MEDIUM" | "HARD";
+  children?: SkillTreeNode[];
+}
+
+export const SkillTreeNodeSchema: z.ZodType<SkillTreeNode> = z.lazy(() =>
+  z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    difficulty: DifficultySchema.optional(),
+    children: z.array(SkillTreeNodeSchema).optional(),
+  }),
+);
+
+export const SkillTreeSchema = z.object({
+  nodes: z.array(SkillTreeNodeSchema).min(1),
+});
+export type SkillTree = z.infer<typeof SkillTreeSchema>;

@@ -21,7 +21,7 @@ export async function ensureLabScenario(
     difficulty,
   });
 
-  await db.labScenario.create({
+  const scenario = await db.labScenario.create({
     data: {
       topicId,
       difficulty,
@@ -31,6 +31,17 @@ export async function ensureLabScenario(
       status: "ACTIVE",
     },
   });
+
+  // Gắn scenario mới vào các skill node cùng topic/difficulty đã tồn tại (nếu roadmap được
+  // sinh trước lab). Chiều ngược lại — node mới gắn vào scenario có sẵn — xử lý trong
+  // src/lib/roadmap/progress.ts khi tạo node.
+  const matchingNodes = await db.skillNode.findMany({ where: { topicId, difficulty }, select: { id: true } });
+  if (matchingNodes.length > 0) {
+    await db.labScenarioNode.createMany({
+      data: matchingNodes.map((n) => ({ nodeId: n.id, scenarioId: scenario.id })),
+      skipDuplicates: true,
+    });
+  }
 }
 
 export async function pickRandomLabScenario(topicId: string, difficulty: Difficulty) {

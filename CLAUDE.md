@@ -119,6 +119,28 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
     Đây là giới hạn của tool test, không phải bug — trình duyệt thật của người dùng gửi
     keydown có keyCode hợp lệ nên Enter/Backspace hoạt động bình thường.
 
+## Roadmap & dashboard
+
+- `SkillNode` tối đa 2 cấp: node nhóm (không `difficulty`, chỉ `children`) và node lá (có
+  `difficulty`, gắn trực tiếp 1 tier quiz + optionally lab qua `LabScenarioNode`). Quiz KHÔNG
+  gắn theo node cụ thể (dùng chung pool topic+difficulty như GĐ2), lab thì có gắn qua join
+  table, tự động cả 2 chiều: `ensureLabScenario` (src/lib/lab/scenarioPool.ts) link scenario
+  mới vào node có sẵn cùng topic+difficulty; `createNodesRecursive`
+  (src/lib/roadmap/progress.ts) link node mới vào scenario có sẵn.
+- Trạng thái node (`src/lib/roadmap/nodeStatus.ts`, thuần + test): node lá MASTERED khi
+  `totalAttempts >= 5` và accuracy `>= 80%`, và nếu có lab gắn thì phải có ít nhất 1
+  `LabSubmission.score.total >= 70`. Node nhóm suy ra từ children
+  (`aggregateParentStatus`) — không lưu trạng thái riêng trong DB, tính lại mỗi lần load
+  (`computeTopicRoadmap`, chấp nhận được ở quy mô nội bộ).
+- `/roadmap` (danh sách chủ đề) và `/dashboard` **không tự sinh roadmap bằng LLM** — chỉ tính
+  tiến độ cho chủ đề ĐÃ có `SkillNode` (tránh gọi LLM hàng loạt khi mở trang tổng quan). Sinh
+  roadmap (`ensureSkillTree`) chỉ xảy ra khi vào `/roadmap/[topicSlug]`.
+- Streak (`src/lib/dashboard/streak.ts`, thuần + test) kiểu Duolingo: còn tính nếu hôm nay
+  CHƯA có hoạt động nhưng hôm qua có; đứt hẳn nếu cả hôm nay và hôm qua đều không. Nguồn hoạt
+  động: `QuizAttempt`, `LabCommandLog` (join qua `session.userId`), `FlashcardState.lastReviewedAt`.
+- Điểm yếu (`src/lib/dashboard/weakAreas.ts`, thuần + test): accuracy thấp nhất theo bucket
+  (topic, difficulty), bỏ qua bucket có dưới 3 lượt làm (tránh kết luận vội từ mẫu quá nhỏ).
+
 ## Docker
 
 - `Dockerfile`: multi-stage, **không dùng `output: "standalone"`** — `getLLMProvider()` dùng
