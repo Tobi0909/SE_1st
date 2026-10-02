@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionSource {
+  LLM
+  ADMIN
+}
+
+enum QuestionStatus {
+  ACTIVE
+  FLAGGED
+  HIDDEN
+}
+
+enum ChatContextType {
+  NODE
+  QUESTION
+  LAB
+}
+
+enum CommandSource {
+  PRESET
+  LLM
+}
+
+enum LabSessionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  flashcards     FlashcardState[]
+  quizAttempts   QuizAttempt[]
+  labSessions    LabSession[]
+  chatSessions   ChatSession[]
+  questionFlags  QuestionFlag[]
+  llmUsageLogs   LlmUsageLog[]
+
+  @@map("users")
+}
+
+model Topic {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  order       Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions    Question[]
+  scenarios    LabScenario[]
+  skillNodes   SkillNode[]
+
+  @@map("topics")
+}
+
+model Question {
+  id         String         @id @default(cuid())
+  topicId    String
+  difficulty Difficulty
+  stem       String
+  source     QuestionSource @default(ADMIN)
+  status     QuestionStatus @default(ACTIVE)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  topic       Topic              @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  options     QuestionOption[]
+  flags       QuestionFlag[]
+  attempts    QuizAttempt[]
+  flashcards  FlashcardState[]
+
+  @@index([topicId, difficulty, status])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id          String  @id @default(cuid())
+  questionId  String
+  text        String
+  isCorrect   Boolean
+  explanation String
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_options")
+}
+
+model QuestionFlag {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String
+  reason     String?
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@index([resolved])
+  @@map("question_flags")
+}
+
+model FlashcardState {
+  id             String    @id @default(cuid())
+  userId         String
+  questionId     String
+  easeFactor     Float     @default(2.5)
+  intervalDays   Int       @default(0)
+  repetitions    Int       @default(0)
+  dueAt          DateTime  @default(now())
+  lastReviewedAt DateTime?
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId, dueAt])
+  @@map("flashcard_states")
+}
+
+model QuizAttempt {
+  id               String   @id @default(cuid())
+  userId           String
+  questionId       String
+  selectedOptionId String
+  correct          Boolean
+  createdAt        DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([questionId])
+  @@map("quiz_attempts")
+}
+
+model SkillNode {
+  id          String      @id @default(cuid())
+  topicId     String
+  parentId    String?
+  title       String
+  description String?
+  order       Int         @default(0)
+  difficulty  Difficulty?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  topic    Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  parent   SkillNode?        @relation("SkillNodeChildren", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children SkillNode[]       @relation("SkillNodeChildren")
+  labLinks LabScenarioNode[]
+
+  @@index([topicId])
+  @@map("skill_nodes")
+}
+
+model LabScenario {
+  id            String     @id @default(cuid())
+  topicId       String
+  difficulty    Difficulty
+  title         String
+  promptVersion String
+  data          Json
+  status        QuestionStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  topic    Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  nodeLinks LabScenarioNode[]
+  sessions LabSession[]
+
+  @@index([topicId, difficulty, status])
+  @@map("lab_scenarios")
+}
+
+model LabScenarioNode {
+  nodeId     String
+  scenarioId String
+
+  node     SkillNode   @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  scenario LabScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@id([nodeId, scenarioId])
+  @@map("lab_scenario_nodes")
+}
+
+model LabSession {
+  id          String           @id @default(cuid())
+  userId      String
+  scenarioId  String
+  state       Json
+  status      LabSessionStatus @default(IN_PROGRESS)
+  startedAt   DateTime         @default(now())
+  submittedAt DateTime?
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario    LabScenario     @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  commandLogs LabCommandLog[]
+  hints       LabHintUsage[]
+  submission  LabSubmission?
+
+  @@index([userId, scenarioId])
+  @@map("lab_sessions")
+}
+
+model LabCommandLog {
+  id        String        @id @default(cuid())
+  sessionId String
+  command   String
+  output    String
+  source    CommandSource
+  createdAt DateTime      @default(now())
+
+  session LabSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@map("lab_command_logs")
+}
+
+model LabLlmCommandCache {
+  id          String   @id @default(cuid())
+  scenarioId  String
+  stateHash   String
+  commandNorm String
+  output      String
+  createdAt   DateTime @default(now())
+
+  @@unique([scenarioId, stateHash, commandNorm])
+  @@map("lab_llm_command_cache")
+}
+
+model LabHintUsage {
+  id        String   @id @default(cuid())
+  sessionId String
+  level     Int
+  createdAt DateTime @default(now())
+
+  session LabSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("lab_hint_usages")
+}
+
+model LabSubmission {
+  id            String   @id @default(cuid())
+  sessionId     String   @unique
+  rootCauseText String
+  fixText       String
+  score         Json
+  feedback      String
+  createdAt     DateTime @default(now())
+
+  session LabSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("lab_submissions")
+}
+
+model ChatSession {
+  id          String          @id @default(cuid())
+  userId      String
+  contextType ChatContextType
+  contextId   String?
+  createdAt   DateTime        @default(now())
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId, createdAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id            String   @id @default(cuid())
+  chatSessionId String
+  role          ChatRole
+  content       String
+  createdAt     DateTime @default(now())
+
+  chatSession ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@index([chatSessionId, createdAt])
+  @@map("chat_messages")
+}
+
+model LlmUsageLog {
+  id               String   @id @default(cuid())
+  userId           String?
+  feature          String
+  model            String
+  promptTokens     Int
+  completionTokens Int
+  latencyMs        Int
+  success          Boolean
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([feature, createdAt])
+  @@map("llm_usage_logs")
+}

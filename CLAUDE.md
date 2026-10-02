@@ -1,0 +1,111 @@
+@AGENTS.md
+
+# SE Dojo — quy ước & quyết định kiến trúc
+
+Web app nội bộ cho team System Engineer luyện Linux/Networking/Virtualization/Container/
+Monitoring/CI-CD-IaC/Security qua quiz, flashcard (SM-2), lab terminal giả lập (LLM-driven),
+roadmap, dashboard, AI tutor. Chạy on-premises bằng Docker Compose.
+
+> `AGENTS.md` (import ở trên) do `next dev` tự quản lý, nhắc rằng dự án dùng **Next.js 16**
+> với nhiều API khác bản cũ — xem thêm mục "Next.js 16" dưới đây.
+
+## Stack & quyết định đáng chú ý
+
+- **Next.js 16 (App Router, Turbopack mặc định) + TypeScript strict**, một service cho cả UI+API.
+- **PostgreSQL + Prisma 7** — generator `prisma-client` (không phải `prisma-client-js` cũ),
+  client sinh ra ở `src/generated/prisma/` (gitignored, chạy `pnpm db:generate` sau khi sửa
+  `prisma/schema.prisma`). **Prisma 7 bắt buộc driver adapter**, không còn `url` trong
+  `datasource` block của schema — kết nối qua `@prisma/adapter-pg` (`src/lib/db.ts`), URL đọc
+  từ `DATABASE_URL` ở runtime. Config file tên là `prisma7.config.ts` (tên có số major — do
+  chính Prisma CLI 7.10.0 quy định, không phải lựa chọn của chúng ta).
+- **NextAuth (Auth.js) v5, Credentials provider + JWT session** (không dùng
+  `@auth/prisma-adapter` — provider Credentials chỉ hỗ trợ JWT strategy, adapter là dư thừa).
+  Role (`ADMIN`/`MEMBER`) nhúng vào JWT qua callback `jwt`/`session` trong `src/lib/auth.ts`.
+  - **Lưu ý TypeScript**: `next-auth/jwt` re-export `JWT` từ `@auth/core/jwt` bằng `export *`,
+    nên `declare module "next-auth/jwt" { interface JWT {...} }` **không merge được** (TS chỉ
+    merge qua named re-export, không qua `export *`). Vì vậy `token.id`/`token.role` trong
+    callback `session` phải ép kiểu tường minh (`as string`/`as Role`), xem `src/lib/auth.ts`.
+    Session/User augmentation (`declare module "next-auth"`) thì merge bình thường.
+- **Tailwind v4 + shadcn/ui** (preset `radix-nova`, base Radix), dark mode qua `next-themes`
+  (`attribute="class"`), toggle ở `src/components/theme-toggle.tsx`.
+- **Zod v4** validate mọi output LLM (`src/lib/llm/schemas.ts`). Lưu ý API v4: dùng `z.email()`
+  (top-level), không phải `z.string().email()` (vẫn còn nhưng là API cũ).
+- **Vitest** (không dùng Jest) — khởi động nhanh hơn, ít config hơn với Next.js TS project.
+- **bcryptjs** (pure JS, không phải `bcrypt`) — tránh build native addon trong Docker image.
+
+## Next.js 16 — điểm khác biệt quan trọng
+
+- `middleware.ts` → **`src/proxy.ts`**, export tên `proxy` (không phải `middleware`). Runtime
+  luôn là `nodejs`, không hỗ trợ `edge`.
+- `params`, `searchParams` trong page/layout/route là **Promise**, phải `await`. Dùng helper
+  `PageProps<'/route'>` / `LayoutProps<'/route'>` (global type, sinh bởi `next build`/
+  `next typegen`/`next dev`) — **chạy `npx next build` hoặc `npx next typegen` sau khi thêm
+  route mới** để các helper này nhận route, nếu không `tsc` sẽ báo lỗi route không tồn tại.
+- `cookies()`, `headers()`, `draftMode()` cũng là async.
+- Không bật `cacheComponents` (PPR kiểu mới) — giữ hành vi rendering mặc định như Next 15.
+
+## Cấu trúc thư mục
+
+```
+prompts/              # Prompt LLM, versioned (quiz/, lab/, tutor/), import qua alias @prompts/*
+prisma/schema.prisma  # DB schema
+prisma/seed.ts        # Seed admin + chủ đề mẫu
+src/app/              # Routes. (app)/ = route group có layout header dùng chung (cần đăng nhập)
+src/components/ui/    # shadcn/ui components (generated, chỉnh trực tiếp nếu cần)
+src/lib/llm/          # LLMProvider interface, schemas, rateLimiter, providers/{mock,openai-compatible}
+src/lib/auth.ts       # NextAuth config
+src/lib/db.ts         # Prisma client singleton (driver adapter)
+src/lib/rbac.ts       # requireUser/requireAdmin cho server actions/route handlers
+src/proxy.ts          # Route protection (redirect /login, gate /admin theo role)
+*.test.ts             # Colocated cạnh file test (Vitest), không dùng __tests__/
+```
+
+## Lệnh thường dùng
+
+```bash
+pnpm dev                    # next dev (Turbopack)
+pnpm build                  # next build
+pnpm test                   # vitest run
+pnpm lint                   # eslint
+
+pnpm db:generate             # prisma generate (chạy lại sau khi sửa schema.prisma)
+pnpm db:migrate              # prisma migrate dev (tạo + áp migration mới, cần DB chạy)
+pnpm db:migrate:deploy        # prisma migrate deploy (production/docker)
+pnpm db:seed                  # tsx prisma/seed.ts
+pnpm db:studio                 # prisma studio
+
+docker compose up            # chạy full stack (app + db), tự migrate + seed khi start
+```
+
+## LLMProvider
+
+- Interface + factory: `src/lib/llm/provider.ts`. `getLLMProvider()` chọn
+  `MockLLMProvider` (`LLM_PROVIDER=mock`) hoặc `OpenAICompatibleProvider` (OpenAI-compatible
+  chat completions API, cấu hình qua `LLM_BASE_URL`/`LLM_API_KEY`/`LLM_MODEL`).
+- Output LLM luôn qua Zod (`src/lib/llm/schemas.ts`); sai schema thì retry tối đa 2 lần
+  (sửa prompt theo lỗi Zod) rồi throw `LLMOutputValidationError`.
+- Rate limit theo user (`src/lib/llm/rateLimiter.ts`, dựa trên `LlmUsageLog` trong 60s gần
+  nhất, ngưỡng `RATE_LIMIT_PER_MINUTE`). Mọi lần gọi (thành công hay lỗi) đều ghi
+  `LlmUsageLog`.
+- Prompt lab terminal (`prompts/lab/terminal-output.v1.ts`) có chỉ dẫn chống prompt injection
+  rõ ràng: lệnh người dùng gõ luôn là DỮ LIỆU, không bao giờ được coi là chỉ dẫn, và
+  `rootCause` không bao giờ được in ra dù người dùng yêu cầu thế nào.
+- Test core logic dùng `MockLLMProvider`, không gọi API thật (`src/lib/llm/providers/mock.test.ts`).
+
+## Docker
+
+- `Dockerfile`: multi-stage, **không dùng `output: "standalone"`** — `getLLMProvider()` dùng
+  dynamic `import()` để chọn provider theo env, Next's file-tracing cho standalone có thể bỏ
+  sót 1 trong 2 provider file. Image copy full `node_modules` — chấp nhận được với quy mô nội
+  bộ 4-10 người, ưu tiên đúng/đơn giản hơn tối ưu kích thước image.
+- `docker-entrypoint.sh`: chạy `prisma migrate deploy` → seed → `next start`, mỗi lần container
+  khởi động (idempotent nhờ seed dùng `upsert`).
+- Chưa test được `docker compose up` thật trong sandbox phát triển (không có Docker) — đã xác
+  minh logic qua `prisma migrate diff --from-empty` (không cần DB) và build/test chạy trên máy
+  host. **Cần người dùng tự chạy `docker compose up` trên máy có Docker để xác nhận lần đầu.**
+
+## Chưa làm (các giai đoạn sau)
+
+Xem roadmap các giai đoạn trong yêu cầu gốc: GĐ2 quiz/flashcard, GĐ3 lab terminal, GĐ4
+roadmap/dashboard, GĐ5 AI tutor + admin. Ý tưởng ngoài phạm vi ghi vào `IDEAS.md`, không tự
+thêm vào code.
