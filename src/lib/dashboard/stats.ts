@@ -55,6 +55,48 @@ export async function getStreak(userId: string): Promise<number> {
   return computeStreak([...dates]);
 }
 
+export async function getDueFlashcardsCount(userId: string): Promise<number> {
+  return db.flashcardState.count({ where: { userId, dueAt: { lte: new Date() } } });
+}
+
+export interface ContinueItem {
+  href: string;
+  label: string;
+  meta: string;
+}
+
+/** Gợi ý "tiếp tục học": ưu tiên lab đang làm dở, sau đó thẻ cần ôn, cuối cùng đề xuất quiz. */
+export async function getContinueLearning(userId: string): Promise<ContinueItem | null> {
+  const inProgressLab = await db.labSession.findFirst({
+    where: { userId, status: "IN_PROGRESS" },
+    include: { scenario: true },
+    orderBy: { startedAt: "desc" },
+  });
+  if (inProgressLab) {
+    return {
+      href: `/lab/${inProgressLab.id}`,
+      label: inProgressLab.scenario.title,
+      meta: "Lab đang làm dở",
+    };
+  }
+
+  const dueCount = await getDueFlashcardsCount(userId);
+  if (dueCount > 0) {
+    return { href: "/flashcards", label: `${dueCount} thẻ cần ôn`, meta: "Flashcard" };
+  }
+
+  const topic = await db.topic.findFirst({ orderBy: { order: "asc" } });
+  if (topic) {
+    return {
+      href: `/quiz/session?topicSlug=${topic.slug}&difficulty=EASY&count=10`,
+      label: `Luyện quiz ${topic.name}`,
+      meta: "Bắt đầu mới",
+    };
+  }
+
+  return null;
+}
+
 /** Streak mọi user trong 3 query gộp (không N query theo số user) — dùng cho trang /team. */
 export async function getTeamStreaks(): Promise<Map<string, number>> {
   const [quizAttempts, labCommandLogs, flashcardReviews] = await Promise.all([

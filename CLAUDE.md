@@ -33,6 +33,71 @@ roadmap, dashboard, AI tutor. Chạy on-premises bằng Docker Compose.
 - **Vitest** (không dùng Jest) — khởi động nhanh hơn, ít config hơn với Next.js TS project.
 - **bcryptjs** (pure JS, không phải `bcrypt`) — tránh build native addon trong Docker image.
 
+## Design system
+
+Đang làm lại giao diện (xem lịch sử commit `redesign:`) theo tinh thần "công cụ vận hành
+chuyên nghiệp" — gọn, đậm đặc thông tin, tĩnh, chính xác (tham chiếu Linear/Vercel
+dashboard/Grafana bản mới). Áp dụng từng màn hình, mỗi màn hình 1 commit; phần này cập nhật
+dần theo tiến độ, không phải làm 1 lần xong.
+
+- **Token màu**: định nghĩa ở `src/app/globals.css`, KHÔNG dùng preset `radix-nova` gốc của
+  shadcn nữa (giữ lại import `shadcn/tailwind.css` vì nó cấp các `@custom-variant data-open`
+  v.v. mà `dropdown-menu.tsx`/`command.tsx` cần — xoá sẽ hỏng animation mở/đóng). **Dark là
+  mặc định** (`:root` giữ giá trị dark, `.light` override — không phải `.dark` override như
+  mặc định của shadcn), `ThemeProvider` có `defaultTheme="dark"`.
+  - Nền dark: `#0B0E14` → panel `#10141C` → popover/elevated `#161B25`, border `#232A38`.
+  - Accent xanh terminal: dark `#3DDC97` (chữ tối `#0B0E14` trên nền accent), light `#178254`
+    (đậm hơn bản dark để đạt AA — `#3DDC97` trực tiếp trên nền trắng chỉ ~1.8:1, KHÔNG dùng
+    làm màu chữ/nút ở light mode). Đã tính contrast bằng WCAG formula (xem lịch sử trước khi
+    đổi màu — mọi cặp text/bg phải ≥ 4.5:1, xem thủ tục tính ở dưới nếu cần đổi).
+  - Semantic riêng: `--destructive` (sai/lỗi), `--success`, `--warning`, `--info` — định nghĩa
+    riêng ở cả 2 mode, không tái dùng `--primary` cho error/warning.
+  - Border cố ý rất mảnh/subtle (~1.3:1 so với nền) theo đúng yêu cầu "border mảnh, hạn chế
+    shadow" — không đạt WCAG 1.4.11 (3:1) cho non-text boundary, chấp nhận được vì không phải
+    kênh truyền đạt thông tin duy nhất (surface level + spacing đã phân tách bố cục).
+- **Thang chữ**: override thẳng token `--text-xs/sm/base/lg/xl/2xl` của Tailwind trong
+  `@theme inline` thành 12/13/14/16/20/28px (`base` = mặc định 14px) — nghĩa là MỌI chỗ dùng
+  `text-sm`/`text-base`... trong codebase tự động theo thang mới, không cần sửa từng file.
+  Heading (`h1-h4`) weight 600 qua `@layer base`.
+- **Font**: `Be Vietnam Pro` (UI, subsets latin+vietnamese, weight 400/500/600) + `JetBrains
+  Mono` (code/số liệu, variable) qua `next/font/google` trong `src/app/layout.tsx`, biến CSS
+  đặt tên khớp với theme (`--font-sans`, `--font-mono`) — trước đó dự án dùng Geist nhưng biến
+  CSS bị lệch tên với theme (`--font-geist-sans` vs theme đọc `--font-sans`) nên Geist chưa
+  từng thực sự được áp dụng, chỉ fallback hệ thống; đã fix luôn khi đổi font.
+  `next/font` tự tải về lúc build và tự host, không gọi Google Fonts CDN lúc chạy — đúng yêu
+  cầu app chạy on-prem.
+- **Số liệu**: dùng class `.tabular` (hoặc trực tiếp `font-mono tabular-nums`) để không nhảy
+  số khi cập nhật — quyết định của chủ dự án, khác khuyến nghị chung của skill `dataviz`
+  (vốn khuyên số lớn đứng một mình dùng proportional figures); đây là lựa chọn thẩm mỹ riêng
+  cho app này (cảm giác "terminal"), áp dụng nhất quán cho mọi con số trong UI.
+  Radius chuẩn `--radius: 6px` (`--radius-sm/md/lg/xl` suy ra từ đó).
+- **App shell** (`src/components/shell/`): `app-shell.tsx` (client, giữ state collapsed +
+  search-open), `sidebar.tsx` (collapsible, lưu trạng thái vào `localStorage` qua **lazy
+  `useState` initializer**, KHÔNG dùng `useEffect` + `setState` để hydrate từ localStorage —
+  bị `react-hooks/set-state-in-effect` chặn ở lint vì gây render kép; đọc thẳng trong
+  initializer + `suppressHydrationWarning` ở `<aside>` để chấp nhận lệch class 1 lần giữa SSR
+  (luôn "mở rộng" vì không có `window`) và client đã hydrate theo preference lưu sẵn — lệch
+  này chỉ là preference UI thuần client, không ảnh hưởng nội dung), `topbar.tsx` (breadcrumb
+  tự suy ra từ pathname + `NAV_ITEMS`, nút search, theme toggle, user menu), `command-
+  palette.tsx` (Ctrl+K / Cmd+K), `nav-items.ts` (danh sách điều hướng dùng chung cho sidebar
+  + command palette, lọc theo `adminOnly`).
+  - **Lưu ý `shadcn/command.tsx`**: `CommandDialog` ở phiên bản registry hiện tại (cmdk 1.1.1)
+    **KHÔNG tự bọc `<Command>`** quanh `children` như các phiên bản shadcn cũ — phải tự bọc
+    `<Command>...</Command>` bên trong `<CommandDialog>`, nếu không `CommandInput` crash
+    `Cannot read properties of undefined (reading 'subscribe')` vì `CommandPrimitive.Input`
+    cần context từ `<Command>` (gốc `cmdk`) mà không có. Đã sửa ở
+    `src/components/shell/command-palette.tsx` — nếu `pnpm dlx shadcn add command` ghi đè lại
+    file này sau này, nhớ bọc lại.
+- **Heatmap hoạt động** (`src/components/dashboard/activity-heatmap.tsx`): sequential ramp 1
+  hue (accent xanh) 5 bậc theo opacity (`bg-primary/25` → `bg-primary`), KHÔNG chạy qua
+  `validate_palette.js` của skill `dataviz` vì đó là validator cho palette **categorical** —
+  chạy trên sequential ramp sẽ FAIL theo thiết kế (các bậc nằm sát nhau có chủ đích), không
+  phải lỗi thật. Dữ liệu từ `src/lib/dashboard/activity.ts` (`getActivityHeatmap`, cùng nguồn
+  bảng với `getStreak` nhưng đếm theo ngày thay vì chỉ có/không).
+- **Để tự kiểm tra UI có DB thật** mà không cần Docker: xem mục "Test end-to-end không cần
+  Docker (PGlite)" bên dưới — kỹ thuật này dùng được cho mọi lần đổi UI sau này, không chỉ
+  lần test ban đầu.
+
 ## Next.js 16 — điểm khác biệt quan trọng
 
 - `middleware.ts` → **`src/proxy.ts`**, export tên `proxy` (không phải `middleware`). Runtime
