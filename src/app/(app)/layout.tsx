@@ -42,6 +42,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <Link href="/team" className="text-sm text-muted-foreground hover:text-foreground">
             Team
           </Link>
+          <Link href="/tutor" className="text-sm text-muted-foreground hover:text-foreground">
+            Tutor
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />

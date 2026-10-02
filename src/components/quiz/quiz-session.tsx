@@ -114,17 +114,26 @@ export function QuizSession({
             );
           })}
         </div>
-        {!flagged ? (
-          <button
-            type="button"
-            onClick={report}
-            className="self-start text-xs text-muted-foreground underline"
+        <div className="flex items-center gap-3">
+          {!flagged ? (
+            <button
+              type="button"
+              onClick={report}
+              className="text-xs text-muted-foreground underline"
+            >
+              Báo câu sai
+            </button>
+          ) : (
+            <p className="text-xs text-muted-foreground">Đã báo, cảm ơn bạn.</p>
+          )}
+          <Link
+            href={`/tutor?contextType=QUESTION&contextId=${question.id}`}
+            target="_blank"
+            className="text-xs text-muted-foreground underline"
           >
-            Báo câu sai
-          </button>
-        ) : (
-          <p className="text-xs text-muted-foreground">Đã báo, cảm ơn bạn.</p>
-        )}
+            Hỏi AI tutor
+          </Link>
+        </div>
       </CardContent>
       {feedback ? (
         <CardFooter>

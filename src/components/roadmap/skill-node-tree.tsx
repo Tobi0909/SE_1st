@@ -41,6 +41,11 @@ export function SkillNodeTree({ nodes, topicSlug }: { nodes: RoadmapNode[]; topi
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/lab?topicSlug=${topicSlug}&difficulty=${node.difficulty}`}>Vào lab</Link>
                 </Button>
+                <Button asChild size="sm" variant="ghost">
+                  <Link href={`/tutor?contextType=NODE&contextId=${node.id}`} target="_blank">
+                    Hỏi AI tutor
+                  </Link>
+                </Button>
               </CardContent>
             ) : null}
           </Card>

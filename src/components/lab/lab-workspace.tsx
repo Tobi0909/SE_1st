@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { getHintAction, runCommandAction, submitLabAction } from "@/app/(app)/lab/[sessionId]/actions";
@@ -79,6 +80,11 @@ export function LabWorkspace({
       </div>
 
       <div className="flex flex-col gap-4">
+        <Button asChild variant="outline" size="sm" className="self-start">
+          <Link href={`/tutor?contextType=LAB&contextId=${sessionId}`} target="_blank">
+            Hỏi AI tutor
+          </Link>
+        </Button>
         <Card>
           <CardHeader>
             <CardTitle>Gợi ý</CardTitle>

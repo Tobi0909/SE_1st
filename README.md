@@ -4,6 +4,18 @@ Web app nội bộ để team System Engineer luyện Linux, Networking, Virtual
 Monitoring/Logging, CI/CD & IaC, Security hardening — qua quiz/flashcard, lab troubleshooting
 với terminal giả lập (không thực thi lệnh thật), roadmap tiến độ, và AI tutor.
 
+## Tính năng
+
+- **Quiz & flashcard**: chọn chủ đề/độ khó, LLM sinh câu hỏi (tái sử dụng kho có sẵn trước khi
+  sinh thêm), giải thích đúng/sai từng đáp án, ôn tập theo spaced repetition (SM-2).
+- **Lab troubleshooting**: terminal giả lập (không thực thi lệnh thật), gợi ý 3 cấp, nộp bài
+  được LLM chấm theo rubric.
+- **Roadmap & dashboard**: cây kỹ năng theo chủ đề, trạng thái tính từ kết quả thực tế, dashboard
+  cá nhân (tiến độ, điểm yếu, streak) và trang team.
+- **AI tutor**: chat streaming theo ngữ cảnh (câu hỏi/lab/kỹ năng đang mở), chấm câu trả lời tự
+  luận và chỉ ra chỗ thiếu.
+- **Admin**: quản lý user (tạo/đổi role/xoá), chủ đề, nội dung bị báo sai, thống kê gọi LLM.
+
 ## Yêu cầu
 
 - Docker + Docker Compose (chạy production/local như sẽ chạy thật)
@@ -22,7 +34,8 @@ docker compose up
 
 Lần đầu chạy, container `app` sẽ tự áp migration và seed admin + chủ đề mẫu trước khi start —
 không cần bước thủ công nào khác. Mở http://localhost:3000, đăng nhập bằng
-`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` đã điền trong `.env`.
+`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` đã điền trong `.env`. Tạo thêm user cho team ở
+trang `/admin/users` sau khi đăng nhập.
 
 ## Phát triển không qua Docker
 
@@ -37,8 +50,9 @@ pnpm dev
 ## Test
 
 ```bash
-pnpm test        # vitest run — test logic lõi (password hashing, LLM schema validation,
-                  # mock provider), không gọi API LLM thật
+pnpm test        # vitest run — test logic lõi: SM-2, terminal engine (khớp lệnh + cập nhật
+                  # trạng thái), validate output LLM (schema + mock provider), trạng thái
+                  # roadmap, streak, điểm yếu. Không gọi API LLM thật.
 pnpm lint
 pnpm build        # cũng chạy typecheck (tsc) như một phần của next build
 ```

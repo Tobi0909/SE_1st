@@ -141,6 +141,36 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
 - Điểm yếu (`src/lib/dashboard/weakAreas.ts`, thuần + test): accuracy thấp nhất theo bucket
   (topic, difficulty), bỏ qua bucket có dưới 3 lượt làm (tránh kết luận vội từ mẫu quá nhỏ).
 
+## AI tutor
+
+- Tutor chỉ mở được KÈM ngữ cảnh (`/tutor?contextType=NODE|QUESTION|LAB&contextId=...`) —
+  không có chat chung chung không ngữ cảnh, để tránh phải thêm giá trị enum
+  `ChatContextType` mới (migration) cho trường hợp "không có ngữ cảnh". Link "Hỏi AI tutor"
+  gắn sẵn ở quiz session, lab workspace, và từng node trong roadmap.
+- Streaming dùng **plain text stream** qua `Response` với `ReadableStream`
+  (`src/app/api/tutor/chat/route.ts`), KHÔNG dùng SSE format (`data: ...\n\n`) — chỉ có 1
+  luồng nội dung liên tục, không cần nhiều event-type nên stream thô đơn giản hơn mà vẫn
+  progressive-render được ở client (đọc qua `response.body.getReader()`).
+- Ngữ cảnh build lại từ DB mỗi lần gửi tin nhắn (`src/lib/tutor/context.ts`, theo
+  `chatSession.contextType`/`contextId`, không lưu snapshot) — với `LAB`, CHỈ đưa
+  briefing/symptoms, KHÔNG đưa `rootCause` vào context của tutor; prompt
+  (`prompts/tutor/chat.v1.ts`) còn dặn thêm: dù hỏi thẳng cũng không được tiết lộ đáp án lab.
+- "Chấm câu trả lời tự luận" (`gradeMyAnswerAction`,
+  `src/app/(app)/tutor/actions.ts`) chỉ áp dụng khi `contextType === QUESTION`: rubric lấy từ
+  `explanation` của đáp án đúng, kết quả được lưu làm 2 `ChatMessage` (USER + ASSISTANT) nối
+  vào cùng thread chat, không phải một luồng riêng.
+
+## Trang admin
+
+- `/admin/users`: tạo user (hash password qua `src/lib/password.ts`), đổi role, xoá — admin
+  không tự đổi role/xoá chính mình (chặn ở action, không chỉ ẩn UI).
+- `/admin/topics`: tạo chủ đề mới + sửa tên/mô tả/thứ tự. **Cố ý không cho xoá chủ đề** — cascade
+  sẽ xoá toàn bộ câu hỏi/lab/roadmap của chủ đề đó, rủi ro quá cao cho 1 nút bấm trong UI nội
+  bộ nhỏ (xem thêm `IDEAS.md`).
+- `/admin/usage`: thống kê `LlmUsageLog` group theo `feature` (số lần gọi, tỉ lệ thành công,
+  latency trung bình, tổng token) + danh sách 20 lượt gọi gần nhất.
+- `/admin/flagged`: đã có từ GĐ2 (câu hỏi bị báo sai).
+
 ## Docker
 
 - `Dockerfile`: multi-stage, **không dùng `output: "standalone"`** — `getLLMProvider()` dùng
@@ -153,8 +183,8 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
   minh logic qua `prisma migrate diff --from-empty` (không cần DB) và build/test chạy trên máy
   host. **Cần người dùng tự chạy `docker compose up` trên máy có Docker để xác nhận lần đầu.**
 
-## Chưa làm (các giai đoạn sau)
+## Trạng thái
 
-Xem roadmap các giai đoạn trong yêu cầu gốc: GĐ2 quiz/flashcard, GĐ3 lab terminal, GĐ4
-roadmap/dashboard, GĐ5 AI tutor + admin. Ý tưởng ngoài phạm vi ghi vào `IDEAS.md`, không tự
-thêm vào code.
+Cả 5 giai đoạn (khung dự án, quiz/flashcard, lab terminal, roadmap/dashboard, AI tutor +
+admin) đã hoàn thành. Ý tưởng ngoài phạm vi ghi vào `IDEAS.md`, không tự thêm vào code khi
+chưa được duyệt.
