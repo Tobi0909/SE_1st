@@ -181,10 +181,53 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
   khởi động (idempotent nhờ seed dùng `upsert`).
 - Chưa test được `docker compose up` thật trong sandbox phát triển (không có Docker) — đã xác
   minh logic qua `prisma migrate diff --from-empty` (không cần DB) và build/test chạy trên máy
-  host. **Cần người dùng tự chạy `docker compose up` trên máy có Docker để xác nhận lần đầu.**
+  host. Đã test end-to-end thật (không qua Docker, xem mục dưới) — **vẫn cần người dùng tự
+  chạy `docker compose up` trên máy có Docker ít nhất 1 lần để xác nhận chính container/compose
+  chạy đúng**, vì sandbox phát triển không có Docker.
+
+## Test end-to-end không cần Docker (PGlite)
+
+Sandbox phát triển không có Docker/Postgres/sudo. Để test thật (không phải chỉ đọc code),
+dùng `@electric-sql/pglite` + `@electric-sql/pglite-socket` (cài TẠM trong thư mục scratch,
+KHÔNG phải dependency của project) để dựng một server nói đúng wire protocol Postgres thật
+(`pg`/`@prisma/adapter-pg` kết nối transparent, không cần đổi code app):
+
+```bash
+npm install @electric-sql/pglite @electric-sql/pglite-socket   # trong 1 thư mục scratch riêng
+npx pglite-server --db=./data/sedojo --port=5433 --host=127.0.0.1 --max-connections=10
+# rồi trỏ DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5433/postgres?schema=public"
+# và chạy prisma migrate deploy + db:seed + pnpm dev như bình thường
+```
+
+Nhờ vậy đã chạy thật được: đăng nhập → quiz (sinh câu qua mock LLM, trả lời, giải thích) →
+flashcard (SM-2 cập nhật) → lab (preset command khớp, LLM fallback + cache, hint, chấm nộp
+bài) → roadmap (sinh skill tree, trạng thái node phản ánh đúng kết quả quiz+lab thật) →
+dashboard/team → AI tutor (chat streaming + chấm tự luận) → admin (user/topic/usage/flagged
+CRUD) → dark mode → đăng xuất. Qua đó phát hiện và sửa 2 bug thật:
+
+1. **`/team` crash "Connection terminated unexpectedly"** khi có nhiều user: `getTeamProgress`
+   cũ gọi lại `getAllTopicsProgress` cho TỪNG user (N user × M topic query lồng nhau qua
+   `Promise.all` — hàng trăm query đồng thời cho 1 lần tải trang). Đã refactor
+   `src/lib/roadmap/progress.ts`: tách `buildRoadmapTree` thành hàm THUẦN nhận dữ liệu đã
+   fetch sẵn, rồi `getAllTopicsProgress`/`getTeamProgress`/`getTeamStreaks`
+   (`src/lib/dashboard/stats.ts`) mỗi hàm chỉ fetch gộp vài query hằng số (không nhân theo số
+   user/topic) rồi tính hết trong JS. Giữ nguyên `computeTopicRoadmap` (1 user/1 topic) vì quy
+   mô nhỏ, không cần tối ưu.
+2. **`LLM_PROVIDER=mock` không ghi `LlmUsageLog` và bỏ qua rate limit hoàn toàn** — logic đó
+   trước chỉ nằm trong `OpenAICompatibleProvider`, không áp dụng chung. Thêm
+   `src/lib/llm/providers/tracked.ts` (`withTracking`) bọc quanh `MockLLMProvider` trong
+   `getLLMProvider()` để áp rate limit + ghi log (promptTokens/completionTokens=0 vì mock
+   không có usage thật) nhất quán bất kể provider nào — tránh phải nhớ lặp lại logic này nếu
+   sau này thêm provider khác. `OpenAICompatibleProvider` KHÔNG bị bọc thêm (đã tự ghi log chi
+   tiết hơn với token thật, bọc chồng sẽ ghi trùng).
+
+Một lần duy nhất gặp "báo sai câu A nhưng DB lại ghi flag vào câu B" ngay sau khi vừa sửa
+code xong (dev server có thể đang compile lại) — thử lại 2 lần liền sau đó khớp đúng 100%,
+kết luận là artefact của thời điểm hot-reload, không phải bug code.
 
 ## Trạng thái
 
 Cả 5 giai đoạn (khung dự án, quiz/flashcard, lab terminal, roadmap/dashboard, AI tutor +
-admin) đã hoàn thành. Ý tưởng ngoài phạm vi ghi vào `IDEAS.md`, không tự thêm vào code khi
-chưa được duyệt.
+admin) đã hoàn thành và đã được test end-to-end thật (xem mục trên) qua PGlite, ngoại trừ
+chính `docker compose up`/container thật. Ý tưởng ngoài phạm vi ghi vào `IDEAS.md`, không tự
+thêm vào code khi chưa được duyệt.

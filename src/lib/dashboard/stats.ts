@@ -54,3 +54,34 @@ export async function getStreak(userId: string): Promise<number> {
 
   return computeStreak([...dates]);
 }
+
+/** Streak mọi user trong 3 query gộp (không N query theo số user) — dùng cho trang /team. */
+export async function getTeamStreaks(): Promise<Map<string, number>> {
+  const [quizAttempts, labCommandLogs, flashcardReviews] = await Promise.all([
+    db.quizAttempt.findMany({ select: { userId: true, createdAt: true } }),
+    db.labCommandLog.findMany({ select: { createdAt: true, session: { select: { userId: true } } } }),
+    db.flashcardState.findMany({
+      where: { lastReviewedAt: { not: null } },
+      select: { userId: true, lastReviewedAt: true },
+    }),
+  ]);
+
+  const datesByUser = new Map<string, Set<string>>();
+  const addDate = (userId: string, date: Date) => {
+    const set = datesByUser.get(userId) ?? new Set<string>();
+    set.add(toDateKey(date));
+    datesByUser.set(userId, set);
+  };
+
+  for (const a of quizAttempts) addDate(a.userId, a.createdAt);
+  for (const l of labCommandLogs) addDate(l.session.userId, l.createdAt);
+  for (const f of flashcardReviews) {
+    if (f.lastReviewedAt) addDate(f.userId, f.lastReviewedAt);
+  }
+
+  const result = new Map<string, number>();
+  for (const [userId, dates] of datesByUser) {
+    result.set(userId, computeStreak([...dates]));
+  }
+  return result;
+}

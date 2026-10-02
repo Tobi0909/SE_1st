@@ -1,24 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { getStreak } from "@/lib/dashboard/stats";
-import { db } from "@/lib/db";
+import { getTeamStreaks } from "@/lib/dashboard/stats";
 import { requireUser } from "@/lib/rbac";
-import { getAllTopicsProgress } from "@/lib/roadmap/progress";
+import { getTeamProgress } from "@/lib/roadmap/progress";
 
 export default async function TeamPage() {
   await requireUser();
-  const users = await db.user.findMany({ orderBy: { name: "asc" } });
 
-  const rows = await Promise.all(
-    users.map(async (user) => {
-      const [progress, streak] = await Promise.all([getAllTopicsProgress(user.id), getStreak(user.id)]);
-      const total = progress.reduce((sum, p) => sum + p.total, 0);
-      const mastered = progress.reduce((sum, p) => sum + p.mastered, 0);
-      return { user, total, mastered, streak };
-    }),
-  );
-
-  rows.sort((a, b) => ratio(b) - ratio(a));
+  const [progress, streaks] = await Promise.all([getTeamProgress(), getTeamStreaks()]);
+  const rows = progress
+    .map((p) => ({ ...p, streak: streaks.get(p.user.id) ?? 0 }))
+    .sort((a, b) => ratio(b) - ratio(a));
 
   return (
     <div className="flex max-w-2xl flex-col gap-4">

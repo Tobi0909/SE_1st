@@ -89,8 +89,11 @@ export async function getLLMProvider(): Promise<LLMProvider> {
   if (cachedProvider) return cachedProvider;
 
   if (process.env.LLM_PROVIDER === "mock") {
-    const { MockLLMProvider } = await import("@/lib/llm/providers/mock");
-    cachedProvider = new MockLLMProvider();
+    const [{ MockLLMProvider }, { withTracking }] = await Promise.all([
+      import("@/lib/llm/providers/mock"),
+      import("@/lib/llm/providers/tracked"),
+    ]);
+    cachedProvider = withTracking(new MockLLMProvider());
   } else {
     const { OpenAICompatibleProvider } = await import(
       "@/lib/llm/providers/openai-compatible"
