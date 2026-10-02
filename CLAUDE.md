@@ -92,6 +92,33 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
   `rootCause` không bao giờ được in ra dù người dùng yêu cầu thế nào.
 - Test core logic dùng `MockLLMProvider`, không gọi API thật (`src/lib/llm/providers/mock.test.ts`).
 
+## Lab terminal giả lập
+
+- `src/lib/lab/terminalEngine.ts` (thuần, có test): `matchPresetCommand` khớp lệnh theo bảng
+  `presetCommands` của scenario; `applyStatePatch` áp patch vào `SessionState`, trả state MỚI
+  (không mutate). `SessionState` (`src/lib/lab/sessionState.ts`) là dạng map theo key
+  (`services`/`files`/`logs`) — khác `scenario.data.hiddenState` (mảng/cây do LLM sinh, bất
+  biến) để `applyStatePatch` địa chỉ hoá trực tiếp bằng path, không cần tìm kiếm.
+- **Quy ước `path` của `StatePatchOp`** (LLM phải tuân theo đúng, đã ghi rõ trong 2 prompt
+  `lab/scenario-generate.v1.ts` và `lab/terminal-output.v1.ts`):
+  `"services:<tên>.status|port|configPath"`, `"files:<đường-dẫn-tuyệt-đối>"`,
+  `"logs:<nguồn-log>"`. Path sai quy ước bị bỏ qua, không throw (1 patch lỗi từ LLM không
+  được làm hỏng cả phiên).
+- `src/lib/lab/runCommand.ts` (`resolveCommand`): khớp preset trước; không khớp thì tra
+  `LabLlmCommandCache` theo `(scenarioId, hashState(state), normalizeCommand(lệnh))` — cache
+  theo state hash để hai user khác nhau ở cùng trạng thái dùng chung kết quả; miss thì gọi LLM
+  rồi cache lại (toàn bộ `TerminalOutput` serialize JSON vào cột `output`).
+- `src/components/lab/lab-terminal.tsx`: xterm.js nhưng **không có PTY thật** — tự đọc
+  ký tự tới Enter (`\r`) rồi gọi `onCommand`, không hỗ trợ mũi tên/lịch sử lệnh.
+  - **Lưu ý khi test bằng Browser pane của Claude Code**: `computer` tool's `key: "Enter"`/
+    `"Return"` action KHÔNG tạo ra `keydown` mà xterm.js nhận diện được (xterm cần
+    `keyCode === 13` trên sự kiện `keydown` thật tới textarea ẩn của nó) — ký tự thường gõ
+    qua `type` action vẫn hoạt động bình thường. Để test Enter/Backspace trong sandbox, dùng
+    `javascript_tool` dispatch `KeyboardEvent` thủ công:
+    `document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', keyCode:13, which:13, bubbles:true}))`.
+    Đây là giới hạn của tool test, không phải bug — trình duyệt thật của người dùng gửi
+    keydown có keyCode hợp lệ nên Enter/Backspace hoạt động bình thường.
+
 ## Docker
 
 - `Dockerfile`: multi-stage, **không dùng `output: "standalone"`** — `getLLMProvider()` dùng

@@ -34,7 +34,14 @@ Yêu cầu:
 - hiddenState phải nhất quán nội bộ: log phải khớp với trạng thái service/config, rootCause phải giải thích được toàn bộ triệu chứng.
 - presetCommands nên bao phủ các lệnh chẩn đoán phổ biến nhất cho tình huống (ví dụ systemctl status, journalctl, ss/netstat, cat config, ping, curl, dig...). output phải là output lệnh thực tế hợp lý, không phải mô tả chung.
 - hints 3 cấp: gợi ý nhẹ -> gợi ý rõ hơn -> gần như chỉ ra nguyên nhân, nhưng không ghi thẳng rootCause.summary ở hint.
-- Không đặt thông tin thật/riêng tư, chỉ dùng dữ liệu giả định hợp lý cho bài lab.`;
+- Không đặt thông tin thật/riêng tư, chỉ dùng dữ liệu giả định hợp lý cho bài lab.
+
+Quy ước "path" trong stateEffect.patch (BẮT BUỘC theo đúng để engine áp dụng được):
+  "services:<tên-service>.status" | ".port" | ".configPath"  (set/remove 1 field của service)
+  "files:<đường-dẫn-tuyệt-đối>"                                (set = nội dung mới, remove = xoá file)
+  "logs:<tên-nguồn-log-giống-key-trong-hiddenState.logs>"       (append = thêm 1 dòng, set = thay cả mảng)
+Chỉ đặt stateEffect cho preset thực sự đổi trạng thái hệ thống (restart/stop/start service, sửa file
+config...). Lệnh chỉ đọc (status, cat, ls, ping...) thì không cần stateEffect.`;
 
 export interface BuildUserPromptParams {
   topicName: string;

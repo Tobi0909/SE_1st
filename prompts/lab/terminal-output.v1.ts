@@ -15,7 +15,13 @@ Schema JSON:
 {
   "output": string,
   "stateEffect"?: { "description": string, "patch": [{ "op": "set"|"remove"|"append", "path": string, "value"?: any }] }
-}`;
+}
+
+Trạng thái hiện tại (currentStateJson) có dạng { services: {tên: {status,port?,configPath?}},
+files: {đườngDẫn: nộiDung}, logs: {nguồn: dòng[]} }. Quy ước "path" cho patch PHẢI theo đúng:
+  "services:<tên-service>.status" | ".port" | ".configPath"
+  "files:<đường-dẫn-tuyệt-đối>"            (set = nội dung mới, remove = xoá file)
+  "logs:<tên-nguồn-log>"                   (append = thêm 1 dòng, set = thay cả mảng)`;
 
 export interface BuildUserPromptParams {
   scenarioBriefing: string;
