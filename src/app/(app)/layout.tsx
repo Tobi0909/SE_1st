@@ -23,9 +23,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b px-6 py-3">
-        <Link href="/dashboard" className="font-semibold">
-          SE Dojo
-        </Link>
+        <nav className="flex items-center gap-6">
+          <Link href="/dashboard" className="font-semibold">
+            SE Dojo
+          </Link>
+          <Link href="/quiz" className="text-sm text-muted-foreground hover:text-foreground">
+            Quiz
+          </Link>
+          <Link href="/flashcards" className="text-sm text-muted-foreground hover:text-foreground">
+            Flashcard
+          </Link>
+        </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {user ? (
