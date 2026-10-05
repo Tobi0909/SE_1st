@@ -1,4 +1,6 @@
 import type { Difficulty } from "@/generated/prisma/client";
+import { getCurriculum } from "@/lib/curriculum/data";
+import { buildSkillTreeFromCurriculum } from "@/lib/curriculum/skillTree";
 import { db } from "@/lib/db";
 import { getLLMProvider } from "@/lib/llm/provider";
 import type { SkillTreeNode } from "@/lib/llm/schemas";
@@ -10,13 +12,25 @@ import {
   type NodeStatus,
 } from "@/lib/roadmap/nodeStatus";
 
+/**
+ * Chủ đề nằm trong curriculum chuẩn (xem lib/curriculum/data.ts, ADR-005): dựng skill tree
+ * TRỰC TIẾP từ đó, không gọi LLM — loại hoàn toàn rủi ro hallucination cho cấu trúc roadmap.
+ * Chủ đề admin tự tạo (không có trong curriculum) thì vẫn để LLM tự sinh như trước.
+ */
 export async function ensureSkillTree(topicId: string, userId: string | null): Promise<void> {
   const count = await db.skillNode.count({ where: { topicId } });
   if (count > 0) return;
 
   const topic = await db.topic.findUniqueOrThrow({ where: { id: topicId } });
-  const provider = await getLLMProvider();
-  const tree = await provider.generateSkillTree({ userId, topicName: topic.name, topicSlug: topic.slug });
+  const curriculum = getCurriculum(topic.slug);
+
+  const tree = curriculum
+    ? buildSkillTreeFromCurriculum(curriculum)
+    : await (await getLLMProvider()).generateSkillTree({
+        userId,
+        topicName: topic.name,
+        topicSlug: topic.slug,
+      });
 
   await createNodesRecursive(topicId, tree.nodes, null);
 }

@@ -1,4 +1,5 @@
 import type { Difficulty } from "@/generated/prisma/client";
+import { pickCurriculumAreas } from "@/lib/curriculum/pick";
 import { db } from "@/lib/db";
 import { getLLMProvider } from "@/lib/llm/provider";
 
@@ -23,6 +24,10 @@ export async function ensureQuestionPool(
     take: EXCLUDE_STEMS_LIMIT,
   });
 
+  // Giao đúng mảng kiến thức cần bao phủ (curriculum chuẩn, xem ADR-005) thay vì để LLM sinh
+  // tự do — chủ đề admin tự tạo không có curriculum thì trả mảng rỗng, prompt tự fallback.
+  const curriculumAreas = pickCurriculumAreas(topic.slug, difficulty, needed);
+
   const provider = await getLLMProvider();
   const batch = await provider.generateQuizBatch({
     userId,
@@ -31,6 +36,7 @@ export async function ensureQuestionPool(
     difficulty,
     count: needed,
     excludeStems: existing.map((q) => q.stem),
+    curriculumAreas,
   });
 
   for (const q of batch.questions) {

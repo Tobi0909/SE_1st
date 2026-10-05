@@ -383,6 +383,55 @@ lại trực tiếp trong tài liệu này vì đã định hình toàn bộ ki�
   log/rate-limit qua wrapper `withTracking` để hành vi nhất quán với provider thật). Đổi lại,
   không dùng được tính năng riêng của một nhà cung cấp nếu chưa đưa vào interface.
 
+### ADR-005: Curriculum chuẩn hoá làm khung cho roadmap/quiz/lab, LLM chỉ sinh trong khung đó
+
+- **Trạng thái:** Đã áp dụng (2026-10-05).
+- **Bối cảnh:** ADR-003 chấp nhận nội dung do LLM sinh tự do, không qua duyệt. Trong thực tế
+  điều này khiến roadmap mỗi lần sinh có thể ra cây kỹ năng khác nhau cho cùng 1 topic (không
+  xác định), và quiz/lab không có gì đảm bảo bao phủ đều các mảng kiến thức quan trọng của 1
+  chủ đề SE thực tế — phụ thuộc hoàn toàn vào việc LLM "nhớ ra" đủ phạm vi mỗi lần gọi.
+- **Quyết định:** thêm `src/lib/curriculum/data.ts` — khung kiến thức tĩnh, soạn tay, theo
+  cấu trúc `Record<topicSlug, Record<Difficulty, CurriculumArea[]>>` cho 7 chủ đề seed
+  (`linux`, `networking`, `virtualization`, `container`, `monitoring-logging`, `cicd-iac`,
+  `security-hardening`). Ba điểm tích hợp:
+  - **Roadmap** (`ensureSkillTree`, `lib/roadmap/progress.ts`): nếu topic có curriculum, cây
+    kỹ năng được build **thuần từ dữ liệu tĩnh** (`buildSkillTreeFromCurriculum`,
+    `lib/curriculum/skillTree.ts`) — **không gọi LLM**, xác định (deterministic), có test.
+  - **Quiz** (`ensureQuestionPool`, `lib/quiz/questionPool.ts`): `pickCurriculumAreas` chọn
+    một tập mảng kiến thức (xoay vòng, ưu tiên mảng chưa dùng) truyền vào
+    `generateQuizBatch` qua `curriculumAreas` — LLM vẫn sinh câu hỏi, nhưng được giao prompt
+    yêu cầu rải đều qua đúng các mảng đó (`prompts/quiz/generate.v2.ts`).
+  - **Lab** (`ensureLabScenario`, `lib/lab/scenarioPool.ts`): tương tự, chọn 1 mảng kiến thức
+    truyền vào `generateScenario` qua `curriculumArea` — rootCause của scenario phải xoay
+    quanh đúng mảng đó (`prompts/lab/scenario-generate.v2.ts`).
+  - **Chủ đề admin tự tạo** (không có trong `CURRICULUM`): `getCurriculum`/
+    `pickCurriculumAreas` trả `null`/rỗng ở cả 3 điểm tích hợp trên → fallback nguyên trạng
+    hành vi cũ (roadmap gọi LLM sinh tự do, quiz/lab không có khung kiến thức kèm theo) —
+    không có chủ đề nào bị chặn vì thiếu curriculum.
+- **Đã cân nhắc:**
+  - Giữ nguyên LLM tự do hoàn toàn (ADR-003 nguyên bản) — đơn giản nhất, nhưng không giải
+    quyết được yêu cầu "nội dung học phải đầy đủ, chuẩn" của chủ dự án.
+  - Con người duyệt nội dung sau khi LLM sinh — chất lượng cao nhất nhưng tạo nút thắt thủ
+    công, team không có thời gian (lý do ADR-003 ban đầu bác bỏ hướng này vẫn còn đúng).
+  - Soạn tay 100% nội dung (bỏ LLM hoàn toàn) — chuẩn nhất nhưng mất khả năng tạo biến thể
+    câu hỏi/scenario mới liên tục, và tốn công soạn vượt quá quy mô nội bộ 4-10 người.
+  - → Chọn phương án giữa: khung kiến thức soạn tay (rẻ, làm 1 lần, dễ bảo trì vì chỉ là dữ
+    liệu TypeScript tĩnh) + LLM sinh nội dung cụ thể trong khung đó (vẫn giữ được biến thể,
+    không cần duyệt từng câu).
+- **Vị trí trong kiến trúc 1 chiều (mục 2):** `lib/curriculum/` là Domain, giống
+  `lib/quiz/`, `lib/lab/`, `lib/roadmap/` — **không phải Infra**. `lib/llm/provider.ts` (Infra)
+  không import từ `lib/curriculum/` để giữ đúng chiều Domain→Infra; thay vào đó định nghĩa
+  `CurriculumAreaHint` cấu trúc giống `CurriculumArea` ngay trong `provider.ts`, nơi gọi
+  (`questionPool.ts`/`scenarioPool.ts`, cũng là Domain) tự import `CurriculumArea` thật và
+  truyền vào — tương thích nhờ structural typing của TypeScript, không cần ép kiểu.
+- **Hệ quả:** roadmap cho 7 topic seed giờ xác định và nhất quán giữa các lần sinh (test được
+  bằng assertion thường, không cần so khớp LLM output); quiz/lab bao phủ đều các mảng kiến
+  thức quan trọng theo đúng thiết kế curriculum thay vì phụ thuộc trí nhớ ngẫu nhiên của LLM
+  mỗi lần gọi. Đổi lại: thêm 1 chỗ cần bảo trì thủ công (nội dung `curriculum/data.ts`) khi
+  muốn mở rộng/sửa phạm vi kiến thức cho 1 topic — chấp nhận được vì đây chính là mục tiêu
+  (chuẩn hoá, không để trôi tự do theo LLM). Prompt quiz/lab tăng version lên `v2` theo đúng
+  quy ước mục 5 (file mới, giữ `v1` không sửa).
+
 ## 8. Checklist trước khi merge
 
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` đều pass

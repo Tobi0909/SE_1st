@@ -17,6 +17,18 @@ export class LLMOutputValidationError extends Error {
   }
 }
 
+/**
+ * Shape tối giản, KHÔNG import trực tiếp `CurriculumArea` từ `lib/curriculum` — lớp Infra
+ * (`lib/llm/`) không được phụ thuộc ngược vào Domain (`lib/curriculum`), chỉ chiều ngược lại
+ * (Domain gọi Infra) mới đúng theo kiến trúc 1 chiều trong docs/ARCHITECTURE.md. Nơi gọi
+ * (`lib/quiz/questionPool.ts`, `lib/lab/scenarioPool.ts`) tự import `CurriculumArea` và
+ * truyền vào đây — tương thích cấu trúc (structural typing), không cần ép kiểu.
+ */
+export interface CurriculumAreaHint {
+  title: string;
+  summary: string;
+}
+
 export interface GenerateQuizParams {
   userId: string | null;
   topicName: string;
@@ -24,6 +36,8 @@ export interface GenerateQuizParams {
   difficulty: Difficulty;
   count: number;
   excludeStems?: string[];
+  /** Mảng kiến thức cần bao phủ (từ curriculum chuẩn) — rỗng/undefined thì sinh tự do. */
+  curriculumAreas?: CurriculumAreaHint[];
 }
 
 export interface GenerateScenarioParams {
@@ -31,6 +45,8 @@ export interface GenerateScenarioParams {
   topicName: string;
   topicSlug: string;
   difficulty: Difficulty;
+  /** Mảng kiến thức để xoay quanh (từ curriculum chuẩn) — undefined thì sinh tự do. */
+  curriculumArea?: CurriculumAreaHint;
 }
 
 export interface TerminalRespondParams {

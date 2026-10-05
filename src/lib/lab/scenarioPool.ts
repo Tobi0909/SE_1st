@@ -1,8 +1,10 @@
 import type { Difficulty } from "@/generated/prisma/client";
+import { pickCurriculumAreas } from "@/lib/curriculum/pick";
 import { db } from "@/lib/db";
 import { getLLMProvider } from "@/lib/llm/provider";
 
 const MIN_SCENARIOS_PER_POOL = 3;
+const SCENARIO_PROMPT_VERSION = "lab.scenario-generate.v2";
 
 export async function ensureLabScenario(
   topicId: string,
@@ -13,12 +15,17 @@ export async function ensureLabScenario(
   if (count >= MIN_SCENARIOS_PER_POOL) return;
 
   const topic = await db.topic.findUniqueOrThrow({ where: { id: topicId } });
+  // Mỗi scenario xoay quanh 1 mảng kiến thức cụ thể (curriculum chuẩn, xem ADR-005) — chủ đề
+  // admin tự tạo không có curriculum thì pickCurriculumAreas trả rỗng, prompt tự sinh tự do.
+  const [curriculumArea] = pickCurriculumAreas(topic.slug, difficulty, 1);
+
   const provider = await getLLMProvider();
   const generated = await provider.generateScenario({
     userId,
     topicName: topic.name,
     topicSlug: topic.slug,
     difficulty,
+    curriculumArea,
   });
 
   const scenario = await db.labScenario.create({
@@ -26,7 +33,7 @@ export async function ensureLabScenario(
       topicId,
       difficulty,
       title: generated.title,
-      promptVersion: "lab.scenario-generate.v1",
+      promptVersion: SCENARIO_PROMPT_VERSION,
       data: JSON.parse(JSON.stringify(generated)),
       status: "ACTIVE",
     },

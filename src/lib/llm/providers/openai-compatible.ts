@@ -25,8 +25,8 @@ import {
   type SubmissionGrade,
   type TerminalOutput,
 } from "@/lib/llm/schemas";
-import * as quizGenerate from "@prompts/quiz/generate.v1";
-import * as scenarioGenerate from "@prompts/lab/scenario-generate.v1";
+import * as quizGenerate from "@prompts/quiz/generate.v2";
+import * as scenarioGenerate from "@prompts/lab/scenario-generate.v2";
 import * as terminalOutput from "@prompts/lab/terminal-output.v1";
 import * as gradeSubmission from "@prompts/lab/grade-submission.v1";
 import * as chatPrompt from "@prompts/tutor/chat.v1";
@@ -147,6 +147,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
       difficulty: params.difficulty,
       count: params.count,
       excludeStems: params.excludeStems,
+      curriculumAreas: params.curriculumAreas,
     });
     return this.callJson(
       "quiz.generate",
@@ -162,6 +163,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
       topicName: params.topicName,
       topicSlug: params.topicSlug,
       difficulty: params.difficulty,
+      curriculumArea: params.curriculumArea,
     });
     return this.callJson(
       "lab.scenario-generate",
