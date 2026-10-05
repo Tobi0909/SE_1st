@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **25 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **27 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -157,16 +157,36 @@ phạm chính nguyên tắc "xác nhận đừng đoán" mà bài kia dạy) —
 cần tcpdump để xác nhận chắc". **Bài học: cẩn thận với các khẳng định dựa trên suy luận gián
 tiếp (port quen dùng, quy ước) khi công cụ đang dùng không thực sự xác nhận được điều đó.**
 
+### 6. `networking.dns` — DNS (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.dns.fundamentals` | `knowledge/networking/dns/fundamentals.md` | draft |
+| `networking.dns.operations` | `knowledge/networking/dns/operations.md` | draft |
+
+Dùng systemd-resolved thật trên máy (stub `127.0.0.53` → upstream `192.168.24.1`) và domain
+công khai (`example.com`, `google.com`, `github.com`) để lấy output thật qua `dig`/`nslookup`/
+`host`/`resolvectl status`/`dig +trace`.
+
+**Phát hiện khi review module này:** reviewer phát hiện 1 lỗi khái niệm có khả năng LAN VÀO
+nội dung sinh tự động nếu không sửa — bảng SOA ở `operations.md` mô tả tham số `minimum` vừa
+là "TTL mặc định" vừa là "TTL negative caching", pha trộn RFC 1035 (gốc, 1987) với RFC 2308
+(1998, chuẩn hiện hành). Đã sửa: tách rõ `$TTL` (TTL mặc định, theo RFC 2308) khỏi SOA
+`minimum` (CHỈ còn vai trò negative caching), bổ sung nguồn RFC 2308. **Bài học: với các khái
+niệm đã qua nhiều lần chuẩn hoá lại theo thời gian (RFC cũ bị RFC mới redefine một phần), chỉ
+trích đúng 1 RFC gốc có thể dẫn tới mô tả lỗi thời — cần kiểm tra RFC có "update/obsolete" bởi
+RFC nào mới hơn không trước khi chốt nội dung.** Cũng đã thêm ghi chú "đã rút gọn" cho 2 đoạn
+output dài (`resolvectl status`, `dig +trace`) từng bị trình bày như verbatim đầy đủ.
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
-`networking.switching` hoặc `networking.dns`/`networking.diagnostic-tools` (đều ưu tiên
-"cao"). `networking.diagnostic-tools` (tcpdump/mtr/ss) có thể làm sớm vì các module khác
-thường tham chiếu tới nó để chẩn đoán. Domain `linux` còn 5 module ưu tiên "cao" chưa làm
-(`linux.network-stack`, `linux.performance`, `linux.shell-scripting`,
-`linux.package-management`, `linux.kernel-troubleshooting`) — có thể quay lại sau khi
-`networking` có thêm nền tảng (đặc biệt `linux.network-stack` cần `networking.dns` làm
-prerequisite).
+`networking.switching` hoặc `networking.diagnostic-tools` (đều ưu tiên "cao").
+`networking.diagnostic-tools` (tcpdump/mtr/ss) có thể làm sớm vì các module khác thường tham
+chiếu tới nó để chẩn đoán, và không cần thiết bị mạng vật lý. Domain `linux` còn 5 module ưu
+tiên "cao" chưa làm (`linux.network-stack` — giờ có đủ prerequisite `networking.dns` để làm,
+`linux.performance`, `linux.shell-scripting`, `linux.package-management`,
+`linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
