@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **30 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **33 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -203,13 +203,36 @@ liệu), cú pháp ký hiệu đặc thù của từng tool (ví dụ cách `tcp
 với cách diễn đạt thông thường (viết "ack" như một từ) — nên đối chiếu từng ký tự với ví dụ
 thật trong man page/tài liệu gốc, không tự suy diễn cú pháp dù nắm đúng khái niệm.**
 
+### 8. `networking.nat-firewall` — NAT và firewall (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.nat-firewall.nat-types` | `knowledge/networking/nat-firewall/nat-types.md` | draft |
+| `networking.nat-firewall.firewall-concepts` | `knowledge/networking/nat-firewall/firewall-concepts.md` | draft |
+| `networking.nat-firewall.acl-security-groups` | `knowledge/networking/nat-firewall/acl-security-groups.md` | draft |
+
+SNAT/DNAT/MASQUERADE, lý do PAT "chặn" kết nối đến (conntrack), stateful vs stateless,
+nguyên tắc thứ tự rule (first-match-wins), zone firewalld, và Security Group vs Network ACL
+(mô hình AWS — stateful/allow-only/instance-level vs stateless/allow+deny/subnet-level, thứ
+tự traffic qua 2 lớp ĐẢO NGƯỢC theo chiều inbound/outbound). Máy không có sudo không-mật-khẩu
+— lệnh THAY ĐỔI rule (iptables/nft add, set ip_forward) dùng output minh hoạ theo
+netfilter.org/AWS VPC Docs; lệnh ĐỌC kernel state (`ip_forward`, `lsmod`) chạy thật.
+
+**Phát hiện khi review module này:** chỉ các vấn đề mức "nên sửa", không có lỗi nghiêm trọng —
+đã sửa: output `iptables -L -n -v` thiếu cột `pkts/bytes/in/out` mà chính cờ `-v` tạo ra; lệnh
+`lsmod | grep nf_tables` không thể chứng minh được tuyên bố "`nf_conntrack` chưa load" (pattern
+không khớp thì đương nhiên không hiện, không phải do thật sự kiểm tra) — sửa thành
+`grep -E 'nf_tables|nf_conntrack'`; bổ sung blockquote cảnh báo "output minh hoạ" còn thiếu ở
+`acl-security-groups.md` cho nhất quán với 2 bài khác; bổ sung chiều traffic cho đúng thứ tự
+SG/NACL (inbound: NACL→SG, outbound: SG→NACL — ban đầu chỉ nói đúng 1 chiều).
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
 `networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ theo đúng quy
-tắc) hoặc `networking.nat-firewall`/`networking.http-lb` (ưu tiên "cao", nhiều phần chạy được
-thật qua Linux). Domain `linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack` —
-giờ có đủ prerequisite để làm, `linux.performance`, `linux.shell-scripting`,
+tắc) hoặc `networking.http-lb` (ưu tiên "cao", chạy được thật qua Nginx/HAProxy trên Linux nếu
+cài được). Domain `linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack` — giờ có
+đủ prerequisite để làm, `linux.performance`, `linux.shell-scripting`,
 `linux.package-management`, `linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
