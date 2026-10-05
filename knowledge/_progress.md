@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **16 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **21 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -108,12 +108,38 @@ không tự ý quyết định, hỏi lại nếu gặp tình huống tương t�
 - Bổ sung ghi chú RAID10 trong `mdadm` linh hoạt hơn mô hình 4-đĩa cổ điển (hỗ trợ tối thiểu 2
   đĩa qua layout near/far/offset).
 
+### 4. `linux.users-permissions` — User và phân quyền (5/5 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.users-permissions.users-groups` | `knowledge/linux/users-permissions/users-groups.md` | draft |
+| `linux.users-permissions.chmod-chown` | `knowledge/linux/users-permissions/chmod-chown.md` | draft |
+| `linux.users-permissions.sudo-pam` | `knowledge/linux/users-permissions/sudo-pam.md` | draft |
+| `linux.users-permissions.acl-xattr` | `knowledge/linux/users-permissions/acl-xattr.md` | draft |
+| `linux.users-permissions.selinux-apparmor` | `knowledge/linux/users-permissions/selinux-apparmor.md` | draft |
+
+**Quyết định áp dụng (theo đúng tiền lệ module 3):** không tạo user/group hệ thống thật, không
+sửa `/etc/sudoers`/PAM thật, không đổi SELinux/AppArmor mode thật trên máy cá nhân — các phần
+này dùng "output minh hoạ" từ man page chính thức. Mọi lệnh ĐỌC an toàn (`id`, `getent`,
+`chmod`/`chown`/`getfacl`/`setfacl` trên file tạm `/tmp`, `chattr +i` thử và nhận lỗi quyền
+thật, `systemctl status apparmor`) chạy thật. Máy dùng AppArmor (không có SELinux — RHEL-family
+mới có), nên phần SELinux toàn bộ là minh hoạ, đánh dấu rõ từ đầu bài.
+
+**Phát hiện khi review module này:** không có lỗi kỹ thuật nghiêm trọng. Đã sửa: `sudo-pam.md`
+vượt khung độ dài (~2120 từ, cắt xuống ~1970); bổ sung nguồn còn thiếu ở 4/5 bài (`usermod(8)`/
+`shadow(5)` cho `users-groups.md`, `chown(1)` cho `chmod-chown.md`, `pam.conf(5)` cho
+`sudo-pam.md`, `acl(5)` cho `acl-xattr.md`); sửa giải thích ký tự `X` trong ACL/chmod (bỏ sót
+trường hợp file đã có execute sẵn, không chỉ áp dụng cho thư mục); thêm caveat cho claim
+"AppArmor dễ bị lách qua hard link" (vẫn cần quyền DAC trước, không phải lỗ hổng miễn phí).
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Theo đúng thứ tự ưu tiên trong taxonomy (ưu tiên "cao" trước), tiếp theo là
-`linux.users-permissions` (domain `linux`, ưu tiên "cao"). Domain `networking` có
-`networking.tcpip` ưu tiên "cao" cũng nên làm sớm vì nhiều module khác (bao gồm
-`linux.network-stack`) có prerequisite trỏ vào đó.
+Theo đúng thứ tự ưu tiên trong taxonomy, domain `linux` đã hoàn thành 4/9 module ưu tiên "cao"
+có nhiều bài nhất. Tiếp theo nên chuyển sang domain `networking` với `networking.tcpip` (ưu
+tiên "cao") vì nhiều module khác (bao gồm `linux.network-stack` đã có prerequisite trỏ vào đó
+từ module 1) đang chờ nó. Các module `linux` còn lại (`linux.network-stack`,
+`linux.performance`, `linux.shell-scripting`, `linux.package-management`,
+`linux.kernel-troubleshooting`) có thể làm sau khi domain `networking` có nền tảng.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
