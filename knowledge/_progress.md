@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **21 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **25 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -132,14 +132,41 @@ vượt khung độ dài (~2120 từ, cắt xuống ~1970); bổ sung nguồn c�
 trường hợp file đã có execute sẵn, không chỉ áp dụng cho thư mục); thêm caveat cho claim
 "AppArmor dễ bị lách qua hard link" (vẫn cần quyền DAC trước, không phải lỗ hổng miễn phí).
 
+### 5. `networking.tcpip` — Mô hình TCP/IP (4/4 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.tcpip.osi-tcpip-model` | `knowledge/networking/tcpip/osi-tcpip-model.md` | draft |
+| `networking.tcpip.ipv4-subnetting` | `knowledge/networking/tcpip/ipv4-subnetting.md` | draft |
+| `networking.tcpip.ipv6-basics` | `knowledge/networking/tcpip/ipv6-basics.md` | draft |
+| `networking.tcpip.tcp-udp` | `knowledge/networking/tcpip/tcp-udp.md` | draft |
+
+Module đầu tiên của domain `networking`. Lệnh đọc mạng an toàn (`ip addr`, `ip route`,
+`ss -tn`/`-un`/`-tln`, `ping`, `dig`) chạy thật trên máy, dùng chính địa chỉ IP/route thật của
+máy (`192.168.25.227/23`, route qua `enp1s0`) xuyên suốt cả 4 bài để nhất quán. Dùng thêm
+Python `ipaddress` module để verify số liệu subnet (network/broadcast address) chính xác
+trước khi đưa vào bài.
+
+**Phát hiện khi review module này:** reviewer phát hiện 1 lỗi phải sửa ngay — bài
+`osi-tcpip-model.md` viết sai trình tự lịch sử (nói OSI ra đời trước TCP/IP) khi giải thích vì
+sao TCP/IP không tách tầng Presentation/Session; thực tế TCP/IP triển khai thật từ đầu 1970s/
+1983, OSI là khung lý thuyết công bố SAU (1984) và chưa bao giờ được triển khai rộng thành giao
+thức thật. Đã sửa đúng trình tự. Cũng sửa 1 chỗ suy luận quá đà (khẳng định UDP port 443 "là"
+QUIC chỉ từ `ss`, không có cách xác nhận chắc chắn giao thức tầng ứng dụng qua `ss` — tự vi
+phạm chính nguyên tắc "xác nhận đừng đoán" mà bài kia dạy) — đã sửa thành "nhiều khả năng,
+cần tcpdump để xác nhận chắc". **Bài học: cẩn thận với các khẳng định dựa trên suy luận gián
+tiếp (port quen dùng, quy ước) khi công cụ đang dùng không thực sự xác nhận được điều đó.**
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Theo đúng thứ tự ưu tiên trong taxonomy, domain `linux` đã hoàn thành 4/9 module ưu tiên "cao"
-có nhiều bài nhất. Tiếp theo nên chuyển sang domain `networking` với `networking.tcpip` (ưu
-tiên "cao") vì nhiều module khác (bao gồm `linux.network-stack` đã có prerequisite trỏ vào đó
-từ module 1) đang chờ nó. Các module `linux` còn lại (`linux.network-stack`,
-`linux.performance`, `linux.shell-scripting`, `linux.package-management`,
-`linux.kernel-troubleshooting`) có thể làm sau khi domain `networking` có nền tảng.
+Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
+`networking.switching` hoặc `networking.dns`/`networking.diagnostic-tools` (đều ưu tiên
+"cao"). `networking.diagnostic-tools` (tcpdump/mtr/ss) có thể làm sớm vì các module khác
+thường tham chiếu tới nó để chẩn đoán. Domain `linux` còn 5 module ưu tiên "cao" chưa làm
+(`linux.network-stack`, `linux.performance`, `linux.shell-scripting`,
+`linux.package-management`, `linux.kernel-troubleshooting`) — có thể quay lại sau khi
+`networking` có thêm nền tảng (đặc biệt `linux.network-stack` cần `networking.dns` làm
+prerequisite).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
