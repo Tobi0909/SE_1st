@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **10 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **16 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -71,12 +71,49 @@
 - Độ dài 5 bài (ước lượng, không tính frontmatter/code block): boot-process ~2050,
   units ~1711, service-mgmt ~1750, timers ~1769, advanced ~1876 từ.
 
+### 3. `linux.filesystem-storage` — Filesystem, LVM, RAID (6/6 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.filesystem-storage.fhs-permissions` | `knowledge/linux/filesystem-storage/fhs-permissions.md` | draft |
+| `linux.filesystem-storage.partitioning` | `knowledge/linux/filesystem-storage/partitioning.md` | draft |
+| `linux.filesystem-storage.lvm-basics` | `knowledge/linux/filesystem-storage/lvm-basics.md` | draft |
+| `linux.filesystem-storage.lvm-advanced` | `knowledge/linux/filesystem-storage/lvm-advanced.md` | draft |
+| `linux.filesystem-storage.raid-mdadm` | `knowledge/linux/filesystem-storage/raid-mdadm.md` | draft |
+| `linux.filesystem-storage.troubleshooting` | `knowledge/linux/filesystem-storage/troubleshooting.md` | draft |
+
+**Quyết định quan trọng của chủ dự án cho module này (áp dụng cho MỌI module sau có thao tác
+đĩa/block device nguy hiểm tương tự):** máy viết bài không có sudo không-mật-khẩu và không cài
+`lvm2`/`mdadm`. Được hỏi, chủ dự án chọn: **KHÔNG cài thêm gói/dùng sudo để chạy thật** — 4 bài
+`partitioning`/`lvm-basics`/`lvm-advanced`/`raid-mdadm` dùng **"output minh hoạ"** lấy cú pháp
+từ man page chính thức (man7.org: `fdisk.8`, `pvcreate.8`, `vgcreate.8`, `lvextend.8`,
+`lvcreate.8`, `mdadm.8`), đánh dấu rõ ràng bằng blockquote cảnh báo ngay đầu mỗi bài. 2 bài còn
+lại (`fhs-permissions`, `troubleshooting`) KHÔNG đụng block device nên vẫn chạy lệnh thật bình
+thường (ls/stat/umask/df/du/lsof). **Áp dụng cho tương lai**: domain `virt-storage` (VMware/
+Ceph/SAN) và các module liên quan tới thiết bị không có trong sandbox sẽ theo đúng mẫu này —
+không tự ý quyết định, hỏi lại nếu gặp tình huống tương tự chưa có tiền lệ rõ ràng.
+
+**Phát hiện khi review module này:**
+- Reviewer phát hiện output ở `fhs-permissions.md` mục 4 ghi nhãn "chạy thật" nhưng định dạng
+  bị đơn giản hoá (chỉ số octal + tên) không khớp output thật của `ls -la`/`ls -l`/`ls -ld` —
+  hoá ra do một lớp proxy cục bộ trên máy (rtk, xem ghi chú RTK.md) âm thầm rút gọn output
+  `ls` khi gọi qua Bash tool. Đã phát hiện cách bypass (`\ls` hoặc `/usr/bin/ls` trực tiếp) để
+  lấy output GNU coreutils chuẩn thật, dùng lại trong bài. **Bài học: khi một lệnh quen thuộc
+  cho ra định dạng output "lạ" so với kiến thức chuẩn, nghi ngờ có lớp can thiệp cục bộ
+  (alias/proxy/wrapper) trước khi đưa vào bài — kiểm tra bằng `type <lệnh>` và thử gọi binary
+  trực tiếp.**
+- Reviewer phát hiện cú pháp tạo thin LV ở `lvm-advanced.md` dùng `-V` kèm `--size` không khớp
+  `lvcreate(8)` thật (trộn nhầm với cú pháp tạo sparse LV) — đã sửa đúng thành
+  `lvcreate -T <vg>/<pool> -V <size-ảo> -n <tên>`.
+- Bổ sung ghi chú RAID10 trong `mdadm` linh hoạt hơn mô hình 4-đĩa cổ điển (hỗ trợ tối thiểu 2
+  đĩa qua layout near/far/offset).
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy (ưu tiên "cao" trước), tiếp theo là
-`linux.filesystem-storage`, rồi `linux.users-permissions` (cùng domain `linux`, ưu tiên "cao").
-Domain `networking` có `networking.tcpip` ưu tiên "cao" cũng nên làm sớm vì nhiều module khác
-(bao gồm `linux.network-stack`) có prerequisite trỏ vào đó.
+`linux.users-permissions` (domain `linux`, ưu tiên "cao"). Domain `networking` có
+`networking.tcpip` ưu tiên "cao" cũng nên làm sớm vì nhiều module khác (bao gồm
+`linux.network-stack`) có prerequisite trỏ vào đó.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
