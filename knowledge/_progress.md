@@ -7,9 +7,11 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **5 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **10 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
+- Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
+  từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
 
 ## Module đã hoàn thành (viết + tự review bằng subagent + lint pass)
 
@@ -22,6 +24,34 @@
 | `linux.boot-systemd.service-mgmt` | `knowledge/linux/boot-systemd/service-mgmt.md` | draft |
 | `linux.boot-systemd.timers` | `knowledge/linux/boot-systemd/timers.md` | draft |
 | `linux.boot-systemd.advanced` | `knowledge/linux/boot-systemd/advanced.md` | draft |
+
+### 2. `linux.process-signals` — Process và tín hiệu (5/5 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.process-signals.lifecycle` | `knowledge/linux/process-signals/lifecycle.md` | draft |
+| `linux.process-signals.signals` | `knowledge/linux/process-signals/signals.md` | draft |
+| `linux.process-signals.job-control` | `knowledge/linux/process-signals/job-control.md` | draft |
+| `linux.process-signals.monitoring` | `knowledge/linux/process-signals/monitoring.md` | draft |
+| `linux.process-signals.zombie-orphan` | `knowledge/linux/process-signals/zombie-orphan.md` | draft |
+
+**Phát hiện đáng chú ý khi review module này (ghi lại để tránh lặp lại ở module sau):**
+- Reviewer phát hiện 1 lỗi kỹ thuật thật ở tình huống thực tế của `zombie-orphan.md`: ví dụ
+  gốc dùng Node.js `child_process.spawn()` không lắng nghe event `'exit'` để giải thích zombie
+  tích tụ — SAI, vì Node.js (qua libuv) tự `waitpid()` mọi child bất kể JS có listener hay
+  không. Đã sửa sang ví dụ Python `subprocess.Popen()` không gọi `.wait()`/`.poll()`/
+  `.communicate()` — đã tự verify bằng thực nghiệm thật (tạo 5 child, thấy 5 zombie xuất hiện,
+  gọi `.wait()` thì về 0) trước khi đưa vào bài. **Bài học: hành vi tự-reap-child khác nhau
+  giữa runtime/ngôn ngữ, không suy diễn từ ngôn ngữ này sang ngôn ngữ khác — luôn verify bằng
+  thực nghiệm hoặc tài liệu chính thức của ĐÚNG runtime được nhắc tới trong bài, không dùng
+  kiến thức chung chung.**
+- Reviewer phát hiện 1 mâu thuẫn nội tại ở `job-control.md`: giải thích sai cơ chế SIGHUP khi
+  đóng terminal (ban đầu viết "kernel gửi SIGHUP tới mọi process gắn với terminal", đúng ra là
+  kernel chỉ gửi tới session leader/shell, rồi CHÍNH SHELL tự forward lại cho các job nó quản
+  lý trước khi thoát — theo Bash Reference Manual). Đã sửa thống nhất trong toàn bài + thêm
+  nguồn `gnu.org/software/bash/manual`.
+- Đã bổ sung nguồn còn thiếu theo góp ý reviewer: `fork(2)`, `execve(2)` cho `lifecycle.md`;
+  `proc_loadavg(5)` cho `monitoring.md` (xác nhận load average tính cả trạng thái `D`).
 
 **Ghi chú về cách viết (áp dụng cho các module sau, để nhất quán):**
 - Lệnh thực hành chạy THẬT trên máy desktop Ubuntu 22.04.5 LTS của người dùng (không phải
@@ -43,18 +73,15 @@
 
 ## Module tiếp theo (chưa bắt đầu)
 
-Theo đúng thứ tự ưu tiên trong taxonomy (ưu tiên "cao" trước), các module tiếp theo trong
-domain `linux` là: `linux.process-signals`, `linux.filesystem-storage`,
-`linux.users-permissions` (đều ưu tiên "cao", nhiều bài). Domain `networking` có
-`networking.tcpip` ưu tiên "cao" cũng nên làm sớm vì rất nhiều module khác (bao gồm cả
-`linux.network-stack`) có prerequisite trỏ vào đó.
+Theo đúng thứ tự ưu tiên trong taxonomy (ưu tiên "cao" trước), tiếp theo là
+`linux.filesystem-storage`, rồi `linux.users-permissions` (cùng domain `linux`, ưu tiên "cao").
+Domain `networking` có `networking.tcpip` ưu tiên "cao" cũng nên làm sớm vì nhiều module khác
+(bao gồm `linux.network-stack`) có prerequisite trỏ vào đó.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
-Chưa có vấn đề nào cần chủ dự án quyết định ngay — module đầu tiên đang ở trạng thái "dừng lại
-chờ duyệt văn phong và độ sâu" theo đúng quy trình đã thống nhất (xem phần "Quy trình" trong
-nhiệm vụ gốc, điểm 3: "Sau module ĐẦU TIÊN, dừng lại cho tôi duyệt văn phong và độ sâu. Sau đó
-tự làm tiếp từng module, chỉ dừng khi gặp vấn đề cần tôi quyết định.").
+Đang tự làm tiếp từng module theo đúng khuôn mẫu đã được duyệt, chỉ dừng khi gặp vấn đề cần
+chủ dự án quyết định (theo đúng quy trình đã thống nhất).
 
 ## Công cụ đã có / chưa có
 
