@@ -76,4 +76,5 @@ docker compose exec db pg_restore -U se_dojo -d se_dojo --clean --if-exists /tmp
 
 ## Cấu trúc & quyết định kiến trúc
 
-Xem [`CLAUDE.md`](./CLAUDE.md).
+Xem [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) (kiến trúc, quy ước, workflow, ADR,
+checklist) và [`CLAUDE.md`](./CLAUDE.md) (ghi chú triển khai chi tiết, gotcha từng thư viện).

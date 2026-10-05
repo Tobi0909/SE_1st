@@ -9,6 +9,12 @@ roadmap, dashboard, AI tutor. Chạy on-premises bằng Docker Compose.
 > `AGENTS.md` (import ở trên) do `next dev` tự quản lý, nhắc rằng dự án dùng **Next.js 16**
 > với nhiều API khác bản cũ — xem thêm mục "Next.js 16" dưới đây.
 
+> **Nguồn tham chiếu chính cho kiến trúc, quy ước, workflow, ADR và checklist trước khi merge
+> là [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — đọc file đó trước khi thêm tính năng
+> mới hoặc đổi cấu trúc.** File `CLAUDE.md` này là nhật ký quyết định + ghi chú triển khai
+> chi tiết (gotcha của từng thư viện/phiên bản cụ thể, kỹ thuật test, v.v.) bổ sung cho
+> `docs/ARCHITECTURE.md`, không thay thế.
+
 ## Stack & quyết định đáng chú ý
 
 - **Next.js 16 (App Router, Turbopack mặc định) + TypeScript strict**, một service cho cả UI+API.
