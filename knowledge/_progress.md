@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **27 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **30 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -178,15 +178,39 @@ trích đúng 1 RFC gốc có thể dẫn tới mô tả lỗi thời — cần 
 RFC nào mới hơn không trước khi chốt nội dung.** Cũng đã thêm ghi chú "đã rút gọn" cho 2 đoạn
 output dài (`resolvectl status`, `dig +trace`) từng bị trình bày như verbatim đầy đủ.
 
+### 7. `networking.diagnostic-tools` — Công cụ chẩn đoán (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.diagnostic-tools.ss-netstat` | `knowledge/networking/diagnostic-tools/ss-netstat.md` | draft |
+| `networking.diagnostic-tools.tcpdump-wireshark` | `knowledge/networking/diagnostic-tools/tcpdump-wireshark.md` | draft |
+| `networking.diagnostic-tools.mtr-traceroute` | `knowledge/networking/diagnostic-tools/mtr-traceroute.md` | draft |
+
+**Giới hạn môi trường mới gặp lần này:** máy không có quyền root/`CAP_NET_RAW` — xác nhận thật
+bằng cách thử (`tcpdump` báo "Operation not permitted", `mtr` treo không phản hồi,
+`traceroute` không cài sẵn). Áp dụng đúng quy tắc đã có (giống LVM/RAID ở module 3): `ss`/
+`netstat` chạy THẬT (không cần quyền đặc biệt); `tcpdump`/`mtr`/`traceroute` dùng **output
+minh hoạ** từ man page chính thức, đánh dấu rõ. Không cần hỏi lại chủ dự án vì đây chỉ là giới
+hạn công cụ/quyền, không phải quyết định an toàn mới (quy tắc chung đã đủ bao quát).
+
+**Phát hiện khi review module này:** reviewer phát hiện 1 lỗi phải sửa ngay — ví dụ output
+minh hoạ `tcpdump` ở `tcpdump-wireshark.md` ghi sai cú pháp cờ TCP cho gói ACK cuối của 3-way
+handshake (`Flags [S.ack]`, vừa sai cờ SYN còn sót lại vừa sai cú pháp — `tcpdump` thật không
+bao giờ in chữ "ack" trong dấu `[]`, ACK thuần chỉ là `Flags [.]`). Lỗi này còn bị đóng gói vào
+luôn 1 câu hỏi tự kiểm tra, nghĩa là sẽ dạy sai nếu không bắt kịp. Đã sửa cả 3 vị trí lặp lại
+lỗi này trong cùng bài. **Bài học: với output minh hoạ dựng tay (không copy trực tiếp từ tài
+liệu), cú pháp ký hiệu đặc thù của từng tool (ví dụ cách `tcpdump` viết TCP flags) dễ bị lẫn
+với cách diễn đạt thông thường (viết "ack" như một từ) — nên đối chiếu từng ký tự với ví dụ
+thật trong man page/tài liệu gốc, không tự suy diễn cú pháp dù nắm đúng khái niệm.**
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
-`networking.switching` hoặc `networking.diagnostic-tools` (đều ưu tiên "cao").
-`networking.diagnostic-tools` (tcpdump/mtr/ss) có thể làm sớm vì các module khác thường tham
-chiếu tới nó để chẩn đoán, và không cần thiết bị mạng vật lý. Domain `linux` còn 5 module ưu
-tiên "cao" chưa làm (`linux.network-stack` — giờ có đủ prerequisite `networking.dns` để làm,
-`linux.performance`, `linux.shell-scripting`, `linux.package-management`,
-`linux.kernel-troubleshooting`).
+`networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ theo đúng quy
+tắc) hoặc `networking.nat-firewall`/`networking.http-lb` (ưu tiên "cao", nhiều phần chạy được
+thật qua Linux). Domain `linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack` —
+giờ có đủ prerequisite để làm, `linux.performance`, `linux.shell-scripting`,
+`linux.package-management`, `linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
