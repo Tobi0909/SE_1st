@@ -1,0 +1,1042 @@
+# Khung tri thức SE Dojo — lĩnh vực > module > bài
+#
+# Đây là bản DRAFT giai đoạn 0, chờ duyệt trước khi viết bài. Không tự thêm bài
+# vào kho tri thức nếu chưa cập nhật file này và được duyệt trước (xem review_notes
+# ở cuối file để biết các đề xuất thêm/bớt so với khung gốc do chủ dự án đưa ra).
+#
+# Quy ước id: <domain>.<module-slug>.<lesson-slug>, toàn bộ kebab-case, không dấu,
+# duy nhất toàn file. "prerequisites" tham chiếu id bài học (lesson), có thể trỏ
+# sang domain khác (phụ thuộc chéo lĩnh vực là bình thường, ví dụ K8s cần Linux
+# namespace/cgroup trước).
+#
+# level: "nền tảng" | "vận hành" | "chuyên sâu" (đúng 3 giá trị theo yêu cầu).
+# priority: "cao" | "trung bình" | "thấp" — độ ưu tiên viết bài, dùng để quyết định
+#   thứ tự làm giữa các module (làm "cao" trước, "thấp" có thể để sau/bỏ qua nếu
+#   hết thời gian). Không phải độ khó — độ khó đã nằm ở "level".
+
+version: 1
+updated: "2026-10-05"
+status: draft-awaiting-review
+
+domains:
+  - id: linux
+    title: "Linux"
+    modules:
+      - id: linux.boot-systemd
+        title: "Boot và systemd"
+        lessons:
+          - id: linux.boot-systemd.boot-process
+            title: "Quy trình boot: firmware → bootloader (GRUB) → kernel → init"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: linux.boot-systemd.units
+            title: "systemd: unit, service, target cơ bản"
+            level: "nền tảng"
+            prerequisites: ["linux.boot-systemd.boot-process"]
+            priority: "cao"
+          - id: linux.boot-systemd.service-mgmt
+            title: "Quản lý service với systemctl (start/stop/enable/status)"
+            level: "vận hành"
+            prerequisites: ["linux.boot-systemd.units"]
+            priority: "cao"
+          - id: linux.boot-systemd.timers
+            title: "systemd timer và cron: lập lịch tác vụ"
+            level: "vận hành"
+            prerequisites: ["linux.boot-systemd.units"]
+            priority: "trung bình"
+          - id: linux.boot-systemd.advanced
+            title: "systemd nâng cao: dependency (After/Requires), target, socket activation, cấu hình journald"
+            level: "chuyên sâu"
+            prerequisites: ["linux.boot-systemd.service-mgmt"]
+            priority: "trung bình"
+
+      - id: linux.process-signals
+        title: "Process và tín hiệu"
+        lessons:
+          - id: linux.process-signals.lifecycle
+            title: "Vòng đời process: fork/exec, PPID, các trạng thái process"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: linux.process-signals.signals
+            title: "Tín hiệu Unix: SIGTERM/SIGKILL/SIGHUP và graceful shutdown"
+            level: "nền tảng"
+            prerequisites: ["linux.process-signals.lifecycle"]
+            priority: "cao"
+          - id: linux.process-signals.job-control
+            title: "Job control: foreground/background, nohup, disown"
+            level: "vận hành"
+            prerequisites: ["linux.process-signals.lifecycle"]
+            priority: "trung bình"
+          - id: linux.process-signals.monitoring
+            title: "Giám sát process: ps, top, htop, đọc load/CPU/MEM"
+            level: "vận hành"
+            prerequisites: ["linux.process-signals.lifecycle"]
+            priority: "cao"
+          - id: linux.process-signals.zombie-orphan
+            title: "Chẩn đoán zombie/orphan process và process leak"
+            level: "chuyên sâu"
+            prerequisites: ["linux.process-signals.signals", "linux.process-signals.monitoring"]
+            priority: "trung bình"
+
+      - id: linux.filesystem-storage
+        title: "Filesystem, LVM, RAID"
+        lessons:
+          - id: linux.filesystem-storage.fhs-permissions
+            title: "Filesystem Hierarchy Standard (FHS) và permission cơ bản"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: linux.filesystem-storage.partitioning
+            title: "Phân vùng đĩa: fdisk/parted, GPT vs MBR"
+            level: "vận hành"
+            prerequisites: ["linux.filesystem-storage.fhs-permissions"]
+            priority: "cao"
+          - id: linux.filesystem-storage.lvm-basics
+            title: "LVM cơ bản: Physical/Volume/Logical Volume, tạo và mount filesystem mới"
+            level: "vận hành"
+            prerequisites: ["linux.filesystem-storage.partitioning"]
+            priority: "cao"
+          - id: linux.filesystem-storage.lvm-advanced
+            title: "LVM nâng cao: resize, snapshot, thin provisioning"
+            level: "chuyên sâu"
+            prerequisites: ["linux.filesystem-storage.lvm-basics"]
+            priority: "trung bình"
+          - id: linux.filesystem-storage.raid-mdadm
+            title: "RAID phần mềm với mdadm: các mức RAID phổ biến, tạo và theo dõi"
+            level: "chuyên sâu"
+            prerequisites: ["linux.filesystem-storage.partitioning"]
+            priority: "trung bình"
+          - id: linux.filesystem-storage.troubleshooting
+            title: "Chẩn đoán hết dung lượng, hết inode, filesystem lỗi (fsck)"
+            level: "vận hành"
+            prerequisites: ["linux.filesystem-storage.fhs-permissions", "linux.filesystem-storage.partitioning"]
+            priority: "cao"
+
+      - id: linux.users-permissions
+        title: "User và phân quyền"
+        lessons:
+          - id: linux.users-permissions.users-groups
+            title: "Quản lý user/group: useradd, usermod, /etc/passwd, /etc/shadow"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: linux.users-permissions.chmod-chown
+            title: "Permission và ownership: chmod, chown, umask"
+            level: "nền tảng"
+            prerequisites: ["linux.users-permissions.users-groups"]
+            priority: "cao"
+          - id: linux.users-permissions.sudo-pam
+            title: "sudo và PAM cơ bản: /etc/sudoers, module xác thực"
+            level: "vận hành"
+            prerequisites: ["linux.users-permissions.users-groups"]
+            priority: "cao"
+          - id: linux.users-permissions.acl-xattr
+            title: "ACL và extended attributes: quyền chi tiết hơn rwx truyền thống"
+            level: "chuyên sâu"
+            prerequisites: ["linux.users-permissions.chmod-chown"]
+            priority: "thấp"
+          - id: linux.users-permissions.selinux-apparmor
+            title: "SELinux/AppArmor: enforcing/permissive, chẩn đoán bị chặn bởi MAC"
+            level: "chuyên sâu"
+            prerequisites: ["linux.users-permissions.chmod-chown"]
+            priority: "trung bình"
+
+      - id: linux.network-stack
+        title: "Network stack trên Linux"
+        lessons:
+          - id: linux.network-stack.tools
+            title: "Công cụ mạng trên Linux: ip addr/route, ss cơ bản"
+            level: "nền tảng"
+            prerequisites: ["networking.tcpip.osi-tcpip-model"]
+            priority: "cao"
+          - id: linux.network-stack.dns-resolution
+            title: "DNS resolution trên Linux: resolv.conf, nsswitch, systemd-resolved"
+            level: "vận hành"
+            prerequisites: ["linux.network-stack.tools", "networking.dns.fundamentals"]
+            priority: "cao"
+          - id: linux.network-stack.firewall
+            title: "Firewall trên Linux: iptables/nftables/firewalld/ufw cơ bản"
+            level: "vận hành"
+            prerequisites: ["linux.network-stack.tools"]
+            priority: "cao"
+          - id: linux.network-stack.troubleshooting
+            title: "Chẩn đoán mạng trên Linux: tcpdump, traceroute, MTU, bonding"
+            level: "chuyên sâu"
+            prerequisites: ["linux.network-stack.tools", "linux.network-stack.firewall"]
+            priority: "trung bình"
+
+      - id: linux.performance
+        title: "Hiệu năng (CPU, RAM, I/O)"
+        lessons:
+          - id: linux.performance.cpu-load
+            title: "Hiệu năng CPU: load average, nice/renice, context switch"
+            level: "vận hành"
+            prerequisites: ["linux.process-signals.monitoring"]
+            priority: "cao"
+          - id: linux.performance.memory-swap
+            title: "Bộ nhớ và swap: free, buffer/cache, OOM killer"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+          - id: linux.performance.io
+            title: "Hiệu năng I/O: iostat, vmstat, phân biệt nghẽn CPU/RAM/disk"
+            level: "chuyên sâu"
+            prerequisites: ["linux.performance.cpu-load", "linux.performance.memory-swap"]
+            priority: "trung bình"
+          - id: linux.performance.case-study
+            title: "Case study troubleshooting hiệu năng tổng hợp: strace, lsof"
+            level: "chuyên sâu"
+            prerequisites: ["linux.performance.io"]
+            priority: "trung bình"
+
+      - id: linux.shell-scripting
+        title: "Shell scripting"
+        lessons:
+          - id: linux.shell-scripting.bash-basics
+            title: "Bash cơ bản: biến, điều kiện, vòng lặp, tham số dòng lệnh"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: linux.shell-scripting.text-processing
+            title: "Xử lý văn bản: grep, sed, awk, xargs"
+            level: "vận hành"
+            prerequisites: ["linux.shell-scripting.bash-basics"]
+            priority: "cao"
+          - id: linux.shell-scripting.bash-advanced
+            title: "Bash nâng cao: hàm, trap, set -e/-u, xử lý lỗi"
+            level: "chuyên sâu"
+            prerequisites: ["linux.shell-scripting.bash-basics", "linux.shell-scripting.text-processing"]
+            priority: "trung bình"
+          - id: linux.shell-scripting.best-practices
+            title: "Best practice viết script vận hành: idempotent, logging, exit code"
+            level: "chuyên sâu"
+            prerequisites: ["linux.shell-scripting.bash-advanced"]
+            priority: "trung bình"
+
+      - id: linux.package-management
+        title: "Quản lý gói"
+        lessons:
+          - id: linux.package-management.deb
+            title: "Quản lý gói Debian/Ubuntu: apt, dpkg"
+            level: "vận hành"
+            prerequisites: []
+            priority: "trung bình"
+          - id: linux.package-management.rpm
+            title: "Quản lý gói RHEL/CentOS: dnf/yum, rpm"
+            level: "vận hành"
+            prerequisites: []
+            priority: "trung bình"
+
+      - id: linux.kernel-troubleshooting
+        title: "Kernel và troubleshooting"
+        lessons:
+          - id: linux.kernel-troubleshooting.modules
+            title: "Kernel module: lsmod, modprobe, /proc, /sys"
+            level: "chuyên sâu"
+            prerequisites: []
+            priority: "trung bình"
+          - id: linux.kernel-troubleshooting.sysctl
+            title: "Tuning kernel qua sysctl: tham số mạng và bộ nhớ phổ biến"
+            level: "chuyên sâu"
+            prerequisites: ["linux.kernel-troubleshooting.modules"]
+            priority: "trung bình"
+          - id: linux.kernel-troubleshooting.kernel-logs
+            title: "Đọc log kernel: dmesg, journalctl -k, nhận diện lỗi phần cứng/driver"
+            level: "vận hành"
+            prerequisites: ["linux.kernel-troubleshooting.modules"]
+            priority: "trung bình"
+          - id: linux.kernel-troubleshooting.methodology
+            title: "Phương pháp luận troubleshooting Linux tổng hợp (bài capstone)"
+            level: "chuyên sâu"
+            prerequisites:
+              - "linux.performance.case-study"
+              - "linux.filesystem-storage.troubleshooting"
+              - "linux.network-stack.troubleshooting"
+              - "linux.kernel-troubleshooting.kernel-logs"
+            priority: "cao"
+
+  - id: networking
+    title: "Networking"
+    modules:
+      - id: networking.tcpip
+        title: "Mô hình TCP/IP"
+        lessons:
+          - id: networking.tcpip.osi-tcpip-model
+            title: "Mô hình OSI và TCP/IP: các tầng và vai trò"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: networking.tcpip.ipv4-subnetting
+            title: "Địa chỉ IPv4 và subnetting (CIDR)"
+            level: "nền tảng"
+            prerequisites: ["networking.tcpip.osi-tcpip-model"]
+            priority: "cao"
+          - id: networking.tcpip.ipv6-basics
+            title: "IPv6 cơ bản: định dạng địa chỉ, khác biệt chính với IPv4"
+            level: "vận hành"
+            prerequisites: ["networking.tcpip.ipv4-subnetting"]
+            priority: "trung bình"
+          - id: networking.tcpip.tcp-udp
+            title: "TCP vs UDP: handshake, cửa sổ trượt, khi nào dùng loại nào"
+            level: "nền tảng"
+            prerequisites: ["networking.tcpip.osi-tcpip-model"]
+            priority: "cao"
+
+      - id: networking.switching
+        title: "Switching (VLAN, STP, LACP, vPC)"
+        lessons:
+          - id: networking.switching.basics
+            title: "Switching cơ bản: MAC table, broadcast domain, collision domain"
+            level: "nền tảng"
+            prerequisites: ["networking.tcpip.osi-tcpip-model"]
+            priority: "cao"
+          - id: networking.switching.vlan
+            title: "VLAN: trunk, access port, 802.1Q tagging"
+            level: "vận hành"
+            prerequisites: ["networking.switching.basics"]
+            priority: "cao"
+          - id: networking.switching.stp
+            title: "Spanning Tree Protocol: ngăn loop, root bridge, port state"
+            level: "vận hành"
+            prerequisites: ["networking.switching.vlan"]
+            priority: "trung bình"
+          - id: networking.switching.lacp
+            title: "LACP/port-channel: gộp link tăng băng thông và dự phòng"
+            level: "vận hành"
+            prerequisites: ["networking.switching.vlan"]
+            priority: "trung bình"
+          - id: networking.switching.vpc-advanced
+            title: "vPC và high-availability switching nâng cao"
+            level: "chuyên sâu"
+            prerequisites: ["networking.switching.lacp"]
+            priority: "thấp"
+
+      - id: networking.routing
+        title: "Routing (static, OSPF, BGP)"
+        lessons:
+          - id: networking.routing.static
+            title: "Routing tĩnh: routing table, default gateway, longest prefix match"
+            level: "nền tảng"
+            prerequisites: ["networking.tcpip.ipv4-subnetting"]
+            priority: "cao"
+          - id: networking.routing.ospf
+            title: "OSPF cơ bản: area, cost, DR/BDR"
+            level: "vận hành"
+            prerequisites: ["networking.routing.static"]
+            priority: "trung bình"
+          - id: networking.routing.bgp
+            title: "BGP cơ bản: AS, eBGP/iBGP, path selection"
+            level: "chuyên sâu"
+            prerequisites: ["networking.routing.ospf"]
+            priority: "trung bình"
+
+      - id: networking.dns
+        title: "DNS"
+        lessons:
+          - id: networking.dns.fundamentals
+            title: "DNS: hierarchy, resource record, resolver vs authoritative"
+            level: "nền tảng"
+            prerequisites: ["networking.tcpip.osi-tcpip-model"]
+            priority: "cao"
+          - id: networking.dns.operations
+            title: "Vận hành DNS: zone file, TTL, caching, troubleshooting (dig/nslookup)"
+            level: "vận hành"
+            prerequisites: ["networking.dns.fundamentals"]
+            priority: "cao"
+
+      - id: networking.dhcp
+        title: "DHCP"
+        lessons:
+          - id: networking.dhcp.fundamentals
+            title: "DHCP: DORA process, lease, relay"
+            level: "vận hành"
+            prerequisites: ["networking.tcpip.ipv4-subnetting"]
+            priority: "cao"
+
+      - id: networking.nat-firewall
+        title: "NAT và firewall"
+        lessons:
+          - id: networking.nat-firewall.nat-types
+            title: "NAT: static, dynamic, PAT/masquerade"
+            level: "vận hành"
+            prerequisites: ["networking.tcpip.ipv4-subnetting"]
+            priority: "cao"
+          - id: networking.nat-firewall.firewall-concepts
+            title: "Firewall: stateful vs stateless, zone, thứ tự rule"
+            level: "vận hành"
+            prerequisites: ["networking.nat-firewall.nat-types"]
+            priority: "cao"
+          - id: networking.nat-firewall.acl-security-groups
+            title: "ACL và security group trên thiết bị mạng/cloud"
+            level: "vận hành"
+            prerequisites: ["networking.nat-firewall.firewall-concepts"]
+            priority: "trung bình"
+
+      - id: networking.tls-pki
+        title: "TLS và PKI"
+        lessons:
+          - id: networking.tls-pki.handshake
+            title: "TLS: handshake, cipher suite, chứng chỉ"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+          - id: networking.tls-pki.pki-cert-mgmt
+            title: "PKI: CA, chuỗi chứng chỉ, quản lý và gia hạn cert"
+            level: "vận hành"
+            prerequisites: ["networking.tls-pki.handshake"]
+            priority: "trung bình"
+          - id: networking.tls-pki.troubleshooting
+            title: "Chẩn đoán lỗi TLS/SSL thường gặp (expired cert, chain, SNI)"
+            level: "vận hành"
+            prerequisites: ["networking.tls-pki.pki-cert-mgmt"]
+            priority: "trung bình"
+
+      - id: networking.http-lb
+        title: "HTTP và load balancing"
+        lessons:
+          - id: networking.http-lb.http-fundamentals
+            title: "HTTP/HTTPS: method, status code, header quan trọng"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: networking.http-lb.reverse-proxy
+            title: "Reverse proxy: Nginx/HAProxy cơ bản"
+            level: "vận hành"
+            prerequisites: ["networking.http-lb.http-fundamentals"]
+            priority: "cao"
+          - id: networking.http-lb.lb-algorithms
+            title: "Thuật toán load balancing và health check"
+            level: "vận hành"
+            prerequisites: ["networking.http-lb.reverse-proxy"]
+            priority: "trung bình"
+
+      - id: networking.vpn
+        title: "VPN"
+        lessons:
+          - id: networking.vpn.types
+            title: "VPN: site-to-site vs remote access, IPsec vs SSL VPN cơ bản"
+            level: "vận hành"
+            prerequisites: ["networking.tls-pki.handshake"]
+            priority: "trung bình"
+
+      - id: networking.diagnostic-tools
+        title: "Công cụ chẩn đoán (tcpdump, mtr, ss)"
+        lessons:
+          - id: networking.diagnostic-tools.tcpdump-wireshark
+            title: "Bắt và đọc gói tin: tcpdump, Wireshark cơ bản"
+            level: "vận hành"
+            prerequisites: ["networking.tcpip.tcp-udp"]
+            priority: "cao"
+          - id: networking.diagnostic-tools.mtr-traceroute
+            title: "mtr/traceroute: chẩn đoán đường đi và mất gói"
+            level: "vận hành"
+            prerequisites: ["networking.diagnostic-tools.tcpdump-wireshark"]
+            priority: "cao"
+          - id: networking.diagnostic-tools.ss-netstat
+            title: "ss/netstat: kiểm tra socket, cổng đang nghe/kết nối"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+
+  - id: virt-storage
+    title: "Ảo hóa và lưu trữ"
+    modules:
+      - id: virt-storage.vsphere
+        title: "VMware vSphere"
+        lessons:
+          - id: virt-storage.vsphere.architecture
+            title: "Kiến trúc vSphere: ESXi, vCenter, cluster"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: virt-storage.vsphere.vm-lifecycle
+            title: "Quản lý VM: tạo, clone, snapshot, migrate (vMotion)"
+            level: "vận hành"
+            prerequisites: ["virt-storage.vsphere.architecture"]
+            priority: "cao"
+          - id: virt-storage.vsphere.networking-storage
+            title: "Networking (vSwitch/port group) và storage (datastore) cho VM"
+            level: "vận hành"
+            prerequisites: ["virt-storage.vsphere.vm-lifecycle"]
+            priority: "trung bình"
+          - id: virt-storage.vsphere.ha-drs
+            title: "HA và DRS: tự động chịu lỗi và cân bằng tải cluster"
+            level: "chuyên sâu"
+            prerequisites: ["virt-storage.vsphere.vm-lifecycle"]
+            priority: "trung bình"
+
+      - id: virt-storage.proxmox-kvm
+        title: "Proxmox/KVM"
+        lessons:
+          - id: virt-storage.proxmox-kvm.fundamentals
+            title: "KVM/QEMU cơ bản: ảo hóa dựa trên Linux kernel"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "trung bình"
+          - id: virt-storage.proxmox-kvm.cluster
+            title: "Proxmox VE: quản lý cluster, VM và container (LXC)"
+            level: "vận hành"
+            prerequisites: ["virt-storage.proxmox-kvm.fundamentals"]
+            priority: "trung bình"
+
+      - id: virt-storage.san-nas
+        title: "SAN, NAS, iSCSI, NFS"
+        lessons:
+          - id: virt-storage.san-nas.fundamentals
+            title: "Khái niệm storage: block vs file vs object"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: virt-storage.san-nas.iscsi
+            title: "iSCSI: target/initiator, LUN, kết nối SAN qua IP"
+            level: "vận hành"
+            prerequisites: ["virt-storage.san-nas.fundamentals"]
+            priority: "trung bình"
+          - id: virt-storage.san-nas.nfs
+            title: "NFS: export, mount, quyền và troubleshooting phổ biến"
+            level: "vận hành"
+            prerequisites: ["virt-storage.san-nas.fundamentals"]
+            priority: "cao"
+
+      - id: virt-storage.ceph
+        title: "Ceph"
+        lessons:
+          - id: virt-storage.ceph.architecture
+            title: "Kiến trúc Ceph: OSD, Monitor, CRUSH map, pool"
+            level: "chuyên sâu"
+            prerequisites: ["virt-storage.san-nas.fundamentals"]
+            priority: "thấp"
+          - id: virt-storage.ceph.operations
+            title: "Vận hành Ceph cơ bản: health check, xử lý OSD down"
+            level: "chuyên sâu"
+            prerequisites: ["virt-storage.ceph.architecture"]
+            priority: "thấp"
+
+      - id: virt-storage.backup-dr
+        title: "Backup và DR"
+        lessons:
+          - id: virt-storage.backup-dr.strategies
+            title: "Chiến lược backup: full/incremental, quy tắc 3-2-1"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+          - id: virt-storage.backup-dr.planning
+            title: "Disaster recovery: RTO/RPO, kế hoạch khôi phục"
+            level: "chuyên sâu"
+            prerequisites: ["virt-storage.backup-dr.strategies"]
+            priority: "trung bình"
+
+  - id: container-k8s
+    title: "Container và Kubernetes"
+    modules:
+      - id: container-k8s.docker-internals
+        title: "Docker nội tại (namespace, cgroup, image, network)"
+        lessons:
+          - id: container-k8s.docker-internals.namespaces-cgroups
+            title: "Cơ chế cách ly: namespace và cgroup (nền tảng container)"
+            level: "nền tảng"
+            prerequisites: ["linux.process-signals.lifecycle"]
+            priority: "cao"
+          - id: container-k8s.docker-internals.images
+            title: "Docker image: layer, Dockerfile, build cache"
+            level: "nền tảng"
+            prerequisites: ["container-k8s.docker-internals.namespaces-cgroups"]
+            priority: "cao"
+          - id: container-k8s.docker-internals.networking
+            title: "Docker networking: bridge, host, overlay cơ bản"
+            level: "vận hành"
+            prerequisites: ["container-k8s.docker-internals.images", "networking.tcpip.osi-tcpip-model"]
+            priority: "cao"
+          - id: container-k8s.docker-internals.storage
+            title: "Docker storage: volume, bind mount, storage driver"
+            level: "vận hành"
+            prerequisites: ["container-k8s.docker-internals.images"]
+            priority: "trung bình"
+          - id: container-k8s.docker-internals.compose
+            title: "Docker Compose: định nghĩa multi-container app"
+            level: "vận hành"
+            prerequisites: ["container-k8s.docker-internals.networking", "container-k8s.docker-internals.storage"]
+            priority: "cao"
+
+      - id: container-k8s.k8s-architecture
+        title: "Kiến trúc K8s"
+        lessons:
+          - id: container-k8s.k8s-architecture.control-plane
+            title: "Kiến trúc Kubernetes: control plane, node, etcd"
+            level: "nền tảng"
+            prerequisites: ["container-k8s.docker-internals.images"]
+            priority: "cao"
+          - id: container-k8s.k8s-architecture.api-objects
+            title: "API object và kubectl cơ bản: Pod, apply, get, describe"
+            level: "nền tảng"
+            prerequisites: ["container-k8s.k8s-architecture.control-plane"]
+            priority: "cao"
+
+      - id: container-k8s.k8s-workload
+        title: "Workload K8s"
+        lessons:
+          - id: container-k8s.k8s-workload.pods-deployments
+            title: "Pod, ReplicaSet, Deployment: quản lý workload stateless"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-architecture.api-objects"]
+            priority: "cao"
+          - id: container-k8s.k8s-workload.statefulset-daemonset
+            title: "StatefulSet và DaemonSet: workload có trạng thái / chạy mọi node"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
+            priority: "trung bình"
+          - id: container-k8s.k8s-workload.configmap-secret
+            title: "ConfigMap và Secret: tách cấu hình khỏi image"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
+            priority: "cao"
+          - id: container-k8s.k8s-workload.hpa-scaling
+            title: "Horizontal Pod Autoscaler và resource request/limit"
+            level: "chuyên sâu"
+            prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
+            priority: "trung bình"
+
+      - id: container-k8s.k8s-networking
+        title: "Networking và ingress K8s"
+        lessons:
+          - id: container-k8s.k8s-networking.service
+            title: "Service: ClusterIP, NodePort, LoadBalancer"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
+            priority: "cao"
+          - id: container-k8s.k8s-networking.ingress
+            title: "Ingress: định tuyến HTTP vào cluster"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-networking.service", "networking.http-lb.reverse-proxy"]
+            priority: "cao"
+          - id: container-k8s.k8s-networking.network-policy
+            title: "NetworkPolicy: kiểm soát traffic giữa Pod"
+            level: "chuyên sâu"
+            prerequisites: ["container-k8s.k8s-networking.service"]
+            priority: "trung bình"
+
+      - id: container-k8s.k8s-storage
+        title: "Storage K8s"
+        lessons:
+          - id: container-k8s.k8s-storage.pv-pvc
+            title: "PersistentVolume và PersistentVolumeClaim"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-workload.statefulset-daemonset"]
+            priority: "trung bình"
+          - id: container-k8s.k8s-storage.storageclass
+            title: "StorageClass và dynamic provisioning"
+            level: "chuyên sâu"
+            prerequisites: ["container-k8s.k8s-storage.pv-pvc"]
+            priority: "trung bình"
+
+      - id: container-k8s.k8s-rbac-security
+        title: "RBAC và bảo mật K8s"
+        lessons:
+          - id: container-k8s.k8s-rbac-security.rbac
+            title: "RBAC trong K8s: Role, RoleBinding, ServiceAccount"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-architecture.api-objects"]
+            priority: "cao"
+          - id: container-k8s.k8s-rbac-security.security-context
+            title: "SecurityContext, Pod Security Standards, hạn chế quyền container"
+            level: "chuyên sâu"
+            prerequisites: ["container-k8s.k8s-rbac-security.rbac"]
+            priority: "trung bình"
+
+      - id: container-k8s.k8s-troubleshooting
+        title: "Troubleshooting K8s"
+        lessons:
+          - id: container-k8s.k8s-troubleshooting.pod-errors
+            title: "Chẩn đoán Pod lỗi: CrashLoopBackOff, Pending, ImagePullBackOff"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
+            priority: "cao"
+          - id: container-k8s.k8s-troubleshooting.oom-resource
+            title: "OOMKilled và vấn đề resource request/limit sai"
+            level: "chuyên sâu"
+            prerequisites: ["container-k8s.k8s-workload.hpa-scaling"]
+            priority: "trung bình"
+          - id: container-k8s.k8s-troubleshooting.logs-events
+            title: "Đọc log và event hiệu quả: kubectl logs, describe, events"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-troubleshooting.pod-errors"]
+            priority: "cao"
+
+      - id: container-k8s.helm
+        title: "Helm"
+        lessons:
+          - id: container-k8s.helm.basics
+            title: "Helm cơ bản: chart, release, values"
+            level: "vận hành"
+            prerequisites: ["container-k8s.k8s-workload.configmap-secret"]
+            priority: "trung bình"
+          - id: container-k8s.helm.chart-authoring
+            title: "Viết Helm chart riêng: template, hooks"
+            level: "chuyên sâu"
+            prerequisites: ["container-k8s.helm.basics"]
+            priority: "thấp"
+
+  - id: monitoring
+    title: "Giám sát và quan sát"
+    modules:
+      - id: monitoring.zabbix
+        title: "Zabbix"
+        lessons:
+          - id: monitoring.zabbix.architecture
+            title: "Kiến trúc Zabbix: server, agent, proxy"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: monitoring.zabbix.items-triggers
+            title: "Item, trigger, template trong Zabbix"
+            level: "vận hành"
+            prerequisites: ["monitoring.zabbix.architecture"]
+            priority: "cao"
+
+      - id: monitoring.prometheus-grafana
+        title: "Prometheus và Grafana"
+        lessons:
+          - id: monitoring.prometheus-grafana.fundamentals
+            title: "Prometheus: pull model, loại metric, PromQL cơ bản"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: monitoring.prometheus-grafana.grafana-dashboards
+            title: "Grafana: nguồn dữ liệu, dashboard, panel"
+            level: "vận hành"
+            prerequisites: ["monitoring.prometheus-grafana.fundamentals"]
+            priority: "cao"
+          - id: monitoring.prometheus-grafana.alertmanager
+            title: "Alertmanager: routing, grouping, silence"
+            level: "vận hành"
+            prerequisites: ["monitoring.prometheus-grafana.fundamentals"]
+            priority: "trung bình"
+
+      - id: monitoring.logging
+        title: "Logging (Splunk, ELK)"
+        lessons:
+          - id: monitoring.logging.fundamentals
+            title: "Logging tập trung: vì sao cần, structured log"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: monitoring.logging.elk-stack
+            title: "ELK/Elastic stack cơ bản: Logstash/Filebeat, Elasticsearch, Kibana"
+            level: "vận hành"
+            prerequisites: ["monitoring.logging.fundamentals"]
+            priority: "trung bình"
+          - id: monitoring.logging.splunk-basics
+            title: "Splunk cơ bản: index, search (SPL)"
+            level: "vận hành"
+            prerequisites: ["monitoring.logging.fundamentals"]
+            priority: "thấp"
+
+      - id: monitoring.alerting-design
+        title: "Thiết kế cảnh báo"
+        lessons:
+          - id: monitoring.alerting-design.principles
+            title: "Thiết kế cảnh báo: tránh alert fatigue, alert phải actionable"
+            level: "chuyên sâu"
+            prerequisites: ["monitoring.prometheus-grafana.alertmanager"]
+            priority: "trung bình"
+
+      - id: monitoring.sli-slo
+        title: "SLI/SLO"
+        lessons:
+          - id: monitoring.sli-slo.fundamentals
+            title: "SLI/SLO/SLA: định nghĩa và cách chọn chỉ số"
+            level: "chuyên sâu"
+            prerequisites: []
+            priority: "trung bình"
+          - id: monitoring.sli-slo.error-budget
+            title: "Error budget: dùng SLO để ra quyết định vận hành"
+            level: "chuyên sâu"
+            prerequisites: ["monitoring.sli-slo.fundamentals"]
+            priority: "trung bình"
+
+  - id: devops
+    title: "DevOps"
+    modules:
+      - id: devops.git
+        title: "Git"
+        lessons:
+          - id: devops.git.fundamentals
+            title: "Git cơ bản: commit, branch, merge"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: devops.git.workflows
+            title: "Git workflow: rebase, xử lý conflict, branching strategy"
+            level: "vận hành"
+            prerequisites: ["devops.git.fundamentals"]
+            priority: "cao"
+
+      - id: devops.cicd
+        title: "CI/CD"
+        lessons:
+          - id: devops.cicd.concepts
+            title: "CI/CD: khái niệm pipeline, stage, artifact"
+            level: "nền tảng"
+            prerequisites: ["devops.git.fundamentals"]
+            priority: "cao"
+          - id: devops.cicd.tools
+            title: "Công cụ CI/CD phổ biến: Jenkins/GitLab CI/GitHub Actions cơ bản"
+            level: "vận hành"
+            prerequisites: ["devops.cicd.concepts"]
+            priority: "cao"
+
+      - id: devops.ansible
+        title: "Ansible"
+        lessons:
+          - id: devops.ansible.fundamentals
+            title: "Ansible: inventory, playbook, module cơ bản"
+            level: "vận hành"
+            prerequisites: ["linux.shell-scripting.bash-basics"]
+            priority: "cao"
+          - id: devops.ansible.roles
+            title: "Ansible role và best practice tổ chức playbook"
+            level: "chuyên sâu"
+            prerequisites: ["devops.ansible.fundamentals"]
+            priority: "trung bình"
+
+      - id: devops.terraform
+        title: "Terraform"
+        lessons:
+          - id: devops.terraform.fundamentals
+            title: "Terraform: provider, resource, state"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+          - id: devops.terraform.modules-state
+            title: "Terraform module và quản lý state an toàn (remote backend, lock)"
+            level: "chuyên sâu"
+            prerequisites: ["devops.terraform.fundamentals"]
+            priority: "trung bình"
+
+      - id: devops.artifact-management
+        title: "Quản lý artifact"
+        lessons:
+          - id: devops.artifact-management.repos
+            title: "Quản lý artifact: container registry, package repo (Nexus/Artifactory)"
+            level: "vận hành"
+            prerequisites: ["container-k8s.docker-internals.images"]
+            priority: "trung bình"
+
+      - id: devops.gitops
+        title: "GitOps"
+        lessons:
+          - id: devops.gitops.principles
+            title: "GitOps: nguyên lý declarative, reconciliation"
+            level: "chuyên sâu"
+            prerequisites: ["devops.cicd.concepts", "container-k8s.k8s-architecture.control-plane"]
+            priority: "trung bình"
+          - id: devops.gitops.tools
+            title: "Công cụ GitOps: ArgoCD/Flux cơ bản"
+            level: "chuyên sâu"
+            prerequisites: ["devops.gitops.principles"]
+            priority: "trung bình"
+
+  - id: security
+    title: "Bảo mật"
+    modules:
+      - id: security.os-hardening
+        title: "Hardening OS"
+        lessons:
+          - id: security.os-hardening.principles
+            title: "Nguyên lý hardening OS: giảm attack surface, least privilege"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: security.os-hardening.checklist
+            title: "Checklist hardening Linux thực tế: SSH, service không cần thiết, patch"
+            level: "vận hành"
+            prerequisites: ["security.os-hardening.principles"]
+            priority: "cao"
+
+      - id: security.identity-secrets
+        title: "Quản lý danh tính và secret"
+        lessons:
+          - id: security.identity-secrets.identity
+            title: "Quản lý danh tính: SSO, MFA, vai trò và nhóm"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+          - id: security.identity-secrets.secrets-mgmt
+            title: "Quản lý secret: Vault/KMS cơ bản, tránh hardcode credential"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+
+      - id: security.vuln-patch
+        title: "Quản lý lỗ hổng và bản vá"
+        lessons:
+          - id: security.vuln-patch.scanning
+            title: "Vulnerability scanning: CVE, công cụ quét cơ bản"
+            level: "vận hành"
+            prerequisites: []
+            priority: "trung bình"
+          - id: security.vuln-patch.patch-mgmt
+            title: "Patch management: chu trình vá lỗi, ứng phó zero-day"
+            level: "vận hành"
+            prerequisites: ["security.vuln-patch.scanning"]
+            priority: "trung bình"
+
+      - id: security.network-security
+        title: "Bảo mật mạng"
+        lessons:
+          - id: security.network-security.fundamentals
+            title: "Bảo mật mạng: defense in depth, segmentation"
+            level: "vận hành"
+            prerequisites: ["networking.nat-firewall.firewall-concepts"]
+            priority: "cao"
+          - id: security.network-security.ids-ips
+            title: "IDS/IPS cơ bản: phát hiện và ngăn chặn xâm nhập"
+            level: "chuyên sâu"
+            prerequisites: ["security.network-security.fundamentals"]
+            priority: "trung bình"
+
+      - id: security.audit-compliance
+        title: "Audit và tuân thủ"
+        lessons:
+          - id: security.audit-compliance.audit-logging
+            title: "Audit logging: ghi nhận và bảo vệ log khỏi bị sửa"
+            level: "vận hành"
+            prerequisites: ["monitoring.logging.fundamentals"]
+            priority: "trung bình"
+          - id: security.audit-compliance.frameworks
+            title: "Khung tuân thủ phổ biến: ý nghĩa với vận hành hằng ngày"
+            level: "chuyên sâu"
+            prerequisites: ["security.audit-compliance.audit-logging"]
+            priority: "thấp"
+
+  - id: data
+    title: "Dịch vụ dữ liệu (góc nhìn vận hành)"
+    modules:
+      - id: data.mysql-postgres
+        title: "MySQL và PostgreSQL"
+        lessons:
+          - id: data.mysql-postgres.fundamentals
+            title: "Khái niệm vận hành RDBMS: instance, database, connection pool"
+            level: "nền tảng"
+            prerequisites: []
+            priority: "cao"
+          - id: data.mysql-postgres.replication
+            title: "Replication: primary-replica, failover cơ bản"
+            level: "vận hành"
+            prerequisites: ["data.mysql-postgres.fundamentals"]
+            priority: "cao"
+          - id: data.mysql-postgres.backup-tuning
+            title: "Backup (dump/physical) và tuning cơ bản (index, slow query)"
+            level: "vận hành"
+            prerequisites: ["data.mysql-postgres.fundamentals"]
+            priority: "trung bình"
+
+      - id: data.redis
+        title: "Redis"
+        lessons:
+          - id: data.redis.fundamentals
+            title: "Redis: use case, persistence (RDB/AOF), vận hành cơ bản"
+            level: "vận hành"
+            prerequisites: []
+            priority: "trung bình"
+
+      - id: data.message-queue
+        title: "Message queue"
+        lessons:
+          - id: data.message-queue.fundamentals
+            title: "Message queue: khái niệm, so sánh cơ bản Kafka/RabbitMQ"
+            level: "vận hành"
+            prerequisites: []
+            priority: "trung bình"
+
+  - id: sre
+    title: "Thực hành SRE"
+    modules:
+      - id: sre.incident-response
+        title: "Ứng phó sự cố"
+        lessons:
+          - id: sre.incident-response.process
+            title: "Quy trình ứng phó sự cố: phát hiện, triage, escalation"
+            level: "vận hành"
+            prerequisites: ["monitoring.alerting-design.principles"]
+            priority: "cao"
+          - id: sre.incident-response.roles
+            title: "Vai trò trong incident: Incident Commander, Scribe"
+            level: "chuyên sâu"
+            prerequisites: ["sre.incident-response.process"]
+            priority: "trung bình"
+
+      - id: sre.postmortem
+        title: "Viết postmortem"
+        lessons:
+          - id: sre.postmortem.writing
+            title: "Viết postmortem blameless: timeline, root cause, action item"
+            level: "chuyên sâu"
+            prerequisites: ["sre.incident-response.process"]
+            priority: "cao"
+
+      - id: sre.capacity-planning
+        title: "Capacity planning"
+        lessons:
+          - id: sre.capacity-planning.basics
+            title: "Capacity planning: dự báo tải, đặt ngưỡng cảnh báo trước khi hết tài nguyên"
+            level: "chuyên sâu"
+            prerequisites: ["monitoring.prometheus-grafana.fundamentals"]
+            priority: "trung bình"
+
+      - id: sre.change-management
+        title: "Quản lý thay đổi"
+        lessons:
+          - id: sre.change-management.process
+            title: "Quản lý thay đổi: change request, kế hoạch rollback"
+            level: "vận hành"
+            prerequisites: []
+            priority: "cao"
+
+      - id: sre.toil-automation
+        title: "Tự động hóa giảm toil"
+        lessons:
+          - id: sre.toil-automation.identifying-toil
+            title: "Nhận diện toil và ưu tiên tự động hóa"
+            level: "chuyên sâu"
+            prerequisites: ["devops.ansible.fundamentals"]
+            priority: "trung bình"
+
+# ---------------------------------------------------------------------------
+# review_notes — đề xuất thay đổi so với khung gốc, CẦN CHỦ DỰ ÁN DUYỆT trước
+# khi bắt đầu viết bài. Không tự áp dụng thay đổi khác ngoài những gì đã nằm
+# sẵn trong "domains" ở trên (tức là các đề xuất dưới đây ĐÃ được áp dụng vào
+# cấu trúc trên, ghi lại ở đây chỉ để chủ dự án biết đã lệch so với khung gốc
+# chỗ nào và tại sao — có thể yêu cầu đổi lại).
+# ---------------------------------------------------------------------------
+review_notes:
+  - "Bổ sung: mỗi mục trong khung gốc (ví dụ 'DNS', 'VLAN'...) được coi là 1 MODULE,
+     tách thành nhiều BÀI nhỏ theo trình tự học — khung gốc liệt kê module, chưa tới
+     mức bài, nên đã tự thêm bước phân rã này."
+  - "Bổ sung bài 'IPv6 cơ bản' vào module networking.tcpip — khung gốc không có,
+     nhưng cần thiết vì một số hạ tầng hiện đại (K8s, cloud) đã chạy dual-stack."
+  - "Không tạo module 'networking' riêng lặp lại trong Linux — domain Linux chỉ có 1
+     module 'network-stack' chứa đúng phần Linux-specific (ip/ss/iptables/tcpdump),
+     các bài này trỏ prerequisite sang domain networking để tránh dạy trùng khái
+     niệm TCP/IP ở cả hai nơi."
+  - "Gộp 'Docker Compose' làm 1 bài trong module docker-internals thay vì tách
+     module riêng — khung gốc không nêu rõ Compose, nhưng rất thực dụng cho SE khi
+     chạy app nhiều container trên 1 máy, không cần K8s."
+  - "Hạ độ ưu tiên xuống 'thấp' cho: Ceph (2 bài), vPC nâng cao, ACL/xattr, Splunk,
+     khung tuân thủ, Helm chart authoring — đây là các mảng chuyên sâu/công cụ ít
+     phổ biến hơn trong môi trường nội bộ quy mô nhỏ (theo đúng mô tả SE Dojo ở
+     CLAUDE.md: 4-10 người, không phải mọi tool đều được dùng). ĐỀ XUẤT CÓ THỂ BỎ
+     HẲN nếu team không dùng Ceph/Splunk — giữ tạm trong taxonomy vì vẫn là kiến
+     thức phổ biến trong ngành, dễ gặp khi làm việc với khách hàng/dự án khác."
+  - "Không thêm domain mới ngoài 9 domain khung gốc (ví dụ không thêm 'Cloud
+     AWS/Azure/GCP') vì CLAUDE.md xác nhận phạm vi app hiện tại là
+     Linux/Networking/Virtualization/Container/Monitoring/CI-CD-IaC/Security — thêm
+     domain ngoài phạm vi sẽ không có nơi map vào Topic hiện có trong app."
+  - "Domain 'Bảo mật' KHÔNG lặp lại RBAC/security của K8s (đã có ở
+     container-k8s.k8s-rbac-security) — chỉ còn OS/network/identity/vuln/audit ở
+     mức tổng quát, tránh trùng nội dung giữa 2 domain."
+  - "Tổng: 9 domain, 56 module, 146 bài. Đây là ước tính PHẠM VI ĐẦY ĐỦ để tham
+     chiếu lâu dài — không có nghĩa phải viết hết 132 bài trước khi dùng được;
+     mỗi module hoàn thành là đã có thể sinh quiz/lab/tutor cho module đó."
