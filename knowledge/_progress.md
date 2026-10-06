@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **63 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **65 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -502,12 +502,34 @@ minh hoạ theo Docker Engine documentation.
 - Tất cả cross-reference trong module này vẫn theo đúng quy tắc đã thiết lập: "đã học ở" chỉ
   dùng cho ID trong `prerequisites:`, còn lại dùng "xem thêm".
 
+### 18. `container-k8s.k8s-architecture` — Kiến trúc Kubernetes (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.k8s-architecture.control-plane` | `knowledge/container-k8s/k8s-architecture/control-plane.md` | draft |
+| `container-k8s.k8s-architecture.api-objects` | `knowledge/container-k8s/k8s-architecture/api-objects.md` | draft |
+
+K8s và kubectl không cài trên máy demo — 100% output minh hoạ theo K8s documentation. `control-plane.md`:
+4 thành phần control plane (apiserver, etcd, scheduler, controller-manager) + 3 thành phần node
+(kubelet, kube-proxy, container runtime CRI); reconciliation loop; watch mechanism. `api-objects.md`:
+4 trường bắt buộc của object; Pod, Namespace, label/selector; apply vs create (idempotent); kubectl
+get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs kernel).
+
+**Phát hiện khi review module này (2 🔴→🟡, 1 🟡, 1 nit):**
+- `control-plane.md` dòng 242: "như đã học" với `namespaces-cgroups` không trong prerequisites —
+  đổi sang "xem thêm". Đã sửa.
+- `api-objects.md` dòng 57: "đã học ở bài trước" về Linux namespace không trong prerequisites —
+  đổi sang "xem thêm". Đã sửa.
+- `control-plane.md` dòng 191: flag `--pod-eviction-timeout` đã bị loại bỏ từ K8s 1.24 — sửa
+  thành giải thích cơ chế đúng (default toleration `tolerationSeconds=300`). Đã sửa.
+- `api-objects.md` dòng 73: "1.18+" không chính xác — server-side apply beta từ 1.16, GA từ
+  1.22. Đã sửa.
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Domain `container-k8s` module 17 xong. Tiếp theo trong cùng domain: `container-k8s.k8s-architecture`
-(Kubernetes architecture — API server, etcd, kubelet, scheduler, controller manager). Domain `linux`
-và phần đầu `networking` xong từ trước. Domain `networking` còn `networking.switching` (ưu tiên "cao"
-nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ).
+Domain `container-k8s` module 18 (`k8s-architecture`) xong. Tiếp theo trong cùng domain:
+`container-k8s.k8s-workload` (Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, ConfigMap, Secret,
+HPA — 4 bài). Domain `linux` và phần đầu `networking` xong từ trước.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
