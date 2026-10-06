@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **40 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **44 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -292,14 +292,51 @@ thành memory (feedback) để không lặp lại**: trước khi dán BẤT K�
 an toàn) vào nội dung dùng để chia sẻ/sinh quiz-lab, phải tự kiểm tra output đó có lẫn domain/
 username/hostname thật của tổ chức không, không chỉ xét độ an toàn của CHÍNH LỆNH.
 
+### 12. `linux.performance` — Chẩn đoán hiệu năng CPU/Memory/I-O (4/4 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.performance.cpu-load` | `knowledge/linux/performance/cpu-load.md` | draft |
+| `linux.performance.memory-swap` | `knowledge/linux/performance/memory-swap.md` | draft |
+| `linux.performance.io` | `knowledge/linux/performance/io.md` | draft |
+| `linux.performance.case-study` | `knowledge/linux/performance/case-study.md` | draft |
+
+Bộ ba chẩn đoán hiệu năng CPU (load average, nice/renice, CFS "gợi ý không phải đảm bảo",
+context switch cost qua `vmstat`) → Memory/swap (`MemAvailable` vs `MemFree`, buffer/cache có
+thể thu hồi, swap một lần vs thrashing, `oom_score`/`oom_score_adj`, PID 1 được bảo vệ) → I/O
+(`%util` KHÔNG đáng tin trên SSD/RAID phục vụ song song — chỉ `await` mới đáng tin, IOPS vs
+throughput, `/proc/diskstats`) rồi gộp lại thành 1 case study end-to-end dùng `strace -c`
+(summary, an toàn) / `strace -p` (attach, bị chặn bởi Yama LSM `ptrace_scope`) + `lsof -p`
+(không bị ptrace_scope chặn vì chỉ đọc metadata, không dùng syscall ptrace thật). Lệnh thật:
+`cat /proc/loadavg`, `nproc`, `vmstat 1 3`, `renice` trên tiến trình nền tự tạo (`tail -f
+/dev/null &`, đã dọn sạch sau), `free -h`, `/proc/meminfo`, `/proc/self/oom_score`,
+`/proc/diskstats`, `strace -c -o ... ls /tmp`, `strace -p`/`lsof -p` trên tiến trình nền.
+Minh hoạ (đánh dấu rõ, có lý do): `iostat -x` (sysstat không cài, không có sudo) — 2 kịch bản
+đối chiếu SSD (util cao/await thấp = chưa nghẽn) vs HDD (cả hai cao = nghẽn thật) lấy theo cú
+pháp man page chính thức.
+
+**🔴 Lỗi kỹ thuật nghiêm trọng phát hiện khi review module này:** `case-study.md` mô tả sai
+Yama LSM `ptrace_scope=1` — viết là chỉ cho phép ptrace giữa cha-con TRỰC TIẾP. Reviewer
+WebFetch lại ĐÚNG nguồn kernel.org mà bài tự trích dẫn và phát hiện nguồn đó nói ngược lại:
+mức 1 cho phép ptrace với TOÀN BỘ descendant (con, cháu, chắt... ở mọi cấp), không chỉ con
+trực tiếp. Lỗi này đặc biệt nặng vì được nhắc lại 3 lần như một "khái niệm lõi", và còn dùng
+sai để giải thích vì sao demo `strace -p` thất bại (lý do thật: tiến trình nền bị re-parent
+sang tiến trình khác giữa 2 lần gọi Bash tool riêng biệt — không còn là descendant của shell
+gốc — chứ không phải "không phải con trực tiếp"). Đã sửa cả 3 vị trí (thêm bảng 4 mức
+`ptrace_scope` 0-3 ở mục 2, viết lại mục 3 gắn đúng với cơ chế re-parenting/subreaper đã học ở
+`linux.process-signals.lifecycle`, viết lại mục 4 giải thích đúng nguyên nhân demo thất bại).
+**Bài học: khi một bài tự trích dẫn một nguồn, reviewer phải tự fetch lại ĐÚNG nguồn đó và đối
+chiếu từng câu — lỗi này được phát hiện chính xác bằng cách đó, không phải bằng kiến thức
+chung.** Các góp ý nhỏ khác (🟡): bổ sung nguồn thiếu cho cả 4 bài (`renice(1)`,
+`proc_meminfo(5)`, kernel.org `iostats.txt`, `strace(1)`) — đã thêm vào cả frontmatter
+`sources:` và mục "Nguồn tham khảo".
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
-`networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ). Sau đó domain
-`linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack`, `linux.performance`,
-`linux.shell-scripting`, `linux.package-management`, `linux.kernel-troubleshooting`) — có thể
-ưu tiên các module này trước `networking.switching` vì chạy được NHIỀU lệnh thật hơn (switching
-cần thiết bị mạng vật lý, hầu như toàn bộ sẽ là output minh hoạ).
+Còn trong domain `linux`: `linux.network-stack`, `linux.shell-scripting`,
+`linux.package-management`, `linux.kernel-troubleshooting` (ưu tiên "cao", nhiều lệnh thật
+chạy được). Domain `networking` còn `networking.switching` (ưu tiên "cao" nhưng cần thiết bị
+mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ, nên để sau các module `linux` còn lại).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
