@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **36 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **39 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -251,12 +251,32 @@ nhưng CƠ CHẾ cốt lõi có thể dựng lại bằng vài dòng script, ưu
 stale); dùng từ "NAT" chung thay vì "PAT" (thuật ngữ cụ thể hơn, đã định nghĩa ở module
 `nat-firewall`) khi giải thích vấn đề `ip_hash`.
 
+### 10. `networking.tls-pki` — TLS và PKI (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.tls-pki.handshake` | `knowledge/networking/tls-pki/handshake.md` | draft |
+| `networking.tls-pki.pki-cert-mgmt` | `knowledge/networking/tls-pki/pki-cert-mgmt.md` | draft |
+| `networking.tls-pki.troubleshooting` | `knowledge/networking/tls-pki/troubleshooting.md` | draft |
+
+TLS 1.3 handshake (1-RTT, CertificateVerify, chain of trust) qua `curl -v`/`openssl s_client`
+tới example.com; quy trình PKI đầy đủ (CA tự ký → CSR → ký → verify) tự dựng thật bằng
+`openssl req`/`x509`/`verify` trong thư mục tạm; 2 lỗi TLS kinh điển (chain — error 20, hostname
+mismatch — error 62) minh hoạ bằng chính PKI tự tạo. **Toàn bộ 3 bài KHÔNG có output minh hoạ
+nào** — mọi lệnh đều chạy thật (khác các module trước vẫn cần minh hoạ một phần do thiếu quyền/
+công cụ).
+
+**Phát hiện khi review:** không có lỗi kỹ thuật, output đã được reviewer tự chạy lại và khớp
+gần như tuyệt đối (kể cả số liệu "động" như ngày hết hạn cert thật, số cert trong chain). Chỉ
+1 lỗi "nên sửa": cross-reference sai ở `troubleshooting.md` mục 8 (mô tả sai nội dung bài
+`networking.http-lb.lb-algorithms.md`, bài đó không có gì về TLS) — đã sửa lại đúng.
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
-`networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ theo đúng quy
-tắc) hoặc `networking.vpn` (ưu tiên "trung bình"). Domain `linux` còn 5 module ưu tiên "cao"
-chưa làm (`linux.network-stack` — giờ có đủ prerequisite để làm, `linux.performance`,
+`networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ) hoặc
+`networking.vpn` (ưu tiên "trung bình", giờ có đủ prerequisite `tls-pki.handshake`). Domain
+`linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack`, `linux.performance`,
 `linux.shell-scripting`, `linux.package-management`, `linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
