@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **54 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **58 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -433,12 +433,41 @@ bonding interface trên máy desktop đơn).
 (user command) dù thường chạy bằng root; kiểm tra URL trước khi đưa vào `sources:`. Các tool không thuộc
 Linux man-pages project (apt, nft, ufw, resolvectl section 1) cần tìm đúng nguồn gốc của project đó.**
 
+### 16. `linux.kernel-troubleshooting` — Kernel và troubleshooting (4/4 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.kernel-troubleshooting.modules` | `knowledge/linux/kernel-troubleshooting/modules.md` | draft |
+| `linux.kernel-troubleshooting.sysctl` | `knowledge/linux/kernel-troubleshooting/sysctl.md` | draft |
+| `linux.kernel-troubleshooting.kernel-logs` | `knowledge/linux/kernel-troubleshooting/kernel-logs.md` | draft |
+| `linux.kernel-troubleshooting.methodology` | `knowledge/linux/kernel-troubleshooting/methodology.md` | draft |
+
+Module cuối của domain `linux`. `modules.md`: `lsmod`/`modinfo`/`cat /proc/modules`/`ls /sys/module/<name>/`
+(100% lệnh thật). `sysctl.md`: đọc tham số `net.*`/`vm.*`/`kernel.*` thật; thay đổi và cấu hình vĩnh viễn
+là output minh hoạ (cần root). `kernel-logs.md`: `journalctl -k` chạy thật (user thuộc group `adm`);
+`dmesg` bị restrict (`kernel.dmesg_restrict=1`) — phần minh hoạ và note rõ lý do. `methodology.md`:
+capstone — khung USE, quy trình 4 bước, 3 kịch bản debug thật trên máy.
+
+**Phát hiện khi review module này (0 🔴, 5 🟡):**
+- `sysctl.md` mục 7 câu 2: `sysctl -w somaxconn=65535` sai — tên ngắn không hợp lệ, đúng là
+  `sysctl -w net.core.somaxconn=65535`. Đã sửa.
+- `modules.md` mục 4: output `ls /sys/module/nf_tables/` thiếu `coresize` và `initsize`. Đã thêm.
+- `modules.md` mục 4: `sctp Used by = 15` là snapshot cũ, thực tế là `13`. Đã sửa + thêm ghi chú
+  giá trị thay đổi theo connection.
+- `sysctl.md` mục 6: "(đã học ở `linux.performance.io`)" với bài không trong prerequisites — đổi sang
+  "xem thêm". Đã sửa.
+- `kernel-logs.md` mục 4: "(đã học ở `linux.performance.case-study`)" tương tự — đổi sang "xem thêm".
+  Đã sửa.
+**Bài học: snapshot runtime (số connection, refcnt) thay đổi theo thời gian — nên thêm ghi chú giá trị
+mang tính thời điểm hoặc dùng giá trị mang tính minh hoạ cố định khi số đó không quan trọng về độ chính
+xác. Với cross-reference, "đã học ở" chỉ dùng khi bài kia NẰM TRONG prerequisites; nếu chỉ "xem thêm"
+thì dùng ngôn ngữ optional.**
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Còn trong domain `linux`: `linux.kernel-troubleshooting` (ưu tiên "cao",
-nhiều lệnh thật chạy được — `lsmod`, `sysctl`, `dmesg`, `journalctl -k`). Domain `networking` còn
-`networking.switching` (ưu tiên "cao" nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là output
-minh hoạ, nên để sau `linux.kernel-troubleshooting`).
+Domain `linux` đã xong. Domain `networking` còn `networking.switching` (ưu tiên "cao" nhưng cần thiết
+bị mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ). Domain `containers` và `monitoring` có nhiều
+lệnh thật chạy được hơn.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
