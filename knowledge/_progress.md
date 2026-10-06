@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **58 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **63 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -463,11 +463,51 @@ mang tính thời điểm hoặc dùng giá trị mang tính minh hoạ cố đ�
 xác. Với cross-reference, "đã học ở" chỉ dùng khi bài kia NẰM TRONG prerequisites; nếu chỉ "xem thêm"
 thì dùng ngôn ngữ optional.**
 
+### 17. `container-k8s.docker-internals` — Cơ chế bên trong Docker (5/5 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.docker-internals.namespaces-cgroups` | `knowledge/container-k8s/docker-internals/namespaces-cgroups.md` | draft |
+| `container-k8s.docker-internals.images` | `knowledge/container-k8s/docker-internals/images.md` | draft |
+| `container-k8s.docker-internals.networking` | `knowledge/container-k8s/docker-internals/networking.md` | draft |
+| `container-k8s.docker-internals.storage` | `knowledge/container-k8s/docker-internals/storage.md` | draft |
+| `container-k8s.docker-internals.compose` | `knowledge/container-k8s/docker-internals/compose.md` | draft |
+
+Docker không cài trên máy demo — toàn bộ `docker` command là output minh hoạ; cơ chế kernel
+(namespace, cgroup, bridge, iptables) dùng lệnh thật. `namespaces-cgroups.md`: `readlink
+/proc/self/ns/*` (10 symlink thật), `cat /proc/self/cgroup` (cgroup v2 unified path), `cat
+/sys/fs/cgroup/cgroup.controllers` — tất cả chạy thật. Images, networking, storage, compose: 100%
+minh hoạ theo Docker Engine documentation.
+
+**Phát hiện khi review module này (0 🔴, 4 🟡):**
+- `images.md` prose dòng 137: mô tả ngược layer số (`RUN chmod` rebuild vs `RUN apt-get` cached).
+  Đã sửa thành layer 3/4 (`COPY`) và layer 4/4 (`RUN chmod`) rebuild; layer 2/4 (`RUN apt-get`)
+  được cache.
+- `storage.md` + `compose.md`: 3 vị trí mô tả sai anonymous volume bị xoá bởi `docker compose
+  down` mặc định (Compose v2 KHÔNG xoá volume trừ khi thêm flag `--volumes`). Đã sửa cả 3 vị trí.
+- `namespaces-cgroups.md` dòng 163: "đã học ở `linux.performance.memory-swap`" không nằm trong
+  prerequisites — đổi sang "xem thêm". Đã sửa.
+- `networking.md` dòng 38: "đã học ở `networking.nat-firewall.nat-types`" tương tự — đổi sang
+  "xem thêm". Đã sửa.
+- `storage.md` dòng 59-63: claim sai rằng `--mount` và `--volume` có hành vi volume initialization
+  khác nhau (thực ra chỉ khác nhau với BIND MOUNT, không phải volume). Đã bỏ phần nhầm lẫn.
+- `compose.md` scale example: port mapping trong ví dụ scale mâu thuẫn với service có `ports:`
+  cố định. Đã sửa — giải thích cần dùng port không cố định (`"3000"` thay vì `"3000:3000"`) và
+  cập nhật ví dụ output dùng ephemeral port ngẫu nhiên.
+
+**Bài học mới từ module này:**
+- Compose v2 khác v1 quan trọng ở volume lifecycle: v1 standalone binary (`docker-compose`) xoá
+  anonymous volume khi `down`, v2 plugin (`docker compose`) giữ nguyên mọi volume trừ khi dùng
+  `--volumes`. Luôn kiểm tra behaviour theo đúng phiên bản, không suy diễn từ hành vi Compose v1.
+- Tất cả cross-reference trong module này vẫn theo đúng quy tắc đã thiết lập: "đã học ở" chỉ
+  dùng cho ID trong `prerequisites:`, còn lại dùng "xem thêm".
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Domain `linux` đã xong. Domain `networking` còn `networking.switching` (ưu tiên "cao" nhưng cần thiết
-bị mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ). Domain `containers` và `monitoring` có nhiều
-lệnh thật chạy được hơn.
+Domain `container-k8s` module 17 xong. Tiếp theo trong cùng domain: `container-k8s.k8s-architecture`
+(Kubernetes architecture — API server, etcd, kubelet, scheduler, controller manager). Domain `linux`
+và phần đầu `networking` xong từ trước. Domain `networking` còn `networking.switching` (ưu tiên "cao"
+nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
