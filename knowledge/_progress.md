@@ -7,8 +7,9 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **91 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
+- Tổng số bài đã viết: **96 / 146** (`draft`, chưa `verified`).
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
+  liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -765,6 +766,30 @@ Job), hook-delete-policy, helm lint/template/package/push OCI.
   Đúng ra: `before-hook-creation` xoá trước lần upgrade tiếp, `hook-failed` mới xoá ngay. Đã sửa.
 - Nit: `--generate-name` + tên explicit trong dry-run example — bỏ flag thừa. Đã sửa.
 - Nit: `$.Values` scope note mở rộng thêm `$.Release.Name` etc. Đã thêm.
+
+### 28. `networking.switching` — Switching (5/5 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.switching.basics` | `knowledge/networking/switching/basics.md` | draft |
+| `networking.switching.vlan` | `knowledge/networking/switching/vlan.md` | draft |
+| `networking.switching.stp` | `knowledge/networking/switching/stp.md` | draft |
+| `networking.switching.lacp` | `knowledge/networking/switching/lacp.md` | draft |
+| `networking.switching.vpc-advanced` | `knowledge/networking/switching/vpc-advanced.md` | draft |
+
+Không có switch vật lý/Nexus trong sandbox. `basics.md`/`vlan.md`/`stp.md`/`lacp.md` minh hoạ
+song song 2 phía: lệnh Linux bridge/bonding thật chạy được trong container (`bridge fdb`,
+`ip link type vlan`, `bridge vlan`, `type bond mode 802.3ad`), và CLI kiểu Cisco IOS làm ví dụ
+minh hoạ (nhãn rõ "minh họa" ở output không chạy thật). `vpc-advanced.md` (priority thấp theo
+taxonomy) là khái niệm MLAG/vPC chung — không có thiết bị Nexus để xác minh cú pháp, đã gắn
+`TODO-VERIFY` ở 2 chỗ (giới hạn 8 link active của LACP theo model, và cú pháp NX-OS/tài liệu
+hãng) thay vì bịa số liệu.
+
+**Tự rà lại (không dùng subagent, theo yêu cầu phiên này):** kiểm tra path 802.1Q (4 byte,
+TPID `0x8100`), path cost STP chuẩn 802.1D-1998 (10M=100/100M=19/1G=4/10G=2), port state STP
+cổ điển (Blocking→Listening 15s→Learning 15s→Forwarding), `ageing_time` mặc định Linux bridge
+300s (đơn vị `ip link` là 1/100 giây nên giá trị truyền là 30000) — khớp man page/kernel docs
+đã dẫn trong `sources`. Không phát hiện sai số liệu nào cần sửa sau khi đối chiếu nguồn.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
