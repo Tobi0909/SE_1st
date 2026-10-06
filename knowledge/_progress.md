@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **76 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **81 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -502,6 +502,27 @@ minh hoạ theo Docker Engine documentation.
 - Tất cả cross-reference trong module này vẫn theo đúng quy tắc đã thiết lập: "đã học ở" chỉ
   dùng cho ID trong `prerequisites:`, còn lại dùng "xem thêm".
 
+### 23. `container-k8s.k8s-troubleshooting` — Troubleshooting K8s (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.k8s-troubleshooting.pod-errors` | `knowledge/container-k8s/k8s-troubleshooting/pod-errors.md` | draft |
+| `container-k8s.k8s-troubleshooting.oom-resource` | `knowledge/container-k8s/k8s-troubleshooting/oom-resource.md` | draft |
+| `container-k8s.k8s-troubleshooting.logs-events` | `knowledge/container-k8s/k8s-troubleshooting/logs-events.md` | draft |
+
+K8s không cài trên máy demo — 100% output minh hoạ theo K8s documentation. `pod-errors.md`: Pod
+lifecycle phases, CrashLoopBackOff/Pending/ImagePullBackOff/OOMKilled/ContainerCreating, backoff
+exponential (10s→20s→...→5min), 3-step triage workflow (get→describe→logs), ephemeral debug
+container `kubectl debug` stable K8s 1.25. `oom-resource.md`: requests vs limits (scheduler vs
+kernel), OOMKill (SIGKILL exit 137), container OOMKill vs node pressure OOMKill, QoS classes
+(Guaranteed/Burstable/BestEffort), CPU throttle ≠ OOMKill, sizing rules (P50 requests/P99+30%
+limits). `logs-events.md`: kubectl logs mechanics (stdout/stderr/node-file), Events TTL 1h/etcd
+cost, `--previous`/`--since`/`--tail`/`--prefix`/`--max-log-requests`, `get events
+--field-selector type=Warning`, triage nhanh với 5 bước.
+
+**Phát hiện khi review module này (0 🔴, 0 🟡):**
+- Không có lỗi kỹ thuật nghiêm trọng hoặc đáng sửa.
+
 ### 22. `container-k8s.k8s-rbac-security` — RBAC và bảo mật K8s (2/2 bài)
 
 | Lesson id | File | Trạng thái |
@@ -511,12 +532,20 @@ minh hoạ theo Docker Engine documentation.
 
 K8s không cài trên máy demo — 100% output minh hoạ. `rbac.md`: Subject (User/Group/ServiceAccount),
 Role vs ClusterRole (namespace vs cluster scope), RoleBinding + ClusterRoleBinding (4 kết hợp), allow-only
-model, `kubectl auth can-i`, `automountServiceAccountToken: false`. `security-context.md`: Pod vs
+model, `cluster-admin` standalone wildcard role (không dùng aggregation), `admin`/`edit`/`view`
+aggregate, `kubectl auth can-i`, `automountServiceAccountToken: false`. `security-context.md`: Pod vs
 container SecurityContext, runAsUser/runAsNonRoot/allowPrivilegeEscalation/readOnlyRootFilesystem/
 capabilities (drop ALL + add back), seccompProfile RuntimeDefault; Pod Security Standards 3 mức
 (privileged/baseline/restricted); PSA namespace labels (enforce/audit/warn); PSP removed K8s 1.25.
 
-**(Chờ code review — chưa commit)**
+**Phát hiện khi review module này (0 🔴, 2 🟡, 1 nit):**
+- `rbac.md` dòng 78-79: `cluster-admin` mô tả sai là aggregated ClusterRole — thực ra là standalone
+  ClusterRole với wildcard rules. Chỉ `admin`/`edit`/`view` dùng aggregation. Đã sửa: tách thành
+  2 đoạn riêng biệt.
+- `rbac.md` dòng 211-212: "cần restart Pod để mount token mới" sai — RBAC change có hiệu lực ngay
+  lập tức (token SA chỉ là credential định danh, không nhúng permission). Đã sửa.
+- `rbac.md` dòng 135: `kubectl apply -f file1 file2 file3` cú pháp sai — phải dùng nhiều `-f` hoặc
+  comma-separated. Đã sửa thành `-f sa.yaml -f role.yaml -f rolebinding.yaml`.
 
 ### 21. `container-k8s.k8s-storage` — Kubernetes Storage (2/2 bài)
 
@@ -639,8 +668,8 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 
 ## Module tiếp theo (chưa bắt đầu)
 
-Domain `container-k8s` module 22 (`k8s-rbac-security`) vừa viết xong, chờ review. Tiếp theo:
-`container-k8s.k8s-troubleshooting` (2 bài: pod-errors, cluster-debug).
+Domain `container-k8s` modules 22 và 23 đã hoàn thành. Tiếp theo: `container-k8s.helm`
+(module 24) gồm 2 bài: `helm-basics` và `helm-charts`.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
