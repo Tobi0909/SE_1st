@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **39 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **40 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -271,13 +271,35 @@ gần như tuyệt đối (kể cả số liệu "động" như ngày hết hạ
 1 lỗi "nên sửa": cross-reference sai ở `troubleshooting.md` mục 8 (mô tả sai nội dung bài
 `networking.http-lb.lb-algorithms.md`, bài đó không có gì về TLS) — đã sửa lại đúng.
 
+### 11. `networking.vpn` — VPN (1/1 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.vpn.types` | `knowledge/networking/vpn/types.md` | draft |
+
+Site-to-site vs remote access; IPsec (Transport vs Tunnel mode, AH vs ESP — ESP MUST/AH MAY
+theo đúng RFC 4301, đã verify nguyên văn); SSL VPN (dễ qua NAT/firewall vì chạy trên port 443)
+vs WireGuard (key-based như SSH, không cần PKI). `nmcli connection show` chạy thật để liệt kê
+profile VPN (không kết nối); OpenVPN/WireGuard config là output minh hoạ.
+
+**🔴 Sự cố đáng ghi nhớ khi review module này — RÒ RỈ THÔNG TIN NHẠY CẢM THẬT:** output
+`nmcli` ban đầu copy TRỰC TIẾP từ máy thật, vô tình chứa domain công ty thật
+(`sapo.vn`) và username công việc thật (`tuantm5`) ngay trong tên profile VPN
+(`sslvpn-tuantm5@sapo.vn-...`) — dù lệnh CHẠY (chỉ liệt kê, không kết nối) hoàn toàn an toàn,
+chính NỘI DUNG output lại không nên đưa vào tài liệu dùng chung. Reviewer bắt được trước khi
+bài này được coi là xong. Đã ẩn danh hoá thành `work-remote-ssl-primary`/`-backup`. **Đã lưu
+thành memory (feedback) để không lặp lại**: trước khi dán BẤT KỲ output lệnh thật nào (dù lệnh
+an toàn) vào nội dung dùng để chia sẻ/sinh quiz-lab, phải tự kiểm tra output đó có lẫn domain/
+username/hostname thật của tổ chức không, không chỉ xét độ an toàn của CHÍNH LỆNH.
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
-`networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ) hoặc
-`networking.vpn` (ưu tiên "trung bình", giờ có đủ prerequisite `tls-pki.handshake`). Domain
+`networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ). Sau đó domain
 `linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack`, `linux.performance`,
-`linux.shell-scripting`, `linux.package-management`, `linux.kernel-troubleshooting`).
+`linux.shell-scripting`, `linux.package-management`, `linux.kernel-troubleshooting`) — có thể
+ưu tiên các module này trước `networking.switching` vì chạy được NHIỀU lệnh thật hơn (switching
+cần thiết bị mạng vật lý, hầu như toàn bộ sẽ là output minh hoạ).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
