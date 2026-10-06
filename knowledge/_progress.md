@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **96 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **99 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
@@ -790,6 +790,29 @@ TPID `0x8100`), path cost STP chuẩn 802.1D-1998 (10M=100/100M=19/1G=4/10G=2), 
 cổ điển (Blocking→Listening 15s→Learning 15s→Forwarding), `ageing_time` mặc định Linux bridge
 300s (đơn vị `ip link` là 1/100 giây nên giá trị truyền là 30000) — khớp man page/kernel docs
 đã dẫn trong `sources`. Không phát hiện sai số liệu nào cần sửa sau khi đối chiếu nguồn.
+
+### 29. `networking.routing` — Routing (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.routing.static` | `knowledge/networking/routing/static.md` | draft |
+| `networking.routing.ospf` | `knowledge/networking/routing/ospf.md` | draft |
+| `networking.routing.bgp` | `knowledge/networking/routing/bgp.md` | draft |
+
+`static.md`: cài thêm `iproute2` trong sandbox (chưa có sẵn) để chạy lệnh THẬT — `ip route
+show`, `ip route get` (chẩn đoán longest prefix match), `ip route add/del`. CLI Cisco IOS chỉ
+làm ví dụ minh hoạ cú pháp. `ospf.md`/`bgp.md`: không có ≥2 router/FRR chạy thật trong sandbox
+để hình thành neighbor/peer thật (OSPF DR/BDR và BGP cần topology nhiều node mới có ý nghĩa) —
+100% output CLI (FRR `vtysh` + Cisco IOS) là **minh họa**, nhãn rõ trong bài; nội dung khái
+niệm (area/cost/DR-BDR, AS/eBGP-iBGP/path selection) dựa trực tiếp theo RFC 2328/RFC 4271 +
+docs FRR dẫn trong `sources`.
+
+**Tự rà lại (không dùng subagent):** kiểm tra lại các claim về LPM (route cụ thể hơn luôn
+thắng bất kể thứ tự khai — đúng theo `ip-route(8)`), OSPF reference-bandwidth mặc định 100
+Mbps (nên link ≥100M mặc định cùng cost 1 nếu không chỉnh `auto-cost reference-bandwidth`),
+luật chống loop iBGP (route học từ iBGP không re-advertise sang iBGP peer khác) và thứ tự BGP
+path selection (đã ghi rõ "rút gọn, không đầy đủ 100%, phụ thuộc vendor" để tránh khẳng định
+quá tay) — không phát hiện sai cần sửa; không thêm TODO-VERIFY mới cho module này.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
