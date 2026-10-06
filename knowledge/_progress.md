@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **44 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **48 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -331,12 +331,47 @@ chung.** Các góp ý nhỏ khác (🟡): bổ sung nguồn thiếu cho cả 4 b
 `proc_meminfo(5)`, kernel.org `iostats.txt`, `strace(1)`) — đã thêm vào cả frontmatter
 `sources:` và mục "Nguồn tham khảo".
 
+### 13. `linux.shell-scripting` — Shell scripting (4/4 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.shell-scripting.bash-basics` | `knowledge/linux/shell-scripting/bash-basics.md` | draft |
+| `linux.shell-scripting.text-processing` | `knowledge/linux/shell-scripting/text-processing.md` | draft |
+| `linux.shell-scripting.bash-advanced` | `knowledge/linux/shell-scripting/bash-advanced.md` | draft |
+| `linux.shell-scripting.best-practices` | `knowledge/linux/shell-scripting/best-practices.md` | draft |
+
+Biến/điều kiện/vòng lặp/tham số dòng lệnh (bash-basics) → `grep`/`sed`/`awk`/`xargs` xử lý văn
+bản theo pipeline Unix (text-processing) → hàm/`trap`/`set -e`/`set -u`/`pipefail` (bash-advanced)
+→ idempotent/logging có timestamp/exit code chuẩn cho script vận hành (best-practices). **100%
+lệnh/script chạy THẬT** trên máy (không có ràng buộc root/thiết bị nào ở module này) — mọi
+script test được viết ra file `.sh` riêng và chạy qua `/bin/bash` trực tiếp (không qua alias),
+đúng kỹ thuật phòng tránh lớp proxy cục bộ đã phát hiện ở module 3.
+
+**🔴 Lỗi kỹ thuật phát hiện khi review module này:** `bash-basics.md` mục 6 giải thích sai toán
+tử `<` trong `[ ]` — viết là "so sánh chuỗi theo thứ tự ký tự", thực ra đặc tính so sánh chuỗi
+bằng `<` CHỈ thuộc về `[[ ]]`; trong `[ ]`/`test`, `<` KHÔNG BAO GIỜ được hiểu là toán tử so
+sánh — shell luôn nuốt nó làm REDIRECT đầu vào trước khi `test` kịp thấy, bất kể quote biến
+đúng cách hay không. Reviewer tự chạy thật để xác nhận: không có file tên trùng ngưỡng số thì
+báo lỗi redirect ra stderr (`bash: line 1: 20: No such file or directory`, exit `1`); nếu TÌNH
+CỜ có file trùng tên, điều kiện LUÔN đúng một cách vô nghĩa (exit `0`), không hề so sánh giá
+trị — cả hai hành vi đều KHÁC với mô tả gốc ("chạy sai không báo lỗi gì" / "thiếu tham số"). Đã
+viết lại toàn bộ đoạn mục 6 cho khớp đúng hành vi thật đã verify. **Bài học: toán tử giống nhau
+(`<`, `>`, `=`) có Ý NGHĨA KHÁC NHAU hoàn toàn giữa `[ ]` (POSIX `test`) và `[[ ]]` (Bash mở
+rộng) — không thể mô tả chung cho cả hai, phải tự chạy thật để xác nhận hành vi của ĐÚNG cú
+pháp đang viết, không suy diễn từ cú pháp "tương tự".**
+
+🟡 đã sửa thêm: cross-reference ở `best-practices.md` mục 8 tới `linux.boot-systemd.service-mgmt`
+ban đầu giải thích sai nội dung bài được link (gán nhầm khái niệm "seed dùng upsert" từ
+CLAUDE.md, không phải nội dung thật của bài) — đã sửa lại đúng nội dung thật (unit
+`systemctl --user` demo cần tạo/dọn idempotent).
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Còn trong domain `linux`: `linux.network-stack`, `linux.shell-scripting`,
-`linux.package-management`, `linux.kernel-troubleshooting` (ưu tiên "cao", nhiều lệnh thật
-chạy được). Domain `networking` còn `networking.switching` (ưu tiên "cao" nhưng cần thiết bị
-mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ, nên để sau các module `linux` còn lại).
+Còn trong domain `linux`: `linux.network-stack`, `linux.package-management`,
+`linux.kernel-troubleshooting` (ưu tiên "cao", nhiều lệnh thật chạy được — `apt`/`dpkg` có sẵn
+trên máy, chỉ `rpm`/`dnf` cần minh hoạ vì máy chạy Ubuntu). Domain `networking` còn
+`networking.switching` (ưu tiên "cao" nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là
+output minh hoạ, nên để sau các module `linux` còn lại).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
