@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **48 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **50 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -365,13 +365,47 @@ ban đầu giải thích sai nội dung bài được link (gán nhầm khái ni
 CLAUDE.md, không phải nội dung thật của bài) — đã sửa lại đúng nội dung thật (unit
 `systemctl --user` demo cần tạo/dọn idempotent).
 
+### 14. `linux.package-management` — Quản lý gói (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.package-management.deb` | `knowledge/linux/package-management/deb.md` | draft |
+| `linux.package-management.rpm` | `knowledge/linux/package-management/rpm.md` | draft |
+
+Kiến trúc 2 tầng chung cho cả 2 hệ sinh thái: công cụ tầng THẤP làm việc trực tiếp với file gói
+(`dpkg`/`rpm` — không tự tải dependency) vs tầng CAO biết repository, tự giải quyết dependency
+(`apt`/`dnf`). `deb.md`: mọi lệnh ĐỌC (`dpkg -l/-L/-S`, `apt-cache policy`,
+`dpkg --compare-versions`) chạy THẬT trên máy (Ubuntu 22.04.5, apt 2.4.14, dpkg 1.21.1); lệnh
+THAY ĐỔI (`apt update`/`install`/`upgrade`, cần sudo không có trên máy demo) dùng **output minh
+hoạ** theo `apt(8)`, đánh dấu rõ ràng và tách biệt khỏi phần chạy thật. `rpm.md` **100% minh
+hoạ** (máy chạy Ubuntu, không có `rpm`/`dnf`/không có máy RHEL nào trong môi trường) — đánh dấu
+ngay đầu bài, lấy cú pháp/output từ `dnf(8)`/`rpm(8)`/docs.rockylinux.org.
+
+**Phát hiện cốt lõi của module này — và đã được reviewer xác nhận ĐÚNG qua fetch man page
+thật:** `dnf update` (không tham số) **KHÔNG** giống `apt update` — `dnf update` thực sự NÂNG
+CẤP ngay (tương đương `apt upgrade`), trong khi `apt update` chỉ tải lại metadata (an toàn,
+không đổi gì). Tương đương an toàn của `apt update` bên RHEL là `dnf check-update`. Đây là cạm
+bẫy đặt tên nguy hiểm nhất khi một SE quen Debian chuyển sang vận hành RHEL — nếu dạy sai chiều
+ngược lại sẽ hướng dẫn người học vô tình nâng cấp production ngoài ý muốn, nên được kiểm chứng
+kỹ bằng cách fetch `dnf(8)` thật trước khi chốt nội dung, không suy diễn từ tên lệnh.
+
+🟡 đã sửa theo reviewer: 2 URL nguồn chết (`man7.org/.../apt.8.html` trả 404 — `apt(8)` không
+thuộc Linux man-pages project nên man7.org không mirror, đã đổi sang
+`manpages.debian.org/bookworm/apt/apt.8.en.html`; `docs.rockylinux.org/guides/.../intro_to_rpm/`
+trả 404 do đổi cấu trúc doc, đã đổi sang `docs.rockylinux.org/books/admin_guide/13-softwares/`);
+bổ sung đầy đủ output `apt-cache policy curl` (bản gốc trong bài bị rút gọn thiếu 2 dòng so với
+chạy thật, dù được dán nhãn "chạy thật" — đã dán lại nguyên văn kèm giải thích ý nghĩa từng
+dòng). **Bài học: với nguồn tham khảo, không giả định mọi man page đều có trên man7.org — một
+số công cụ (như `apt`, khác với `dpkg`) thuộc project riêng (Debian/APT), không nằm trong Linux
+man-pages project mà man7.org mirror, cần tìm đúng nguồn gốc (`manpages.debian.org`/
+`manpages.ubuntu.com`) thay vì đoán URL theo khuôn mẫu đã dùng quen cho các man page khác.**
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Còn trong domain `linux`: `linux.network-stack`, `linux.package-management`,
-`linux.kernel-troubleshooting` (ưu tiên "cao", nhiều lệnh thật chạy được — `apt`/`dpkg` có sẵn
-trên máy, chỉ `rpm`/`dnf` cần minh hoạ vì máy chạy Ubuntu). Domain `networking` còn
-`networking.switching` (ưu tiên "cao" nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là
-output minh hoạ, nên để sau các module `linux` còn lại).
+Còn trong domain `linux`: `linux.network-stack`, `linux.kernel-troubleshooting` (ưu tiên "cao",
+nhiều lệnh thật chạy được). Domain `networking` còn `networking.switching` (ưu tiên "cao"
+nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ, nên để sau
+`linux.network-stack`/`linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
