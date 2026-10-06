@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **50 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **54 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -400,12 +400,45 @@ số công cụ (như `apt`, khác với `dpkg`) thuộc project riêng (Debian/
 man-pages project mà man7.org mirror, cần tìm đúng nguồn gốc (`manpages.debian.org`/
 `manpages.ubuntu.com`) thay vì đoán URL theo khuôn mẫu đã dùng quen cho các man page khác.**
 
+### 15. `linux.network-stack` — Network stack trên Linux (4/4 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `linux.network-stack.tools` | `knowledge/linux/network-stack/tools.md` | draft |
+| `linux.network-stack.dns-resolution` | `knowledge/linux/network-stack/dns-resolution.md` | draft |
+| `linux.network-stack.firewall` | `knowledge/linux/network-stack/firewall.md` | draft |
+| `linux.network-stack.troubleshooting` | `knowledge/linux/network-stack/troubleshooting.md` | draft |
+
+`ip addr`/`ip route`/`ip link`/`ss` (tools) → stub resolver systemd-resolved, resolv.conf symlink,
+nsswitch.conf (dns-resolution) → nf_tables/iptables-nft/ufw xếp tầng, ip_forward, policy deny-by-default
+(firewall) → MTU path discovery ping -M do (kết quả thật: MTU hiệu dụng 1492), bonding active-backup vs
+802.3ad (troubleshooting). Lệnh THẬT: `ip addr show enp1s0`, `ip route`, `ss -tln`/`-tn state
+established`/`-s`, `cat /etc/resolv.conf`, `resolvectl status`, `grep hosts /etc/nsswitch.conf`,
+`ss -tln | grep 53`, `cat /proc/sys/net/ipv4/ip_forward`, `lsmod | grep nf_tables`, `cat
+/etc/default/ufw`, quyền sudo thật bị từ chối (`nft list ruleset`, `sudo -n ufw status`),
+`ping -M do -s 1464/1465/1472 8.8.8.8` (xác định ngưỡng MTU=1492 chính xác). Minh hoạ (có lý do):
+`ufw allow`/`status verbose`, `nft list ruleset` (cần root), `cat /proc/net/bonding/bond0` (không có
+bonding interface trên máy desktop đơn).
+
+**Phát hiện khi review module này (🟡, không có 🔴):**
+- `resolvectl` thuộc man section **1** (không phải 8) — URL đúng
+  `man7.org/linux/man-pages/man1/resolvectl.1.html`; `resolvectl.8` trả 404.
+- `nft(8)` và `ufw(8)` **không có trên man7.org** (không thuộc Linux man-pages project) — đã đổi sang
+  `manpages.debian.org/bookworm/nftables/nft.8.en.html` và
+  `manpages.ubuntu.com/manpages/jammy/en/man8/ufw.8.html`.
+- Cross-reference "đã học ở `networking.routing.static`" và "đã học ở `networking.switching.lacp`"
+  dùng sai thì (bài đó chưa được viết) — đã đổi sang "sẽ học ở".
+- `tools.md` mục 8 thiếu cross-reference tới `networking.diagnostic-tools.ss-netstat` — đã bổ sung.
+**Bài học: không giả định mọi man section đều là section 8 cho admin tools — `resolvectl` là section 1
+(user command) dù thường chạy bằng root; kiểm tra URL trước khi đưa vào `sources:`. Các tool không thuộc
+Linux man-pages project (apt, nft, ufw, resolvectl section 1) cần tìm đúng nguồn gốc của project đó.**
+
 ## Module tiếp theo (chưa bắt đầu)
 
-Còn trong domain `linux`: `linux.network-stack`, `linux.kernel-troubleshooting` (ưu tiên "cao",
-nhiều lệnh thật chạy được). Domain `networking` còn `networking.switching` (ưu tiên "cao"
-nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là output minh hoạ, nên để sau
-`linux.network-stack`/`linux.kernel-troubleshooting`).
+Còn trong domain `linux`: `linux.kernel-troubleshooting` (ưu tiên "cao",
+nhiều lệnh thật chạy được — `lsmod`, `sysctl`, `dmesg`, `journalctl -k`). Domain `networking` còn
+`networking.switching` (ưu tiên "cao" nhưng cần thiết bị mạng vật lý — hầu như toàn bộ sẽ là output
+minh hoạ, nên để sau `linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
