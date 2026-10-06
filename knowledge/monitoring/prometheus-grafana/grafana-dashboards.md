@@ -137,7 +137,9 @@ Include All option: ON   → chọn "All" để xem tất cả
 ```
 
 Khi dùng `$instance` trong query với Multi-value, Grafana tự wrap thành regex:
-`instance=~"host1|host2|host3"` — cú pháp đúng cho PromQL regex match.
+`instance=~"host1|host2|host3"` — cú pháp đúng cho PromQL regex match. **Điều kiện**: query
+phải dùng `=~"$instance"` — nếu dùng `="$instance"`, Grafana không chuyển sang regex và chỉ
+match đúng khi chọn đúng 1 giá trị (multi-value sẽ không hoạt động).
 
 **Import dashboard từ Grafana.com**:
 

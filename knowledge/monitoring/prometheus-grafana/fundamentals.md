@@ -210,25 +210,33 @@ Query `job:node_cpu_usage:avg5m` thay vì viết lại expression dài — nhanh
 
 Tìm root cause của incident: latency tăng đột biến lúc 14:30.
 
+**1. Tổng request rate (có tăng không?)**
 ```promql
--- 1. Tổng request rate (có tăng không?)
 sum(rate(http_requests_total[5m]))
+```
 
--- 2. Error rate (có nhiều 5xx không?)
+**2. Error rate (có nhiều 5xx không?)**
+```promql
 sum(rate(http_requests_total{status=~"5.."}[5m])) /
 sum(rate(http_requests_total[5m]))
+```
 
--- 3. P95 latency theo endpoint (endpoint nào chậm?)
+**3. P95 latency theo endpoint (endpoint nào chậm?)**
+```promql
 histogram_quantile(0.95,
   sum by (le, handler) (rate(http_request_duration_seconds_bucket[5m]))
 )
+```
 
--- 4. CPU/RAM của app instance lúc đó
-avg by (instance) (
-  rate(node_cpu_seconds_total{mode!="idle"}[5m])
-) * 100
+**4. CPU usage của app instance lúc đó**
+```promql
+(1 - avg by (instance) (
+  rate(node_cpu_seconds_total{mode="idle"}[5m])
+)) * 100
+```
 
--- 5. DB connection pool exhausted?
+**5. DB connection pool exhausted?**
+```promql
 pg_stat_activity_count{state="active"} / pg_settings_max_connections
 ```
 

@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **88 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **91 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -666,11 +666,6 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 - `api-objects.md` dòng 73: "1.18+" không chính xác — server-side apply beta từ 1.16, GA từ
   1.22. Đã sửa.
 
-## Module tiếp theo (chưa bắt đầu)
-
-Modules 25 và 26 (monitoring) đang review. Tiếp theo sau khi hoàn thành: module 27
-`monitoring.logging` gồm 3 bài: fundamentals, elk-stack, splunk-basics.
-
 ## Module đã hoàn thành (tiếp)
 
 ### 26. `monitoring.prometheus-grafana` — Prometheus & Grafana (3/3 bài)
@@ -688,6 +683,35 @@ types, variable (Query type với label_values), multi-value + regex match, impo
 dashboard, export JSON vào git, dashboard-as-code. `alertmanager.md`: alert rule (expr/for/labels/
 annotations), grouping (group_wait/interval/repeat_interval), routing tree (first-match-wins,
 continue), receiver config, inhibition rule, silence (amtool CLI), notification template.
+
+**Phát hiện khi review module này (0 🔴, 3 🟡, 1 💭):**
+- `fundamentals.md` dòng 213-233: `--` không phải comment syntax hợp lệ trong PromQL — PromQL
+  không có comment syntax. Đã sửa: tách thành nhiều code block riêng, mỗi block có Markdown
+  heading mô tả thay vì comment inline.
+- `fundamentals.md` dòng 226-230: `avg by (instance)` trên mode!=idle cho kết quả sai (collapse
+  cả cpu × mode combinations bằng avg). Đã sửa thành `(1 - avg by (instance) (rate(...{mode="idle"}[5m]))) * 100`.
+- `alertmanager.md` dòng 32-34: bỏ qua PENDING state; dùng "RESOLVED" không đúng tên Prometheus
+  state (đúng là INACTIVE). Đã sửa: mô tả đủ 3 Prometheus alert state (INACTIVE/PENDING/FIRING).
+- `grafana-dashboards.md` dòng 139-140: multi-value wrap chỉ hoạt động khi query dùng `=~`, nếu
+  dùng `=` thì không tự chuyển sang regex. Đã thêm clarifying sentence.
+
+### 27. `monitoring.logging` — Centralized Logging (3/3 bài — chờ review)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `monitoring.logging.fundamentals` | `knowledge/monitoring/logging/fundamentals.md` | draft |
+| `monitoring.logging.elk-stack` | `knowledge/monitoring/logging/elk-stack.md` | draft |
+| `monitoring.logging.splunk-basics` | `knowledge/monitoring/logging/splunk-basics.md` | draft |
+
+ELK và Splunk không cài trên máy demo — 100% output minh hoạ. `fundamentals.md`: distributed
+logging challenge, unstructured vs structured (JSON) log, log levels (RFC 5424), retention tiers
+(hot/warm/cold), 12-Factor App stdout principle, trace ID propagation, log pipeline architecture,
+Python/Node.js structured log examples, logrotate. `elk-stack.md`: thành phần Elastic Stack
+(Elasticsearch/Kibana/Filebeat/Logstash/Beats), schema-on-read vs schema-on-write, index ILM
+lifecycle (hot→warm→cold→frozen→delete), shard/replica, Filebeat config YAML, Logstash grok
+pipeline, Kibana KQL search, cluster health API. `splunk-basics.md`: Splunk index, schema-on-read,
+SPL pipe model, Universal vs Heavy Forwarder, bucket lifecycle, SPL search/aggregation (stats/
+timechart/sort/head/dc/perc95), alert config, `inputs.conf`.
 
 **(Chờ code review — chưa commit)**
 

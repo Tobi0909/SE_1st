@@ -30,8 +30,11 @@ vào ban đêm không tắt được. Bài này đi qua: Prometheus alert rule �
 ## 2. Khái niệm cốt lõi
 
 **Prometheus Alert Rule**: Prometheus evaluate PromQL expression theo `evaluation_interval`.
-Khi expression là TRUE → alert chuyển sang `FIRING` state và gửi đến Alertmanager. Khi FALSE →
-alert `RESOLVED`, Prometheus gửi resolved notification.
+Khi expression TRUE lần đầu → alert vào `PENDING` state. Sau khi TRUE liên tục đủ `for`
+duration → chuyển sang `FIRING` và Prometheus gửi đến Alertmanager. Khi expression FALSE →
+alert về `INACTIVE`; nếu trước đó đang `FIRING`, Prometheus gửi resolved notification đến
+Alertmanager. (Ba Prometheus alert state: `INACTIVE`, `PENDING`, `FIRING` — không có state
+tên "RESOLVED"; "resolved" là trạng thái notification của Alertmanager, không phải Prometheus.)
 
 ```yaml
 # prometheus-rules.yaml
