@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **65 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **69 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -502,6 +502,43 @@ minh hoạ theo Docker Engine documentation.
 - Tất cả cross-reference trong module này vẫn theo đúng quy tắc đã thiết lập: "đã học ở" chỉ
   dùng cho ID trong `prerequisites:`, còn lại dùng "xem thêm".
 
+### 19. `container-k8s.k8s-workload` — Kubernetes Workloads (4/4 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.k8s-workload.pods-deployments` | `knowledge/container-k8s/k8s-workload/pods-deployments.md` | draft |
+| `container-k8s.k8s-workload.statefulset-daemonset` | `knowledge/container-k8s/k8s-workload/statefulset-daemonset.md` | draft |
+| `container-k8s.k8s-workload.configmap-secret` | `knowledge/container-k8s/k8s-workload/configmap-secret.md` | draft |
+| `container-k8s.k8s-workload.hpa-scaling` | `knowledge/container-k8s/k8s-workload/hpa-scaling.md` | draft |
+
+K8s không cài trên máy demo — 100% output minh hoạ theo K8s documentation chính thức.
+`pods-deployments.md`: Deployment, ReplicaSet, rolling update (maxUnavailable/maxSurge), readiness
+probe, rollback. `statefulset-daemonset.md`: StatefulSet (ordered names, PVC per Pod, headless
+Service stable DNS), DaemonSet (tolerations, hostNetwork). `configmap-secret.md`: ConfigMap/Secret,
+env var vs volume mount (auto-update vs manual restart), base64 NOT encryption, immutable, subPath
+caveat. `hpa-scaling.md`: HPA v2 (autoscaling/v2), formula ceil(currentReplicas × ratio), scale-up
+no stabilization window (rate-limited max(4,100%)/15s), scale-down 5-min window, resources.requests
+bắt buộc, VPA conflict.
+
+**Phát hiện khi review module này (1 🔴, 3 🟡):**
+- `hpa-scaling.md` dòng 46: mô tả sai scale-up cooldown là "3 phút" — đây là hành vi HPA v1 cũ.
+  HPA v2 mặc định `stabilizationWindowSeconds: 0` cho scale-up (không có stabilization delay, có
+  thể scale up ngay chu kỳ tiếp theo 15s sau khi vượt ngưỡng). Rate limit default:
+  max(4 pods, 100% replica hiện tại) mỗi 15s. Đã sửa toàn bộ đoạn section "Cooling period".
+- `pods-deployments.md` dòng 215: `--record` flag deprecated K8s 1.22, removed 1.30 — đã sửa thành
+  annotation thủ công `kubectl annotate ... kubernetes.io/change-cause=...`.
+- `statefulset-daemonset.md` dòng 263: "đã được trình bày ở đó" cho `k8s-networking.service` không
+  trong prerequisites — đổi sang "xem thêm". Đã sửa.
+- `configmap-secret.md`: thiếu caveat subPath — volume mount dùng `subPath` KHÔNG auto-update (cần
+  restart Pod như env var). Đã thêm ngoại lệ vào đoạn mô tả volume mount.
+
+**Bài học từ module này:**
+- Kiểm tra kỹ version-specific behavior khi viết về K8s: HPA v2 vs v1 có hành vi scale-up rất
+  khác nhau (v1 dùng flag `--horizontal-pod-autoscaler-upscale-delay` = 3 phút, v2 dùng
+  `behavior.scaleUp.stabilizationWindowSeconds` default = 0). Không suy diễn từ HPA v1 sang v2.
+- Flag deprecation/removal: luôn kiểm tra flag còn tồn tại trong phiên bản K8s target
+  (1.28+) — `--record` đã bị remove, không còn là option hợp lệ.
+
 ### 18. `container-k8s.k8s-architecture` — Kiến trúc Kubernetes (2/2 bài)
 
 | Lesson id | File | Trạng thái |
@@ -525,11 +562,11 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 - `api-objects.md` dòng 73: "1.18+" không chính xác — server-side apply beta từ 1.16, GA từ
   1.22. Đã sửa.
 
-## Module tiếp theo (chưa bắt đầu)
+## Module tiếp theo (đang làm)
 
-Domain `container-k8s` module 18 (`k8s-architecture`) xong. Tiếp theo trong cùng domain:
-`container-k8s.k8s-workload` (Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, ConfigMap, Secret,
-HPA — 4 bài). Domain `linux` và phần đầu `networking` xong từ trước.
+Domain `container-k8s` module 19 (`k8s-workload`) xong. Tiếp theo trong cùng domain:
+`container-k8s.k8s-networking` (Service, Ingress, NetworkPolicy — 3 bài). `service.md` đã viết
+xong, cần lint + review + commit cùng 2 bài còn lại.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
