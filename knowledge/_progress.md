@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **81 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **85 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -668,8 +668,46 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 
 ## Module tiếp theo (chưa bắt đầu)
 
-Domain `container-k8s` modules 22 và 23 đã hoàn thành. Tiếp theo: `container-k8s.helm`
-(module 24) gồm 2 bài: `helm-basics` và `helm-charts`.
+Domain `container-k8s` xong. Tiếp theo: domain `monitoring` — module 26
+`monitoring.prometheus-grafana` gồm 3 bài: fundamentals, grafana-dashboards, alertmanager.
+
+## Module đã hoàn thành (tiếp)
+
+### 25. `monitoring.zabbix` — Zabbix (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `monitoring.zabbix.architecture` | `knowledge/monitoring/zabbix/architecture.md` | draft |
+| `monitoring.zabbix.items-triggers` | `knowledge/monitoring/zabbix/items-triggers.md` | draft |
+
+Môi trường lab không có. `architecture.md`: Server/Agent/Proxy/Frontend, passive vs active check
+(port 10050/10051), Agent vs Agent 2 (Go, plugins, từ 5.4+), data flow Proxy buffer, history vs
+trends. `items-triggers.md`: item key syntax (`vm.memory.size[pavailable]`, `vfs.fs.size[/,pfree]`...),
+trigger expression Zabbix 6+ (`last()/avg()/min()/nodata()`), trigger dependency (suppress cascade),
+LLD, macros `{$NAME}`, template link.
+
+**(Chờ code review — chưa commit)**
+
+### 24. `container-k8s.helm` — Helm (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.helm.basics` | `knowledge/container-k8s/helm/basics.md` | draft |
+| `container-k8s.helm.chart-authoring` | `knowledge/container-k8s/helm/chart-authoring.md` | draft |
+
+Helm không cài trên máy demo — 100% output minh hoạ. `basics.md`: chart/release/values, Helm 3
+(no Tiller, release state = K8s Secret), install/upgrade/rollback/uninstall, --dry-run, upgrade
+--install cho CI/CD. `chart-authoring.md`: chart structure, Go template syntax (Values/Release/
+Chart, nindent/toYaml/range/include, $ root context), _helpers.tpl, hooks (pre-upgrade migration
+Job), hook-delete-policy, helm lint/template/package/push OCI.
+
+**Phát hiện khi review module này (0 🔴, 2 🟡, 2 💭):**
+- `basics.md` "idempotent" cho `helm upgrade --install`: không chính xác — mỗi lần gọi tạo
+  revision mới. Đúng hơn là "an toàn gọi vô điều kiện". Đã sửa cả body lẫn Q&A.
+- `chart-authoring.md` Q&A hook failure: mô tả sai `before-hook-creation` xoá ngay sau failure.
+  Đúng ra: `before-hook-creation` xoá trước lần upgrade tiếp, `hook-failed` mới xoá ngay. Đã sửa.
+- Nit: `--generate-name` + tên explicit trong dry-run example — bỏ flag thừa. Đã sửa.
+- Nit: `$.Values` scope note mở rộng thêm `$.Release.Name` etc. Đã thêm.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 

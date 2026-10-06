@@ -88,7 +88,8 @@ trước khi tạo cái mới) hoặc `hook-succeeded` (xoá sau khi chạy thà
 
 **Scope của `.` (dot)**: trong template, `.` là "context hiện tại". Mặc định là top-level
 context (`.Values`, `.Release`, `.Chart`). Trong `range`, `.` trở thành item hiện tại — cần
-dùng `$.Values` để truy cập top-level từ trong vòng lặp.
+dùng `$.Values`, `$.Release.Name`, `$.Chart.Version`... để truy cập top-level từ trong vòng
+lặp (`$` luôn là root context).
 
 ## 4. Thực hành
 
@@ -246,7 +247,7 @@ helm lint my-api/
 helm template my-api-release my-api/ -f staging-values.yaml | head -80
 
 # Dry-run với cluster thật (validate manifest qua apiserver)
-helm install my-api-release my-api/ --dry-run --generate-name
+helm install my-api-release my-api/ --dry-run
 ```
 
 **Package và push lên registry**:
@@ -358,7 +359,8 @@ helm push my-api-0.1.0.tgz oci://my-registry.example.com/charts
    manifest chính (Deployment mới không được cập nhật). Đây là behaviour mong muốn cho migration:
    nếu migration thất bại, không deploy app mới lên để tránh app mới chạy với schema DB lỗi.
    Sau khi fix lỗi migration (sửa code migration, rebuild image), chạy `helm upgrade` lại.
-   Job cũ bị giữ lại để debug (trừ khi đặt `hook-delete-policy: before-hook-creation`).</details>
+   Job cũ bị giữ lại để debug (trừ khi đặt `hook-delete-policy: hook-failed` — xoá ngay sau
+   khi Job thất bại; `before-hook-creation` chỉ xoá trước lần upgrade tiếp theo, không xoá ngay).</details>
 
 3. Tại sao cần dùng `{{ include "my-chart.labels" . | nindent 4 }}` thay vì trực tiếp viết
    labels trong mỗi template?

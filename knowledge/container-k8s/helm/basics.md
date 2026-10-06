@@ -189,8 +189,8 @@ helm install prom prometheus-community/prometheus \
 **`Error: INSTALLATION FAILED: cannot re-use a name that is still in use`**
 - Nguyên nhân: release tên đó đã tồn tại trong namespace.
 - Cách xử lý: dùng `helm upgrade` thay vì `helm install`; hoặc `helm uninstall` rồi
-  `helm install` lại. Dùng `helm upgrade --install` để thực hiện install-or-upgrade
-  trong 1 lệnh (idempotent, hữu ích cho CI/CD pipeline).
+  `helm install` lại. Dùng `helm upgrade --install` để thực hiện install-or-upgrade trong 1 lệnh — không
+  cần kiểm tra trước release đã tồn tại hay chưa, hữu ích cho CI/CD pipeline.
 
 **`Error: unable to build kubernetes objects from release manifest: error validating`**
 - Nguyên nhân: values override tạo ra manifest không hợp lệ (sai type, thiếu field bắt
@@ -275,11 +275,12 @@ kubectl get svc -n ingress-nginx    # xem LoadBalancer IP/hostname
    này không ảnh hưởng release kia.</details>
 
 3. `helm upgrade --install` khác gì `helm install`? Khi nào nên dùng?
-   <details><summary>Đáp án</summary>`helm upgrade --install` thực hiện install nếu release chưa
-   tồn tại, hoặc upgrade nếu đã tồn tại — idempotent. `helm install` thất bại nếu release đã
-   tồn tại. Dùng `helm upgrade --install` trong CI/CD pipeline (ví dụ GitHub Actions, ArgoCD
-   sync) để không cần kiểm tra trước "đã có release chưa" — 1 lệnh xử lý cả 2 trường hợp.
-   `helm install` dùng cho lần đầu interactive khi biết chắc chưa có release.</details>
+   <details><summary>Đáp án</summary>`helm upgrade --install` install nếu release chưa tồn tại,
+   upgrade nếu đã tồn tại — không bao giờ lỗi vì "release đã tồn tại" hay "chưa tồn tại". Mỗi
+   lần gọi đều tạo revision mới (không phải truly idempotent — 2 lần gọi với cùng values tạo
+   revision 1 và 2). `helm install` thất bại nếu release đã tồn tại. Dùng `upgrade --install`
+   trong CI/CD pipeline để không cần kiểm tra trước; `helm install` cho lần đầu interactive khi
+   biết chắc chưa có release.</details>
 
 ## 8. Bài liên quan và nguồn tham khảo
 
