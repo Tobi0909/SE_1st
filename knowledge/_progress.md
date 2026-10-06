@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **72 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **76 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -502,6 +502,45 @@ minh hoạ theo Docker Engine documentation.
 - Tất cả cross-reference trong module này vẫn theo đúng quy tắc đã thiết lập: "đã học ở" chỉ
   dùng cho ID trong `prerequisites:`, còn lại dùng "xem thêm".
 
+### 22. `container-k8s.k8s-rbac-security` — RBAC và bảo mật K8s (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.k8s-rbac-security.rbac` | `knowledge/container-k8s/k8s-rbac-security/rbac.md` | draft |
+| `container-k8s.k8s-rbac-security.security-context` | `knowledge/container-k8s/k8s-rbac-security/security-context.md` | draft |
+
+K8s không cài trên máy demo — 100% output minh hoạ. `rbac.md`: Subject (User/Group/ServiceAccount),
+Role vs ClusterRole (namespace vs cluster scope), RoleBinding + ClusterRoleBinding (4 kết hợp), allow-only
+model, `kubectl auth can-i`, `automountServiceAccountToken: false`. `security-context.md`: Pod vs
+container SecurityContext, runAsUser/runAsNonRoot/allowPrivilegeEscalation/readOnlyRootFilesystem/
+capabilities (drop ALL + add back), seccompProfile RuntimeDefault; Pod Security Standards 3 mức
+(privileged/baseline/restricted); PSA namespace labels (enforce/audit/warn); PSP removed K8s 1.25.
+
+**(Chờ code review — chưa commit)**
+
+### 21. `container-k8s.k8s-storage` — Kubernetes Storage (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.k8s-storage.pv-pvc` | `knowledge/container-k8s/k8s-storage/pv-pvc.md` | draft |
+| `container-k8s.k8s-storage.storageclass` | `knowledge/container-k8s/k8s-storage/storageclass.md` | draft |
+
+K8s không cài trên máy demo — 100% output minh hoạ. `pv-pvc.md`: PV lifecycle (Available/Bound/Released),
+accessModes (RWO/ROX/RWX/RWOP — RWOP beta K8s 1.27, GA 1.29), reclaimPolicy (Retain/Delete/Recycle
+deprecated), smallest-fit binding, static vs dynamic provisioning, rebind Released PV qua xoá claimRef.
+`storageclass.md`: provisioner, parameters (EBS CSI dùng `iops` tuyệt đối, không phải `iopsPerGB` của
+in-tree plugin), WaitForFirstConsumer vs Immediate (AZ affinity), default StorageClass (multiple default
+→ admission error, không phải Pending), CSI vs in-tree, allowVolumeExpansion.
+
+**Phát hiện khi review module này (1 🔴, 2 🟡, 1 nit):**
+- `storageclass.md` dòng 106: `iopsPerGB` là parameter của in-tree plugin `kubernetes.io/aws-ebs`, KHÔNG
+  phải EBS CSI driver `ebs.csi.aws.com` (CSI dùng `iops` tuyệt đối). Đã sửa thành `iops: "4000"`.
+- `storageclass.md` dòng 45-46, 192-193: multiple default StorageClass → PVC bị admission error (không
+  tạo được), không phải Pending; K8s 1.25+ DefaultStorageClass admission; 1.26+ thêm warning event.
+  Đã sửa phân biệt rõ hai trường hợp.
+- `pv-pvc.md` dòng 39: RWOP "K8s 1.22+" thiếu maturity stage — đã sửa thành "beta K8s 1.27, GA 1.29".
+- `storageclass.md` dòng 181: "bắt buộc" → "cần thiết thực tế" (spec validation không chặn).
+
 ### 20. `container-k8s.k8s-networking` — Kubernetes Networking (3/3 bài)
 
 | Lesson id | File | Trạng thái |
@@ -600,8 +639,8 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 
 ## Module tiếp theo (chưa bắt đầu)
 
-Domain `container-k8s` module 20 (`k8s-networking`) xong. Tiếp theo trong cùng domain:
-`container-k8s.k8s-storage` (PersistentVolume, PVC, StorageClass, CSI — số bài theo taxonomy).
+Domain `container-k8s` module 22 (`k8s-rbac-security`) vừa viết xong, chờ review. Tiếp theo:
+`container-k8s.k8s-troubleshooting` (2 bài: pod-errors, cluster-debug).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
