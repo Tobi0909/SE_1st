@@ -42,8 +42,9 @@ container status. Pod restart (nếu `restartPolicy: Always`).
 **QoS classes** — K8s phân loại Pod theo requests/limits:
 - `Guaranteed`: `requests == limits` cho CPU và memory, mọi container — được ưu tiên giữ lại khi
   node thiếu resource; ít bị evict nhất.
-- `Burstable`: ít nhất 1 container có requests < limits (hoặc chỉ có limits, không có requests) —
-  có thể burst nhưng bị evict trước `Guaranteed` khi node thiếu tài nguyên.
+- `Burstable`: không phải Guaranteed — ít nhất 1 container có requests < limits, hoặc chỉ khai
+  báo requests mà không có limits (hoặc ngược lại). Lưu ý: nếu Pod CHỈ khai báo limits (không
+  khai báo requests), K8s tự set requests = limits → thực ra là Guaranteed, không phải Burstable.
 - `BestEffort`: không khai báo requests lẫn limits — bị evict đầu tiên khi node bị memory pressure.
 
 **CPU throttle vs OOMKill**: hai cơ chế khác nhau:
