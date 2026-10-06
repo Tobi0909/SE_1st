@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **85 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **88 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -668,10 +668,28 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 
 ## Module tiếp theo (chưa bắt đầu)
 
-Domain `container-k8s` xong. Tiếp theo: domain `monitoring` — module 26
-`monitoring.prometheus-grafana` gồm 3 bài: fundamentals, grafana-dashboards, alertmanager.
+Modules 25 và 26 (monitoring) đang review. Tiếp theo sau khi hoàn thành: module 27
+`monitoring.logging` gồm 3 bài: fundamentals, elk-stack, splunk-basics.
 
 ## Module đã hoàn thành (tiếp)
+
+### 26. `monitoring.prometheus-grafana` — Prometheus & Grafana (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `monitoring.prometheus-grafana.fundamentals` | `knowledge/monitoring/prometheus-grafana/fundamentals.md` | draft |
+| `monitoring.prometheus-grafana.grafana-dashboards` | `knowledge/monitoring/prometheus-grafana/grafana-dashboards.md` | draft |
+| `monitoring.prometheus-grafana.alertmanager` | `knowledge/monitoring/prometheus-grafana/alertmanager.md` | draft |
+
+Lab không có. `fundamentals.md`: pull model vs push, 4 metric types (Counter/Gauge/Histogram/
+Summary), cardinality problem, exporter, scrape config, TSDB retention, PromQL (rate/increase/
+sum by/histogram_quantile), recording rules. `grafana-dashboards.md`: data source config, panel
+types, variable (Query type với label_values), multi-value + regex match, import community
+dashboard, export JSON vào git, dashboard-as-code. `alertmanager.md`: alert rule (expr/for/labels/
+annotations), grouping (group_wait/interval/repeat_interval), routing tree (first-match-wins,
+continue), receiver config, inhibition rule, silence (amtool CLI), notification template.
+
+**(Chờ code review — chưa commit)**
 
 ### 25. `monitoring.zabbix` — Zabbix (2/2 bài)
 
@@ -686,7 +704,13 @@ trends. `items-triggers.md`: item key syntax (`vm.memory.size[pavailable]`, `vfs
 trigger expression Zabbix 6+ (`last()/avg()/min()/nodata()`), trigger dependency (suppress cascade),
 LLD, macros `{$NAME}`, template link.
 
-**(Chờ code review — chưa commit)**
+**Phát hiện khi review module này (0 🔴, 2 🟡, 1 💭):**
+- `items-triggers.md` dòng 209: "Zabbix 6.2+ hỗ trợ Recovery expression" sai phiên bản —
+  tính năng có từ Zabbix 3.2. Đã sửa bỏ version qualifier + clarify cú pháp mới 6+.
+- `items-triggers.md` dòng 64: `net.if.in[,bytes]` (empty interface) không hợp lệ — interface
+  phải chỉ định rõ. Đã sửa thành `net.if.in[eth0,bytes]` + note "phải explicit".
+- `items-triggers.md` dòng 111-112: comment "bytes received/sec" sai — key trả về counter
+  tích lũy, rate tính qua preprocessing. Đã sửa comment.
 
 ### 24. `container-k8s.helm` — Helm (2/2 bài)
 

@@ -61,7 +61,7 @@ runtime. Dùng để parametrize template theo host (ví dụ: `{$MEMORY_WARN_TH
 
 **Item key syntax**: `<key>[<parameter1>,<parameter2>,...]`
 - Tham số trong `[]` là positional, một số optional
-- Tham số trống: `net.if.in[,bytes]` = interface đầu tiên, tính theo bytes
+- Tham số bắt buộc không được để trống: `net.if.in[eth0,bytes]` — tên interface phải chỉ định rõ
 - Tham số có khoảng trắng phải được bọc trong `"`: `proc.num["my process"]`
 - Built-in keys: `system.cpu.util`, `vm.memory.size[available]`, `vfs.fs.size[/,pfree]`,
   `net.if.in[eth0,bytes]`, `agent.ping`, `log[/var/log/syslog,ERROR]`...
@@ -100,16 +100,16 @@ vm.memory.size[available]     → RAM available (bytes)
 vm.memory.size[pavailable]    → RAM available (%)
 
 # Disk I/O
-vfs.dev.read[sda,ops]         → read ops/sec
-vfs.dev.write[sda,ops]        → write ops/sec
+vfs.dev.read[sda,ops]         → tổng read ops (counter; rate qua preprocessing)
+vfs.dev.write[sda,ops]        → tổng write ops (counter; rate qua preprocessing)
 
 # Filesystem
 vfs.fs.size[/,pfree]          → % free trên /
 vfs.fs.size[/var/log,pfree]   → % free trên /var/log
 
-# Network
-net.if.in[eth0,bytes]         → bytes received/sec
-net.if.out[eth0,bytes]        → bytes sent/sec
+# Network (key trả về counter tích lũy — rate/sec tính qua preprocessing "Delta speed per second")
+net.if.in[eth0,bytes]         → tổng bytes received (counter)
+net.if.out[eth0,bytes]        → tổng bytes sent (counter)
 
 # Process
 proc.num[nginx]               → số nginx process đang chạy
@@ -206,7 +206,8 @@ Configuration → Hosts → [host] → Macros tab
 - Nguyên nhân: metric oscillate quanh ngưỡng trigger (ví dụ CPU iowait lên/xuống 20% liên tục).
 - Cách xử lý: thay `last()` bằng `avg(,5m)` hoặc `min(,3m)` để làm mượt; hoặc dùng
   Hysteresis — trigger PROBLEM khi > 20%, RECOVERY khi < 15% (tránh flip liên tục).
-  Zabbix 6.2+ hỗ trợ Recovery expression riêng biệt với Trigger expression.
+  Zabbix hỗ trợ Recovery expression riêng biệt với Trigger expression (có từ Zabbix 3.2). Trong
+  Zabbix 6+ với cú pháp mới, Recovery expression cũng dùng format `/hostname/key`.
 
 **Trigger không fire dù metric đã vượt ngưỡng**
 - Nguyên nhân phổ biến: (1) trigger disabled; (2) host maintenance mode đang active
