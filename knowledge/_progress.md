@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **33 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **36 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -226,14 +226,38 @@ không khớp thì đương nhiên không hiện, không phải do thật sự k
 `acl-security-groups.md` cho nhất quán với 2 bài khác; bổ sung chiều traffic cho đúng thứ tự
 SG/NACL (inbound: NACL→SG, outbound: SG→NACL — ban đầu chỉ nói đúng 1 chiều).
 
+### 9. `networking.http-lb` — HTTP và load balancing (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.http-lb.http-fundamentals` | `knowledge/networking/http-lb/http-fundamentals.md` | draft |
+| `networking.http-lb.reverse-proxy` | `knowledge/networking/http-lb/reverse-proxy.md` | draft |
+| `networking.http-lb.lb-algorithms` | `knowledge/networking/http-lb/lb-algorithms.md` | draft |
+
+HTTP method/idempotent, 5 nhóm status code (đặc biệt phân biệt 502 vs 504), redirect 301/302
+vs 307/308; reverse proxy (TCP mới, X-Forwarded-For, rủi ro giả mạo); 4 thuật toán load
+balancing (round-robin, least_conn, ip_hash + vấn đề PAT, weighted, health check). Bài 1 dùng
+`curl` thật tới domain công khai. Bài 2-3 không cài Nginx/HAProxy — **tự viết script Python
+tối giản (~15-20 dòng, http.server+urllib+itertools.cycle) làm backend/proxy/load-balancer
+THẬT, chạy trên 127.0.0.1**, lấy output THẬT (header injection, round-robin A/B/A/B) thay vì
+minh hoạ hoàn toàn — chỉ phần cấu hình `nginx.conf` cụ thể mới là output minh hoạ. **Kỹ thuật
+mới đáng ghi nhớ cho các module sau**: khi không cài được phần mềm đích (Nginx/HAProxy/...)
+nhưng CƠ CHẾ cốt lõi có thể dựng lại bằng vài dòng script, ưu tiên cách này hơn thuần minh hoạ
+— cho output thật, đáng tin hơn nhiều.
+
+**Phát hiện khi review:** không có lỗi nghiêm trọng. Đã sửa vài điểm nhỏ: thiếu header
+`Accept-Encoding` thực tế trong output "thật" của demo proxy Python; gộp mơ hồ vai trò
+`Cache-Control` (freshness, không cần hỏi lại) với `ETag` (validation có điều kiện khi đã
+stale); dùng từ "NAT" chung thay vì "PAT" (thuật ngữ cụ thể hơn, đã định nghĩa ở module
+`nat-firewall`) khi giải thích vấn đề `ip_hash`.
+
 ## Module tiếp theo (chưa bắt đầu)
 
 Theo đúng thứ tự ưu tiên trong taxonomy, tiếp theo trong domain `networking` là
 `networking.switching` (ưu tiên "cao", cần thiết bị mạng — dùng output minh hoạ theo đúng quy
-tắc) hoặc `networking.http-lb` (ưu tiên "cao", chạy được thật qua Nginx/HAProxy trên Linux nếu
-cài được). Domain `linux` còn 5 module ưu tiên "cao" chưa làm (`linux.network-stack` — giờ có
-đủ prerequisite để làm, `linux.performance`, `linux.shell-scripting`,
-`linux.package-management`, `linux.kernel-troubleshooting`).
+tắc) hoặc `networking.vpn` (ưu tiên "trung bình"). Domain `linux` còn 5 module ưu tiên "cao"
+chưa làm (`linux.network-stack` — giờ có đủ prerequisite để làm, `linux.performance`,
+`linux.shell-scripting`, `linux.package-management`, `linux.kernel-troubleshooting`).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
