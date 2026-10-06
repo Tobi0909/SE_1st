@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **69 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **72 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **0** (kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
@@ -502,6 +502,42 @@ minh hoạ theo Docker Engine documentation.
 - Tất cả cross-reference trong module này vẫn theo đúng quy tắc đã thiết lập: "đã học ở" chỉ
   dùng cho ID trong `prerequisites:`, còn lại dùng "xem thêm".
 
+### 20. `container-k8s.k8s-networking` — Kubernetes Networking (3/3 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `container-k8s.k8s-networking.service` | `knowledge/container-k8s/k8s-networking/service.md` | draft |
+| `container-k8s.k8s-networking.ingress` | `knowledge/container-k8s/k8s-networking/ingress.md` | draft |
+| `container-k8s.k8s-networking.network-policy` | `knowledge/container-k8s/k8s-networking/network-policy.md` | draft |
+
+K8s không cài trên máy demo — 100% output minh hoạ. `service.md`: ClusterIP/NodePort/LoadBalancer/
+ExternalName, headless Service (clusterIP:None), kube-proxy iptables/ipvs DNAT, Endpoints vs
+EndpointSlice, DNS `<svc>.<ns>.svc.cluster.local`. `ingress.md`: Ingress resource vs controller
+(phải cài riêng), ingressClassName, PathType Prefix/Exact (longest-match wins), TLS termination,
+`kubernetes.io/ingress.class` annotation deprecated. `network-policy.md`: default allow-all, additive
+policy (OR), AND vs OR cho namespaceSelector+podSelector, policyTypes no-rules = deny-all, CNI
+requirement, DNS port 53 egress caveat, connection tracking là CNI-specific.
+
+**Phát hiện khi review module này (0 🔴, 2 🟡, 3 nit):**
+- `service.md` dòng 73: "K8s 1.21+" sai — kube-proxy mặc định consume EndpointSlice từ K8s 1.22
+  (API GA từ 1.21, kube-proxy default từ 1.22). Đã sửa + thêm ghi chú phân biệt 2 milestone.
+- `network-policy.md` dòng 65-66: connection tracking stateful được trình bày như đặc tính của K8s
+  spec — thực ra là CNI implementation detail, không phải K8s guarantee. Đã sửa thành "phần lớn CNI
+  (Calico, Cilium) dùng conntrack... đây là hành vi của CNI, không phải K8s spec".
+- `ingress.md` frontmatter/section 2: thêm note về `kubernetes.io/ingress.class` annotation deprecated
+  (trước K8s 1.18) cho người đọc manifest cũ.
+- `service.md` dòng 246: "iptables/nftables" không nhất quán với "iptables/ipvs" trong body bài.
+  Đã sửa thành "iptables/ipvs".
+- `network-policy.md` frontmatter: "CNI mặc định (flannel)" không chính xác — K8s vanilla không có
+  CNI default, Flannel chỉ là CNI phổ biến. Đã sửa.
+
+**Xác nhận đúng từ reviewer:**
+- nginx-ingress dùng longest-prefix-match (path dài hơn được ưu tiên) — correct.
+- NetworkPolicy AND/OR YAML examples (`namespaceSelector` + `podSelector` cùng item vs 2 item riêng)
+  — structurally correct theo K8s documentation style.
+- `policyTypes: [Egress]` không có rules = deny-all egress — correct.
+- DNS port 53 (UDP+TCP) mở đến namespace `kube-system` với label `kubernetes.io/metadata.name` — correct.
+
 ### 19. `container-k8s.k8s-workload` — Kubernetes Workloads (4/4 bài)
 
 | Lesson id | File | Trạng thái |
@@ -562,11 +598,10 @@ get/describe/logs/exec/port-forward; resource requests vs limits (scheduler vs k
 - `api-objects.md` dòng 73: "1.18+" không chính xác — server-side apply beta từ 1.16, GA từ
   1.22. Đã sửa.
 
-## Module tiếp theo (đang làm)
+## Module tiếp theo (chưa bắt đầu)
 
-Domain `container-k8s` module 19 (`k8s-workload`) xong. Tiếp theo trong cùng domain:
-`container-k8s.k8s-networking` (Service, Ingress, NetworkPolicy — 3 bài). `service.md` đã viết
-xong, cần lint + review + commit cùng 2 bài còn lại.
+Domain `container-k8s` module 20 (`k8s-networking`) xong. Tiếp theo trong cùng domain:
+`container-k8s.k8s-storage` (PersistentVolume, PVC, StorageClass, CSI — số bài theo taxonomy).
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
