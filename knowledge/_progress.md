@@ -713,7 +713,16 @@ pipeline, Kibana KQL search, cluster health API. `splunk-basics.md`: Splunk inde
 SPL pipe model, Universal vs Heavy Forwarder, bucket lifecycle, SPL search/aggregation (stats/
 timechart/sort/head/dc/perc95), alert config, `inputs.conf`.
 
-**(Chờ code review — chưa commit)**
+**Phát hiện khi review module này (1 🔴, 3 🟡):**
+- `splunk-basics.md` dòng 75-76: hot bucket defaults sai cả hai — 75GB (đúng là ~750MB/bucket
+  theo `maxDataSize=auto`) và 30 ngày (đúng là 90 ngày theo `maxHotSpanSecs` default). Đã sửa.
+- `fundamentals.md` dòng 40-46: gán nhầm tên framework ("INFO", "CRITICAL") cho "RFC 5424" — RFC
+  5424 thực tế có 8 mức khác tên (Emergency/Alert/Critical/Error/Warning/Notice/Informational/Debug).
+  Đã sửa: đổi label thành "convention phổ biến của logging framework", thêm giải thích 8 mức RFC 5424.
+- `elk-stack.md` dòng 254: Elasticsearch watermark 90% KHÔNG từ chối ghi — chỉ relocate shard;
+  flood stage 95% mới enforce read-only block. Đã sửa thành 3 ngưỡng (85%/90%/95%) đầy đủ.
+- `splunk-basics.md` nhiều dòng: dùng `*` làm comment trong SPL code block — `*` là wildcard
+  operator trong SPL, không phải comment. Đã tách chú thích ra ngoài code block dưới dạng prose.
 
 ### 25. `monitoring.zabbix` — Zabbix (2/2 bài)
 
