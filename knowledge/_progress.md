@@ -7,14 +7,14 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **131 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **132 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
-  1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 mới từ
+  1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
   bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 131.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 132.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1072,12 +1072,13 @@ từ máy), `ip route show` (thực tế). Minh họa: iptables rules, nc -zv. K
 `ss -tlnp` + `ip route show` chạy thật; iptables và nc gắn nhãn minh họa; Q&A đáp án c/d/a/d/b
 phân bố tốt. Lint pass: 118 bài, 5 TODO-VERIFY.
 
-### 43. `data.mysql-postgres` — MySQL và PostgreSQL (2/2 bài "cao"; bài "trung bình" chưa làm)
+### 43. `data.mysql-postgres` — MySQL và PostgreSQL (3/3 bài hoàn thành)
 
 | Lesson id | File | Trạng thái |
 |---|---|---|
 | `data.mysql-postgres.fundamentals` | `knowledge/data/mysql-postgres/fundamentals.md` | draft |
 | `data.mysql-postgres.replication` | `knowledge/data/mysql-postgres/replication.md` | draft |
+| `data.mysql-postgres.backup-tuning` | `knowledge/data/mysql-postgres/backup-tuning.md` | draft |
 
 `fundamentals.md`: instance vs database (MySQL=schema, PostgreSQL=independent entity), thread-per-connection
 (MySQL) vs process-per-connection (PostgreSQL), tại sao connection đắt, connection pool sizing, key
@@ -1087,11 +1088,17 @@ MySQL có TODO-VERIFY), InnoDB vs MyISAM, MVCC dead tuples + VACUUM.
 GTID), PostgreSQL WAL streaming, monitoring lag (Seconds_Behind_Source, pg_stat_replication),
 failover flow + split brain risk. Lệnh thật: python3 tính lag bytes→seconds. Minh họa: tất cả DB
 commands. 3 TODO-VERIFY mới.
+`backup-tuning.md`: logical (mysqldump/pg_dump) vs physical backup (binlog PITR/pg_basebackup), so
+sánh bảng logical/physical (speed/portability/incremental), mysqldump `--single-transaction` cho
+InnoDB (REPEATABLE READ snapshot, không lock), `--routines/--triggers/--events`, pg_dump `-Fc`
+custom format + pg_restore `-j`, pg_dumpall cho globals/roles, MySQL slow query log
+(long_query_time default=10s từ docs, log_queries_not_using_indexes), pg_stat_statements,
+EXPLAIN vs EXPLAIN ANALYZE, index tuning (cardinality thấp không nên index, composite index
+column order). Python3 chạy thật: index size B-tree (~148.5 MB / 10M rows). Không có TODO-VERIFY.
+Q&A: c/b/c/c/b.
 
-**Tự rà soát:** PostgreSQL defaults từ docs đã fetch; MySQL wait_timeout=28800 confirm từ source;
-MySQL max_connections/innodb_buffer_pool_size có TODO-VERIFY; replication lag threshold có TODO-VERIFY;
-GTID concept từ MySQL replication docs đã fetch; python3 chạy thật. Q&A fundamentals c/b/b/b/b,
-replication b/b/b/c/b — phân bố chấp nhận được. Lint pass: 120 bài, 8 TODO-VERIFY.
+**Lỗi phát hiện khi tự rà soát:** index size calculation trong bài ban đầu ghi 23.8 MB / 525
+entries — sai. Chạy thật python3 cho 148.5 MB / 526 entries. Đã sửa trước khi commit.
 
 ### 44. `virt-storage.vsphere` — VMware vSphere (2/4 bài "cao"; 2 bài "trung bình" chưa làm)
 
