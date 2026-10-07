@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **116 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **117 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **5** (3 từ module `networking.switching`
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
   về định dạng key prefix S3 backend khi dùng workspace; 1 từ `sre.postmortem.writing` về khung
@@ -1039,6 +1039,23 @@ fiction / multiple contributing factors" là nguyên lý cốt lõi của chươ
 chuẩn (không cần verify số); python3 script chạy thật, output 2 phút / 14 phút đúng với timestamp
 trong bài; Q&A — đáp án b cả 5 câu là trùng lặp nhưng mỗi câu độc lập đúng — không có mâu thuẫn.
 Lint pass: 116 bài, 5 TODO-VERIFY.
+
+### 41. `sre.change-management` — Quản lý thay đổi (1/1 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `sre.change-management.process` | `knowledge/sre/change-management/process.md` | draft |
+
+`process.md`: phân loại thay đổi ITIL 4 (standard/normal/emergency), RFC tối giản (5 câu hỏi),
+rollback plan cụ thể (trigger + lệnh + time budget + owner), progressive rollout giảm blast radius
+("exponential rollout" từ Google SRE Release Engineering), error budget freeze khi SLO vi phạm,
+post-change verification 15-30 phút. Lệnh thật: `git log --oneline HEAD~5..HEAD` (output thực từ
+repo). Không có TODO-VERIFY.
+
+**Tự rà soát:** "exponential rollout starting from one cluster" từ nguồn đã fetch; ITIL 4 change
+types là framework standard (không cần số liệu verify); error budget freeze từ Google SRE Embracing
+Risk (dẫn trong sources); git log chạy thật, output khớp. Q&A đáp án c/b/b/b/c — phân bố hợp lý,
+mỗi câu độc lập đúng. Lint pass: 117 bài, 5 TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
