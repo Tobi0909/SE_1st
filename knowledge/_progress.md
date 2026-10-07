@@ -7,15 +7,17 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **135 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **9** (3 từ module `networking.switching`;
+- Tổng số bài đã viết: **137 / 146** (`draft`, chưa `verified`).
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **12** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min; 1 từ
   `security.vuln-patch.patch-mgmt`: mốc thời gian ưu tiên vá (24h/7d/30d/quarter) là convention
-  ngành, không từ spec bắt buộc — kiểm tra bằng `pnpm kb:lint`).
+  ngành; 3 từ `security.audit-compliance.frameworks`: số requirement PCI DSS v4.0 (12), số
+  controls ISO 27001:2022 (93), và PCI Req 10.7 chi tiết 3+9 tháng retention — kiểm tra bằng
+  `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 135.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 137.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1105,6 +1107,29 @@ Sources: ubuntu.com/security/livepatch, FIRST CVSS v3.1.
 **Tự rà soát:** CVSS thresholds từ FIRST spec chính thức; lệnh thật verify trước khi viết
 (output khớp 100%); TODO-VERIFY đánh dấu đúng chỗ; Q&A đáp án b/c/b/c/c phân bố tốt.
 Lint pass: 135 bài, 9 TODO-VERIFY.
+
+### 44. `security.audit-compliance` — Audit và tuân thủ (2/2 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `security.audit-compliance.audit-logging` | `knowledge/security/audit-compliance/audit-logging.md` | draft |
+| `security.audit-compliance.frameworks` | `knowledge/security/audit-compliance/frameworks.md` | draft |
+
+`audit-logging.md`: audit log vs application log (4W: who/what/when/where), auditd architecture
+(kernel→daemon→/var/log/audit/audit.log, rules.d, auditctl -w/-a), log integrity (remote syslog
+> chattr+a vì root có thể tắt attribute), rsyslog forward config. Lệnh thật: `journalctl _COMM=sudo`
+(sudo event log — output ẩn danh), `last -5` (login history — ẩn danh). Minh họa: auditd commands
+(không cài trên máy demo), ausearch, aureport, chattr +a. Không có TODO-VERIFY.
+
+`frameworks.md`: PCI DSS v4.0 (12 req, CDE scope, Req 10 audit log 12 tháng), ISO 27001:2022
+(ISMS, 93 controls 4 nhóm), SOC 2 (5 TSC, Type I vs Type II), 6 common controls SE phải implement.
+Lệnh thật: `grep PasswordAuthentication /etc/ssh/sshd_config` (no sshd_config trên máy demo),
+`getent group sudo` (ẩn danh), `last -5` (ẩn danh). 3 TODO-VERIFY: số req PCI v4.0, số controls
+ISO 27001:2022, PCI Req 10.7 chi tiết 3+9 tháng. Sources: pcisecuritystandards.org, FIRST CVSS.
+
+**Tự rà soát:** lệnh thật verify và output ẩn danh đúng; auditd commands gắn nhãn minh họa;
+cross-reference dùng đúng "đã học ở" vs "xem thêm"; TODO-VERIFY đánh dấu đúng chỗ; Q&A đáp án
+b/c/a/b/b và b/b/c/b/b phân bố tốt. Lint pass: 137 bài, 12 TODO-VERIFY.
 
 ### 43. `data.mysql-postgres` — MySQL và PostgreSQL (3/3 bài hoàn thành)
 
