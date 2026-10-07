@@ -7,10 +7,11 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **115 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **4** (3 từ module `networking.switching`
+- Tổng số bài đã viết: **116 / 146** (`draft`, chưa `verified`).
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **5** (3 từ module `networking.switching`
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
-  về định dạng key prefix S3 backend khi dùng workspace — kiểm tra bằng `pnpm kb:lint`).
+  về định dạng key prefix S3 backend khi dùng workspace; 1 từ `sre.postmortem.writing` về khung
+  thời gian "24-48 giờ" chưa có trong Google SRE Book — kiểm tra bằng `pnpm kb:lint`).
 
 > **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` trả về
 > 111 — khớp với progress này. Trước đây progress ghi 111 nhưng thực tế có 109 file (đếm lệch 2
@@ -1018,6 +1019,26 @@ ch.14; P1-P4 severity theo convention chung (Google SRE + PagerDuty IRP); CAN fo
 IRP đã fetch; "IC không tự sửa hệ thống" là nguyên lý lõi của chương Managing Incidents;
 bystander effect là khái niệm tâm lý học xã hội chuẩn (Darley & Latané 1968) — áp dụng vào
 incident context. Lint pass: 115 bài, 4 TODO-VERIFY. Không phát hiện lỗi cần sửa.
+
+### 40. `sre.postmortem` — Viết postmortem (1/1 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `sre.postmortem.writing` | `knowledge/sre/postmortem/writing.md` | draft |
+
+`writing.md`: blameless postmortem culture ("The cost of failure is education" — Devin Carraway,
+Google SRE), khi nào viết, cấu trúc 7 mục (summary/timeline/impact/contributing factors/root cause
+analysis/action items/lessons learned), xây dựng timeline từ Scribe's notes (information available
+at each moment, không dùng hindsight), 5 Whys kỹ thuật đào contributing factors, action item SMART
+(owner+deadline+ticket). Lệnh thật: `python3 -c "from datetime import datetime..."` tính MTTA/MTTR
+từ ISO 8601 timestamp. 1 TODO-VERIFY: khung "24-48 giờ" để viết postmortem — convention phổ biến,
+chưa xác nhận được trong Google SRE Book.
+
+**Tự rà soát:** blameless definition + triggers từ Google SRE Book đã fetch; "root cause là
+fiction / multiple contributing factors" là nguyên lý cốt lõi của chương; 5 Whys là kỹ thuật
+chuẩn (không cần verify số); python3 script chạy thật, output 2 phút / 14 phút đúng với timestamp
+trong bài; Q&A — đáp án b cả 5 câu là trùng lặp nhưng mỗi câu độc lập đúng — không có mâu thuẫn.
+Lint pass: 116 bài, 5 TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
