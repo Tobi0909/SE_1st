@@ -7,11 +7,12 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **118 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **5** (3 từ module `networking.switching`
-  liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
-  về định dạng key prefix S3 backend khi dùng workspace; 1 từ `sre.postmortem.writing` về khung
-  thời gian "24-48 giờ" chưa có trong Google SRE Book — kiểm tra bằng `pnpm kb:lint`).
+- Tổng số bài đã viết: **120 / 146** (`draft`, chưa `verified`).
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
+  1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 mới từ
+  `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
+  chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
+  bằng `pnpm kb:lint`).
 
 > **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` trả về
 > 111 — khớp với progress này. Trước đây progress ghi 111 nhưng thực tế có 109 file (đếm lệch 2
@@ -1072,6 +1073,27 @@ từ máy), `ip route show` (thực tế). Minh họa: iptables rules, nc -zv. K
 **Tự rà soát:** NIST SP 800-207 quote từ nguồn đã fetch; DMZ kiến trúc 2-firewall là chuẩn ngành;
 `ss -tlnp` + `ip route show` chạy thật; iptables và nc gắn nhãn minh họa; Q&A đáp án c/d/a/d/b
 phân bố tốt. Lint pass: 118 bài, 5 TODO-VERIFY.
+
+### 43. `data.mysql-postgres` — MySQL và PostgreSQL (2/2 bài "cao"; bài "trung bình" chưa làm)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `data.mysql-postgres.fundamentals` | `knowledge/data/mysql-postgres/fundamentals.md` | draft |
+| `data.mysql-postgres.replication` | `knowledge/data/mysql-postgres/replication.md` | draft |
+
+`fundamentals.md`: instance vs database (MySQL=schema, PostgreSQL=independent entity), thread-per-connection
+(MySQL) vs process-per-connection (PostgreSQL), tại sao connection đắt, connection pool sizing, key
+config defaults (PostgreSQL xác nhận từ docs: max_connections=100/shared_buffers=128MB/work_mem=4MB;
+MySQL có TODO-VERIFY), InnoDB vs MyISAM, MVCC dead tuples + VACUUM.
+`replication.md`: async vs semi-sync (tradeoff data loss vs latency), MySQL binlog (ROW format,
+GTID), PostgreSQL WAL streaming, monitoring lag (Seconds_Behind_Source, pg_stat_replication),
+failover flow + split brain risk. Lệnh thật: python3 tính lag bytes→seconds. Minh họa: tất cả DB
+commands. 3 TODO-VERIFY mới.
+
+**Tự rà soát:** PostgreSQL defaults từ docs đã fetch; MySQL wait_timeout=28800 confirm từ source;
+MySQL max_connections/innodb_buffer_pool_size có TODO-VERIFY; replication lag threshold có TODO-VERIFY;
+GTID concept từ MySQL replication docs đã fetch; python3 chạy thật. Q&A fundamentals c/b/b/b/b,
+replication b/b/b/c/b — phân bố chấp nhận được. Lint pass: 120 bài, 8 TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
