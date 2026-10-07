@@ -7,14 +7,14 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **130 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **131 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 mới từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
   bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 130.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 131.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1173,11 +1173,12 @@ runbook example. Q&A: c/b/c/d/b.
 **Tự rà soát:** NIST SP 800-34 Rev.1 tier model; DNS TTL check thật; Q&A đáp án đa dạng. Lint pass:
 130 bài, 8 TODO-VERIFY.
 
-### 47. `virt-storage.proxmox-kvm` — Proxmox và KVM (1/2 bài; bài cluster "trung bình" chưa làm)
+### 47. `virt-storage.proxmox-kvm` — Proxmox và KVM (2/2 bài hoàn thành)
 
 | Lesson id | File | Trạng thái |
 |---|---|---|
 | `virt-storage.proxmox-kvm.fundamentals` | `knowledge/virt-storage/proxmox-kvm/fundamentals.md` | draft |
+| `virt-storage.proxmox-kvm.cluster` | `knowledge/virt-storage/proxmox-kvm/cluster.md` | draft |
 
 `fundamentals.md`: KVM là Linux kernel module (`kvm_intel.ko`, `/dev/kvm`), Type 1 hypervisor dùng
 Intel VT-x (`vmx`)/AMD-V (`svm`), QEMU userspace emulate devices + dùng /dev/kvm cho CPU execution,
@@ -1188,6 +1189,14 @@ trên máy: `lsmod | grep kvm` (kvm_intel/kvm/irqbypass loaded), `grep -m1 -oE '
 /proc/cpuinfo` → `vmx`, `qemu-img create -f qcow2 /tmp/demo-vm.qcow2 20G` → output thật,
 `qemu-img info` → virtual size: 20 GiB, disk size: 196 KiB. Minh họa: virsh list/dominfo/shutdown.
 Q&A: c/b/b/d/a.
+
+`cluster.md`: Proxmox VE stack (Debian + KVM + LXC + Web UI + pmxcfs), VM vs LXC so sánh (kernel
+riêng vs dùng chung, isolation vs density), cluster quorum (corosync UDP 5405-5412, formula
+floor(n/2)+1, min 3 node, QDevice cho 2-node), storage types (dir/lvmthin/nfs/rbd/zfspool — snapshot
+support), Linux bridge vmbr0 model. **Python3 CHẠY THẬT**: verify quorum table 1-7 node. Minh họa:
+pvecm create/add/status/nodes, qm create/start/shutdown/stop/config/list/snapshot/rollback, pct
+create/start/stop/enter/exec/list. Lỗi thường gặp: mất quorum (pvecm expected), locked VM (qm unlock),
+duplicate MAC sau clone. Q&A: c/b/c/c/c. Không có TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
