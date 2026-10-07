@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { flagQuestionAction, recordAnswerAction, type AnswerFeedback } from "@/app/(app)/quiz/actions";
@@ -19,14 +20,21 @@ interface QuizQuestion {
   options: QuizOption[];
 }
 
+interface RelatedArticle {
+  knowledgeId: string;
+  title: string;
+}
+
 export function QuizSession({
   topicName,
   difficulty,
   questions,
+  relatedArticles = [],
 }: {
   topicName: string;
   difficulty: string;
   questions: QuizQuestion[];
+  relatedArticles?: RelatedArticle[];
 }) {
   const [index, setIndex] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -114,25 +122,43 @@ export function QuizSession({
             );
           })}
         </div>
-        <div className="flex items-center gap-3">
-          {!flagged ? (
-            <button
-              type="button"
-              onClick={report}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            {!flagged ? (
+              <button
+                type="button"
+                onClick={report}
+                className="text-xs text-muted-foreground underline"
+              >
+                Báo câu sai
+              </button>
+            ) : (
+              <p className="text-xs text-muted-foreground">Đã báo, cảm ơn bạn.</p>
+            )}
+            <Link
+              href={`/tutor?contextType=QUESTION&contextId=${question.id}`}
+              target="_blank"
               className="text-xs text-muted-foreground underline"
             >
-              Báo câu sai
-            </button>
-          ) : (
-            <p className="text-xs text-muted-foreground">Đã báo, cảm ơn bạn.</p>
+              Hỏi AI tutor
+            </Link>
+          </div>
+          {feedback && relatedArticles.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <BookOpen className="size-3" /> Đọc thêm:
+              </span>
+              {relatedArticles.map((a) => (
+                <Link
+                  key={a.knowledgeId}
+                  href={`/knowledge/${encodeURIComponent(a.knowledgeId)}`}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {a.title}
+                </Link>
+              ))}
+            </div>
           )}
-          <Link
-            href={`/tutor?contextType=QUESTION&contextId=${question.id}`}
-            target="_blank"
-            className="text-xs text-muted-foreground underline"
-          >
-            Hỏi AI tutor
-          </Link>
         </div>
       </CardContent>
       {feedback ? (

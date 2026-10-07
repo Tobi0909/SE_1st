@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { LabWorkspace } from "@/components/lab/lab-workspace";
 import { db } from "@/lib/db";
+import { getArticlesForTopic } from "@/lib/knowledge/queries";
 import { LabScenarioSchema, SubmissionGradeSchema } from "@/lib/llm/schemas";
 import { requireUser } from "@/lib/rbac";
 
@@ -23,6 +24,14 @@ export default async function LabSessionPage({ params }: PageProps<"/lab/[sessio
   const scenario = LabScenarioSchema.parse(session.scenario.data);
   const usedHintLevels = [...new Set(session.hints.map((h) => h.level))].sort();
 
+  const topic = await db.topic.findUnique({
+    where: { id: session.scenario.topicId },
+    select: { slug: true },
+  });
+  const relatedArticles = topic
+    ? await getArticlesForTopic(topic.slug, session.scenario.difficulty)
+    : [];
+
   return (
     <LabWorkspace
       sessionId={session.id}
@@ -32,6 +41,7 @@ export default async function LabSessionPage({ params }: PageProps<"/lab/[sessio
       usedHintLevels={usedHintLevels}
       isCompleted={session.status === "COMPLETED"}
       grade={session.submission ? SubmissionGradeSchema.parse(session.submission.score) : null}
+      relatedArticles={relatedArticles.map((a) => ({ knowledgeId: a.knowledgeId, title: a.title }))}
     />
   );
 }

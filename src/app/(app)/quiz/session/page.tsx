@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { QuizSession } from "@/components/quiz/quiz-session";
 import type { Difficulty } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { getArticlesForTopic } from "@/lib/knowledge/queries";
 import { ensureQuestionPool, pickRandomQuestions } from "@/lib/quiz/questionPool";
 import { requireUser } from "@/lib/rbac";
 
@@ -25,7 +26,10 @@ export default async function QuizSessionPage({ searchParams }: PageProps<"/quiz
   if (!topic) notFound();
 
   await ensureQuestionPool(topic.id, difficulty, count, user.id);
-  const questions = await pickRandomQuestions(topic.id, difficulty, count);
+  const [questions, relatedArticles] = await Promise.all([
+    pickRandomQuestions(topic.id, difficulty, count),
+    getArticlesForTopic(topicSlug, difficulty),
+  ]);
 
   if (questions.length === 0) {
     return (
@@ -44,6 +48,10 @@ export default async function QuizSessionPage({ searchParams }: PageProps<"/quiz
           id: q.id,
           stem: q.stem,
           options: q.options.map((o) => ({ id: o.id, text: o.text })),
+        }))}
+        relatedArticles={relatedArticles.map((a) => ({
+          knowledgeId: a.knowledgeId,
+          title: a.title,
         }))}
       />
     </div>

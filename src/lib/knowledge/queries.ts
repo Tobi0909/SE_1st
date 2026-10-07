@@ -157,6 +157,37 @@ export async function getRelatedArticles(
   });
 }
 
+// Maps topic slugs (from Topic.slug) to knowledge domain values
+const TOPIC_SLUG_TO_DOMAIN: Record<string, string> = {
+  linux:                "linux",
+  networking:           "networking",
+  virtualization:       "virt-storage",
+  container:            "container-k8s",
+  "monitoring-logging": "monitoring",
+  "cicd-iac":           "devops",
+  "security-hardening": "security",
+  sre:                  "sre",
+  data:                 "data",
+};
+
+const DIFFICULTY_TO_LEVEL: Record<string, ArticleLevel> = {
+  EASY:   ArticleLevel.FOUNDATION,
+  MEDIUM: ArticleLevel.OPERATION,
+  HARD:   ArticleLevel.EXPERT,
+};
+
+/** Fetch articles matching a topic slug + difficulty — for quiz/lab "Đọc thêm" links. */
+export async function getArticlesForTopic(
+  topicSlug: string,
+  difficulty: string,
+  limit = 3,
+): Promise<ArticleListItem[]> {
+  const domain = TOPIC_SLUG_TO_DOMAIN[topicSlug];
+  const level  = DIFFICULTY_TO_LEVEL[difficulty];
+  if (!domain || !level) return [];
+  return getRelatedArticles(domain, level, limit);
+}
+
 /** Distinct domain values for filter sidebar. */
 export async function getArticleDomains(isAdmin = false): Promise<string[]> {
   const rows = await db.article.findMany({

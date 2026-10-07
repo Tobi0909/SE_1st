@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { getHintAction, runCommandAction, submitLabAction } from "@/app/(app)/lab/[sessionId]/actions";
@@ -12,6 +13,11 @@ import type { SubmissionGrade } from "@/lib/llm/schemas";
 
 const HINT_LEVELS = [1, 2, 3] as const;
 
+interface RelatedArticle {
+  knowledgeId: string;
+  title: string;
+}
+
 interface LabWorkspaceProps {
   sessionId: string;
   title: string;
@@ -20,6 +26,7 @@ interface LabWorkspaceProps {
   usedHintLevels: number[];
   isCompleted: boolean;
   grade: SubmissionGrade | null;
+  relatedArticles?: RelatedArticle[];
 }
 
 export function LabWorkspace({
@@ -30,6 +37,7 @@ export function LabWorkspace({
   usedHintLevels,
   isCompleted,
   grade: initialGrade,
+  relatedArticles = [],
 }: LabWorkspaceProps) {
   const [hints, setHints] = useState<Record<number, string>>({});
   const [isPending, startTransition] = useTransition();
@@ -85,6 +93,22 @@ export function LabWorkspace({
             Hỏi AI tutor
           </Link>
         </Button>
+        {relatedArticles.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              <BookOpen className="size-3" /> Tài liệu liên quan
+            </p>
+            {relatedArticles.map((a) => (
+              <Link
+                key={a.knowledgeId}
+                href={`/knowledge/${encodeURIComponent(a.knowledgeId)}`}
+                className="text-xs text-primary hover:underline"
+              >
+                {a.title}
+              </Link>
+            ))}
+          </div>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Gợi ý</CardTitle>

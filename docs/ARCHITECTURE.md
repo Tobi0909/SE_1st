@@ -102,7 +102,7 @@ sequenceDiagram
 
 ## 3. Cấu trúc thư mục
 
-Khớp code thực tế (đối chiếu 2026-10-05):
+Khớp code thực tế (đối chiếu 2026-10-07):
 
 ```
 .
@@ -111,6 +111,7 @@ Khớp code thực tế (đối chiếu 2026-10-05):
 │   │   ├── login/              # Đăng nhập (không cần auth, ngoài route group)
 │   │   ├── (app)/               # Route group cần đăng nhập — layout dùng chung (AppShell)
 │   │   │   ├── dashboard/  quiz/  flashcards/  lab/  roadmap/  team/  tutor/
+│   │   │   ├── knowledge/        # Kho tri thức: list + search (/knowledge) + chi tiết (/knowledge/[id])
 │   │   │   ├── admin/            # users/, topics/, usage/, flagged/
 │   │   │   └── actions.ts        # Server Action dùng chung cho layout (logout)
 │   │   ├── api/                  # 3 Route Handler: auth/[...nextauth], health, tutor/chat
@@ -119,20 +120,26 @@ Khớp code thực tế (đối chiếu 2026-10-05):
 │   ├── components/
 │   │   ├── ui/                   # shadcn/ui, không chứa nghiệp vụ
 │   │   ├── shell/                 # App shell: sidebar, topbar, command palette, user menu
-│   │   └── <feature>/              # dashboard/, quiz/, flashcard/, lab/, roadmap/, tutor/
+│   │   └── <feature>/              # dashboard/, quiz/, flashcard/, lab/, roadmap/, tutor/, knowledge/
 │   ├── lib/
 │   │   ├── db.ts                  # Prisma client singleton (driver adapter)
 │   │   ├── auth.ts, rbac.ts, password.ts   # Auth + phân quyền + hash mật khẩu
 │   │   ├── sm2.ts                  # Thuật toán SM-2 (file đơn, không phải thư mục srs/)
 │   │   ├── llm/                     # LLMProvider, schemas Zod, rate limit, providers/
-│   │   ├── quiz/  lab/  roadmap/  tutor/  dashboard/   # Domain theo tính năng
+│   │   ├── quiz/  lab/  roadmap/  tutor/  dashboard/  knowledge/   # Domain theo tính năng
 │   │   └── utils.ts                  # Helper `cn()` (shadcn)
 │   ├── proxy.ts                      # Route protection — tên `proxy.ts` do Next.js 16 quy
 │   │                                   định (đổi từ middleware.ts), KHÔNG phải lựa chọn riêng
 │   ├── types/next-auth.d.ts            # Module augmentation cho session/JWT
 │   └── generated/prisma/                # Prisma Client sinh ra (gitignored)
+├── knowledge/               # Kho tri thức: 146 bài .md, mỗi bài có frontmatter chuẩn (id, domain,
+│                            #   module, level, status, prerequisites, sources). Nguồn biên tập —
+│                            #   import vào DB bằng scripts/kb-import.ts (xem mục 6).
+│   ├── _taxonomy.yaml       # Khung phân loại domain > module > lesson (dùng bởi kb-lint/kb-import)
+│   └── <domain>/<module>/   # Ví dụ: linux/boot-systemd/boot-process.md
 ├── prompts/                 # Mỗi prompt 1 file, có `version`: quiz/, lab/, roadmap/, tutor/
 ├── prisma/                  # schema.prisma, seed.ts, migrations/
+├── scripts/                 # kb-lint.ts (validate frontmatter), kb-import.ts (upsert vào DB)
 ├── docs/
 │   ├── ARCHITECTURE.md       # File này
 │   └── adr/                   # ADR MỚI từ nay trở đi (ADR nền tảng nằm ở mục 7 dưới đây)
@@ -182,6 +189,8 @@ Khớp `prisma/schema.prisma` thực tế (đối chiếu 2026-10-05):
 | `LabSubmission` | Bài nộp cuối (rootCauseText, fixText) + điểm (JSON) + feedback — 1-1 với `LabSession` |
 | `ChatSession`, `ChatMessage` | Hội thoại AI tutor — đặt tên chung `Chat*` chứ không phải `Tutor*`, vì cùng cơ chế này dùng cho mọi ngữ cảnh chat (không chỉ tutor); `contextType` (NODE/QUESTION/LAB) + `contextId` xác định ngữ cảnh đang gắn |
 | `LlmUsageLog` | Log mỗi lần gọi LLM: user, `feature`, `model`, token, latency, success |
+| `Article` | Bài viết từ kho tri thức (`knowledge/`): `knowledgeId` (unique, khớp frontmatter.id), `title`, `domain`, `module`, `level` (FOUNDATION/OPERATION/EXPERT), `status` (DRAFT/VERIFIED), `contentHash` (SHA-256, dùng để import idempotent), `content` (Markdown body), `prerequisites[]`, `sources[]`, `todoVerifyCount`. Cột `search_vector tsvector GENERATED STORED` + GIN index cho full-text search. `embeddingModel` nullable chừa chỗ cho pgvector sau. |
+| `ArticleSkillNode` | Join table n:m giữa `Article` và `SkillNode` — link thủ công, không auto-link khi import. |
 
 **Khác với bản thiết kế ban đầu:**
 
@@ -287,6 +296,17 @@ pnpm dev
 5. Làm UI, dùng lại component và tokens sẵn có.
 6. Cập nhật file này nếu có entity, thư mục hoặc quy ước mới.
 7. Chạy checklist mục 8, mở PR.
+
+### Cập nhật kho tri thức
+
+1. Sửa / thêm bài trong `knowledge/` theo đúng frontmatter và 8-section template.
+2. Chạy `pnpm kb:lint` để kiểm tra frontmatter, link nội bộ, mục còn thiếu.
+3. Chạy `pnpm kb:import:dry` để xác nhận parse OK và đếm bài mới/sửa.
+4. Chạy `pnpm kb:import` (khi DB đang chạy) để upsert vào DB — bài có cùng hash được bỏ qua.
+5. (Tuỳ chọn) Vào Prisma Studio để link `ArticleSkillNode` thủ công nếu bài mới gắn với node roadmap cụ thể.
+
+Khi triển khai Docker, `docker-entrypoint.sh` tự chạy `pnpm kb:import` sau mỗi lần container
+restart — idempotent, bài không đổi được skip, chỉ bài mới/sửa được upsert.
 
 ### Thêm một chủ đề học
 
@@ -431,6 +451,32 @@ lại trực tiếp trong tài liệu này vì đã định hình toàn bộ ki�
   muốn mở rộng/sửa phạm vi kiến thức cho 1 topic — chấp nhận được vì đây chính là mục tiêu
   (chuẩn hoá, không để trôi tự do theo LLM). Prompt quiz/lab tăng version lên `v2` theo đúng
   quy ước mục 5 (file mới, giữ `v1` không sửa).
+
+### ADR-006: Kho tri thức tĩnh import vào DB, full-text search bằng tsvector
+
+- **Trạng thái:** Đã áp dụng (2026-10-07).
+- **Bối cảnh:** 146 bài `.md` trong `knowledge/` được viết và quản lý bằng tay (frontmatter +
+  8 section chuẩn). Cần đưa nội dung vào app để người học tra cứu, link từ quiz/lab/roadmap
+  sang tài liệu tham chiếu, và tìm kiếm toàn văn.
+- **Quyết định:** Import vào DB (bảng `articles`) qua script idempotent (`kb-import.ts`), sử
+  dụng `contentHash` (SHA-256) để bỏ qua file không thay đổi. Full-text search bằng cột
+  `tsvector GENERATED ALWAYS ... STORED` + GIN index + `unaccent` extension, config `'simple'`
+  (không stem — giữ nguyên thuật ngữ kỹ thuật và tiếng Việt). Script tự chạy trong
+  `docker-entrypoint.sh` sau `prisma migrate deploy`.
+- **Đã cân nhắc:**
+  - Đọc file trực tiếp từ filesystem lúc runtime — đơn giản, không cần import, nhưng không
+    có full-text search và cần mở filesystem access trong container.
+  - pgvector/embedding semantic search — tìm được "container isolation" khi search "cgroups",
+    nhưng cần embedding API (LLM call mỗi lần import/update, tốn token), pgvector extension
+    (~30MB), và re-embed khi nội dung đổi. Chừa chỗ (cột `embeddingModel nullable`) để thêm
+    sau mà không cần migration phá vỡ.
+  - `tsvector` config `'english'` — stem tốt cho tiếng Anh nhưng làm mất từ kỹ thuật (tên
+    flag, lệnh) và không xử lý được tiếng Việt; `'simple'` + `unaccent` là lựa chọn tốt hơn
+    cho nội dung kỹ thuật đa ngôn ngữ.
+- **Hệ quả:** Filesystem là nguồn biên tập, DB là runtime source — phải nhớ chạy
+  `pnpm kb:import` sau khi cập nhật bài (hoặc để Docker tự chạy). Link Article ↔ SkillNode
+  là thủ công (bảng `article_skill_nodes`); link từ quiz/lab dùng runtime filter theo
+  domain+level (không stored). MEMBER chỉ thấy VERIFIED; ADMIN thấy cả DRAFT.
 
 ## 8. Checklist trước khi merge
 
