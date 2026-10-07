@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **113 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **115 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **4** (3 từ module `networking.switching`
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
   về định dạng key prefix S3 backend khi dùng workspace — kiểm tra bằng `pnpm kb:lint`).
@@ -994,6 +994,30 @@ Không có TODO-VERIFY. Output minh họa: Vault CLI, AWS CLI (không cài trên
 **Tự rà soát:** TOTP formula từ RFC 6238 (xác nhận qua OWASP source); Vault Seal/Unseal từ
 HashiCorp docs đã fetch; JWT base64 decode chạy thật với chuỗi mẫu; `proc/$$/environ` chạy thật,
 output ẩn danh hóa username trước khi đưa vào bài. Không phát hiện lỗi cần sửa.
+
+### 39. `sre.incident-response` — Ứng phó sự cố (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `sre.incident-response.process` | `knowledge/sre/incident-response/process.md` | draft |
+| `sre.incident-response.roles` | `knowledge/sre/incident-response/roles.md` | draft |
+
+Module đầu tiên của domain `sre`. `process.md`: 5-phase incident lifecycle (Detection→Triage→
+Mitigation→Resolution→Postmortem), phân biệt Mitigation vs Resolution, bảng severity P1-P4,
+3 tiêu chí khai báo incident (từ Google SRE Book), 4 nguồn detection (alert/synthetic/user/engineer),
+3 câu hỏi triage trong 5 phút, thứ tự ưu tiên mitigation (rollback→feature flag→scale up→failover→
+debug), incident doc template với ISO 8601 timestamp. Lệnh thật: `date "+%Y-%m-%dT%H:%M:%S%z"`,
+`curl -s -o /dev/null -w "HTTP %{http_code} | Total %{time_total}s" <url>`.
+`roles.md`: 5 vai trò (IC/Ops Lead/Scribe/SME/Comms Lead), "Recursive Separation of Responsibilities"
+từ Google SRE Book, CAN format (Condition/Actions/Needs) — Ops/SME report về IC, explicit IC handoff
+protocol, bystander effect trong incident. Không có TODO-VERIFY. Output minh họa: không có lệnh
+đặc thù nào cần công cụ bên ngoài.
+
+**Tự rà soát (không dùng subagent, theo yêu cầu phiên này):** 5-phase lifecycle từ Google SRE Book
+ch.14; P1-P4 severity theo convention chung (Google SRE + PagerDuty IRP); CAN format từ PagerDuty
+IRP đã fetch; "IC không tự sửa hệ thống" là nguyên lý lõi của chương Managing Incidents;
+bystander effect là khái niệm tâm lý học xã hội chuẩn (Darley & Latané 1968) — áp dụng vào
+incident context. Lint pass: 115 bài, 4 TODO-VERIFY. Không phát hiện lỗi cần sửa.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
