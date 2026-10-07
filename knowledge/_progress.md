@@ -7,14 +7,15 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **133 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
+- Tổng số bài đã viết: **135 / 146** (`draft`, chưa `verified`).
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **9** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
-  chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
-  bằng `pnpm kb:lint`).
+  chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min; 1 từ
+  `security.vuln-patch.patch-mgmt`: mốc thời gian ưu tiên vá (24h/7d/30d/quarter) là convention
+  ngành, không từ spec bắt buộc — kiểm tra bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 133.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 135.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1080,6 +1081,30 @@ Không có TODO-VERIFY. Sources: NIST SP 800-94, docs.suricata.io.
 khái niệm ổn định không cần TODO-VERIFY; Suricata rule syntax từ docs chính thức; `$HOME_NET`
 là biến Suricata chuẩn; NFQueue là cơ chế kernel Linux chuẩn; EVE JSON format từ docs.suricata.io.
 Q&A đáp án c/d/b/b/a phân bố tốt. Lint pass: 133 bài, 8 TODO-VERIFY.
+
+### 43. `security.vuln-patch` — Quản lý lỗ hổng và bản vá (2/2 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `security.vuln-patch.scanning` | `knowledge/security/vuln-patch/scanning.md` | draft |
+| `security.vuln-patch.patch-mgmt` | `knowledge/security/vuln-patch/patch-mgmt.md` | draft |
+
+`scanning.md`: CVE format, NVD, CVSS v3.1 severity thresholds (None/Low/Medium/High/Critical,
+confirmed từ FIRST spec), 8 Base metrics (AV/AC/PR/UI/S/C/I/A), phân loại scanner (Trivy/
+OpenVAS/Nessus/Nuclei/apt-audit), false positive từ distro backport. Lệnh thật:
+`apt list --upgradable | grep security` (không có pending update). Minh họa: Trivy scan output.
+Không có TODO-VERIFY.
+
+`patch-mgmt.md`: chu trình 6 bước (Identify→Assess→Test→Deploy→Verify→Document), bảng ưu tiên
+theo CVSS (1 TODO-VERIFY về mốc 24h/7d/30d/quarter là convention không phải spec), zero-day
+mitigation vs fix, Ubuntu Livepatch cho kernel không reboot, unattended-upgrades config.
+Lệnh thật: `uname -r`, `dpkg -l | grep linux-image`, `ls /var/run/reboot-required`, `ssh -V`,
+`apt-cache policy openssh-server`. Minh họa: dnf needs-restarting, apt-get install --only-upgrade.
+Sources: ubuntu.com/security/livepatch, FIRST CVSS v3.1.
+
+**Tự rà soát:** CVSS thresholds từ FIRST spec chính thức; lệnh thật verify trước khi viết
+(output khớp 100%); TODO-VERIFY đánh dấu đúng chỗ; Q&A đáp án b/c/b/c/c phân bố tốt.
+Lint pass: 135 bài, 9 TODO-VERIFY.
 
 ### 43. `data.mysql-postgres` — MySQL và PostgreSQL (3/3 bài hoàn thành)
 
