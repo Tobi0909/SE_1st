@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **111 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **113 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **4** (3 từ module `networking.switching`
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
   về định dạng key prefix S3 backend khi dùng workspace — kiểm tra bằng `pnpm kb:lint`).
@@ -973,6 +973,27 @@ là default từ OpenSSH 7.0+ (xác nhận từ `sshd_config(5)` man7.org); `Max
 chạy thật từ `/proc/sys/`; SUID binary list là output thật từ `find`; permission `/etc/shadow`
 0640 root:shadow đúng (chạy thật bằng `stat`). Câu hỏi Q2 bài checklist: "prohibit-password"
 giải thích đúng (tắt password+keyboard-interactive, giữ key-based). Không phát hiện lỗi.
+
+### 38. `security.identity-secrets` — Quản lý danh tính và secret (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `security.identity-secrets.identity` | `knowledge/security/identity-secrets/identity.md` | draft |
+| `security.identity-secrets.secrets-mgmt` | `knowledge/security/identity-secrets/secrets-mgmt.md` | draft |
+
+`identity.md`: SSO (SAML vs OIDC/OAuth2, luồng Authorization Code, JWT verify offline bằng JWKS),
+MFA (TOTP RFC 6238 cơ chế thật — `HMAC-SHA1(secret, floor(unix_time/30))`, FIDO2 phishing-resistant
+vì origin binding, SMS "restricted" theo NIST 800-63B-4), RBAC (gán qua role thay vì user trực tiếp,
+JWT revoke vấn đề). Lệnh thật: `base64 -d` decode JWT payload, `date +%s` tính TOTP window.
+`secrets-mgmt.md`: hardcode nguy hiểm (git history vĩnh viễn, `git show <sha>:file`), Vault kiến
+trúc (Auth Methods, Secret Engines, Policies, Seal/Unseal Shamir), KMS envelope encryption (DEK +
+master key), env var risk (subprocess thừa kế, Docker inspect, log dump). Lệnh thật:
+`git log --diff-filter=A`, `tr '\0' '\n' < /proc/$$/environ` (đã ẩn danh hóa hostname/username).
+Không có TODO-VERIFY. Output minh họa: Vault CLI, AWS CLI (không cài trên máy demo).
+
+**Tự rà soát:** TOTP formula từ RFC 6238 (xác nhận qua OWASP source); Vault Seal/Unseal từ
+HashiCorp docs đã fetch; JWT base64 decode chạy thật với chuỗi mẫu; `proc/$$/environ` chạy thật,
+output ẩn danh hóa username trước khi đưa vào bài. Không phát hiện lỗi cần sửa.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
