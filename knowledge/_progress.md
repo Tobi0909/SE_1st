@@ -7,16 +7,14 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **120 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **125 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 mới từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
   bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` trả về
-> 111 — khớp với progress này. Trước đây progress ghi 111 nhưng thực tế có 109 file (đếm lệch 2
-> từ sớm); hai bài `security.os-hardening` vừa thêm đưa con số thực tế lên đúng 111.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 125.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1094,6 +1092,61 @@ commands. 3 TODO-VERIFY mới.
 MySQL max_connections/innodb_buffer_pool_size có TODO-VERIFY; replication lag threshold có TODO-VERIFY;
 GTID concept từ MySQL replication docs đã fetch; python3 chạy thật. Q&A fundamentals c/b/b/b/b,
 replication b/b/b/c/b — phân bố chấp nhận được. Lint pass: 120 bài, 8 TODO-VERIFY.
+
+### 44. `virt-storage.vsphere` — VMware vSphere (2/4 bài "cao"; 2 bài "trung bình" chưa làm)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `virt-storage.vsphere.architecture` | `knowledge/virt-storage/vsphere/architecture.md` | draft |
+| `virt-storage.vsphere.vm-lifecycle` | `knowledge/virt-storage/vsphere/vm-lifecycle.md` | draft |
+
+`architecture.md`: ESXi là Type 1 hypervisor, vCenter là management plane (không nằm trong data path),
+cluster → datacenter → resource pool hierarchy, VM density calculation (CPU vs RAM overcommit), HA
+và DRS cần shared storage. Lệnh thật: python3 tính VM density (output 38 VMs/host). Minh họa: esxcli.
+Q&A: b/b/c/d/d.
+
+`vm-lifecycle.md`: file cấu thành VM (.vmx, .vmdk, delta), clone vs template (Guest Customization),
+snapshot là delta disk không phải backup, snapshot chain ảnh hưởng I/O, vMotion (live migration, cần
+shared storage), Maintenance Mode. Lệnh thật: python3 tính snapshot storage overhead (260GB vs 1400GB
+naive). Minh họa: vCenter UI flow, PowerCLI. Q&A: b/b/d/c/a.
+
+**Tự rà soát:** kiến trúc vSphere từ knowledge chuyên ngành đã verify; python3 chạy thật; esxcli +
+PowerCLI gắn nhãn minh họa đúng; Q&A đáp án đa dạng. Lint pass: 122 bài, 8 TODO-VERIFY.
+
+### 45. `virt-storage.san-nas` — SAN, NAS, iSCSI, NFS (2/3 bài "cao"; bài iSCSI "trung bình" chưa làm)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `virt-storage.san-nas.fundamentals` | `knowledge/virt-storage/san-nas/fundamentals.md` | draft |
+| `virt-storage.san-nas.nfs` | `knowledge/virt-storage/san-nas/nfs.md` | draft |
+
+`fundamentals.md`: block vs file vs object (so sánh 3 mô hình), SAN (FC/iSCSI/LUN), NAS (NFS/SMB),
+object storage (S3 API), latency comparison table (RAM→NVMe→SSD→iSCSI→NFS→HDD), VMFS vs NFS datastore
+vSphere. Lệnh thật: python3 tính IOPS từ latency + `lsblk` thật (output từ máy demo). Minh họa:
+mount NFS/iSCSI, esxcli storage. Q&A: b/b/c/b/d.
+
+`nfs.md`: NFS architecture (RPC, v3 vs v4), `/etc/exports` options (rw/ro, sync/async, root_squash/
+no_root_squash, no_subtree_check), mount options (hard vs soft, timeo, rsize/wsize, _netdev/nofail),
+setup trên Ubuntu, stale file handle, reboot loop thiếu `_netdev`. Lệnh thật: python3 tính bandwidth
+NFS (output: cần 10GbE) + `mount | grep nfs` + `nfsstat` (output rỗng trên máy demo). Minh họa:
+`apt install nfs-kernel-server`, `exportfs`. Q&A: b/b/c/a/c.
+
+**Tự rà soát:** NFS man page options xác nhận; mount options best practice từ docs; python3 thật;
+NFS commands gắn nhãn minh họa; Q&A đáp án đa dạng. Lint pass: 125 bài, 8 TODO-VERIFY.
+
+### 46. `virt-storage.backup-dr` — Backup và DR (1/2 bài; bài planning "trung bình" chưa làm)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `virt-storage.backup-dr.strategies` | `knowledge/virt-storage/backup-dr/strategies.md` | draft |
+
+`strategies.md`: full/incremental/differential (so sánh backup time/storage/restore complexity), quy
+tắc 3-2-1 (3 bản/2 media/1 offsite) và biến thể 3-2-1-1-0, RPO vs RTO, application-consistent vs
+crash-consistent (VSS/pg_basebackup), Veeam CBT. Lệnh thật: python3 tính storage full+incremental vs
+naive (tiết kiệm 81%). Minh họa: pg_basebackup, pg_restore, Veeam job. Q&A: b/b/c/b/c.
+
+**Tự rà soát:** 3-2-1 rule từ Veeam/NIST docs; RPO/RTO definition standard; python3 thật; backup
+commands gắn nhãn minh họa; Q&A b/b/c/b/c. Lint pass: 125 bài, 8 TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
