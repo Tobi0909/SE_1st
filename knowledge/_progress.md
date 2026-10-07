@@ -7,9 +7,10 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **109 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
-  liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
+- Tổng số bài đã viết: **111 / 146** (`draft`, chưa `verified`).
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **4** (3 từ module `networking.switching`
+  liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
+  về định dạng key prefix S3 backend khi dùng workspace — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -926,6 +927,24 @@ failed/unreachable), `--check` dry-run.
 ưu tiên (đúng — Ansible 22 mức, defaults gần đáy nhất); handler chạy 1 lần/host (không 1 lần toàn cụm);
 `ansible-galaxy install` mặc định vào `~/.ansible/roles/` (đúng); `import_tasks` static parse-time,
 `include_tasks` dynamic runtime (đúng theo docs). Không phát hiện lỗi cần sửa.
+
+### 36. `devops.terraform` — Terraform provider, resource, state, module (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `devops.terraform.fundamentals` | `knowledge/devops/terraform/fundamentals.md` | draft |
+| `devops.terraform.modules-state` | `knowledge/devops/terraform/modules-state.md` | draft |
+
+Terraform không cài trên máy demo — toàn bộ output là **minh hoạ** theo HashiCorp docs.
+`fundamentals.md`: IaC mental model, provider/resource/state, 3-step workflow (init/plan/apply),
+tham chiếu implicit dependency, variables, outputs, import block Terraform 1.5+, migrate state
+sang remote backend. `modules-state.md`: module local và registry, `count` vs `for_each`, S3
+backend + DynamoDB state locking, workspace, `terraform_remote_state` data source.
+
+**Tự rà lại (không dùng subagent):** `~> 5.0` = >=5.0 <6.0 (HCL version constraint) — đúng;
+`cidrsubnet("10.0.0.0/16", 8, 0)` → `10.0.0.0/24` — đúng; DynamoDB lock key `LockID` —
+đúng; `for_each` với `each.key/value` — đúng; `import` block Terraform 1.5+ — đúng.
+1 TODO-VERIFY: định dạng key prefix khi dùng workspace với S3 backend.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
