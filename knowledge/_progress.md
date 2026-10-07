@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **100 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **103 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
@@ -833,6 +833,39 @@ lại tài nguyên mạng tạm trong container).
 T1 default = 0.5 × lease time) — đúng; broadcast ở DISCOVER và REQUEST (không phải chỉ
 DISCOVER) — đúng theo RFC 2131 (REQUEST vẫn broadcast để các server khác biết IP đã bị nhận).
 Không thêm TODO-VERIFY.
+
+### 31. `monitoring.alerting-design` — Thiết kế cảnh báo (1/1 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `monitoring.alerting-design.principles` | `knowledge/monitoring/alerting-design/principles.md` | draft |
+
+Platform-agnostic. 4 tiêu chí alert tốt (Google SRE Book), severity tiers (P1/P2/P3), symptom-based vs
+cause-based, `for` clause, runbook annotation, burn rate alert kết hợp SLO. Toàn bộ Prometheus rule là
+minh hoạ (không có Prometheus thật).
+
+**Tự rà lại (không dùng subagent):** phát hiện 1 lỗi số liệu — dòng 147 mô tả sai "14.4× = detect vấn đề
+trong 2 giờ"; thực tế 30/14.4 = 2.08 ngày ≈ 50 giờ. Đã sửa. Cross-reference "đã học ở" chỉ dùng cho ID
+trong prerequisites (`monitoring.prometheus-grafana.alertmanager` đúng) — không phát hiện vi phạm quy ước.
+
+### 32. `monitoring.sli-slo` — SLI/SLO/Error budget (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `monitoring.sli-slo.fundamentals` | `knowledge/monitoring/sli-slo/fundamentals.md` | draft |
+| `monitoring.sli-slo.error-budget` | `knowledge/monitoring/sli-slo/error-budget.md` | draft |
+
+Platform-agnostic (ví dụ Prometheus). `fundamentals.md`: SLI/SLO/SLA definitions, measurement window
+rolling vs calendar, 6 loại SLI (availability/latency/throughput/correctness/freshness/durability), chọn
+SLI theo user journey. `error-budget.md`: burn rate formula, multi-window alerting (detect + confirm window),
+deploy decision framework, PromQL tính SLO compliance + burn rate.
+
+**Tự rà lại (không dùng subagent):** phát hiện 3 lỗi số liệu:
+1. `fundamentals.md`: "43.8 phút" → "43.2 phút" (0.1% × 30×24×60 = 43.2).
+2. `error-budget.md`: "2 giờ" → "~50 giờ (~2 ngày)" cho burn rate 14.4× (30 ngày / 14.4 = 2.08 ngày).
+3. `error-budget.md`: "5 giờ" → "5 ngày" cho burn rate 6× (30 / 6 = 5 ngày). Burn rate 3× "10 ngày" đúng.
+4. `error-budget.md` table: cột "Window ngắn"/"Window dài" bị hoán vị — đã sửa thành
+   "Window dài (detect)" và "Window ngắn (confirm)" với giá trị đúng chiều. Tất cả đã sửa + lint pass.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
