@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **103 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **105 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
@@ -866,6 +866,24 @@ deploy decision framework, PromQL tính SLO compliance + burn rate.
 3. `error-budget.md`: "5 giờ" → "5 ngày" cho burn rate 6× (30 / 6 = 5 ngày). Burn rate 3× "10 ngày" đúng.
 4. `error-budget.md` table: cột "Window ngắn"/"Window dài" bị hoán vị — đã sửa thành
    "Window dài (detect)" và "Window ngắn (confirm)" với giá trị đúng chiều. Tất cả đã sửa + lint pass.
+
+### 33. `devops.git` — Git cơ bản và workflow (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `devops.git.fundamentals` | `knowledge/devops/git/fundamentals.md` | draft |
+| `devops.git.workflows` | `knowledge/devops/git/workflows.md` | draft |
+
+Module đầu tiên của domain `devops`. Lệnh git chạy THẬT (Git 2.34.1 trên Ubuntu 22.04): `git init`,
+`add`, `commit`, `branch`, `checkout`, `merge --no-ff`, `stash push -u`, `stash pop`, `rebase`,
+`log --oneline --all --graph`, `cat .git/HEAD`, `cat .git/refs/heads/master`. Output minh hoạ:
+interactive rebase editor (`git rebase -i HEAD~3`), GitFlow/GitHub Flow so sánh — không cần tool
+bên ngoài.
+
+**Tự rà lại (không dùng subagent):** kiểm tra SHA-1 (Git 2.29+ hỗ trợ SHA-256 opt-in, mặc định
+vẫn SHA-1 — đúng), `git diff HEAD` so sánh working dir+staged vs last commit (đúng, khác `git diff
+--staged`), `--force-with-lease` so sánh remote tracking ref (đúng). Cross-reference chỉ dùng "xem
+thêm" cho bài ngoài prerequisites — không vi phạm quy ước. Không có TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
