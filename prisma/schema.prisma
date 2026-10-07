@@ -51,6 +51,17 @@ enum ChatRole {
   ASSISTANT
 }
 
+enum ArticleStatus {
+  DRAFT
+  VERIFIED
+}
+
+enum ArticleLevel {
+  FOUNDATION
+  OPERATION
+  EXPERT
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -184,6 +195,7 @@ model SkillNode {
   parent   SkillNode?        @relation("SkillNodeChildren", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children SkillNode[]       @relation("SkillNodeChildren")
   labLinks LabScenarioNode[]
+  articleLinks ArticleSkillNode[]
 
   @@index([topicId])
   @@map("skill_nodes")
@@ -315,6 +327,46 @@ model ChatMessage {
 
   @@index([chatSessionId, createdAt])
   @@map("chat_messages")
+}
+
+model Article {
+  id              String        @id @default(cuid())
+  knowledgeId     String        @unique
+  title           String
+  domain          String
+  module          String
+  level           ArticleLevel
+  status          ArticleStatus @default(DRAFT)
+  sourcePath      String
+  contentHash     String
+  content         String
+  prerequisites   String[]
+  appliesTo       String[]
+  sources         String[]
+  lastVerified    DateTime?
+  todoVerifyCount Int           @default(0)
+  // search_vector tsvector GENERATED ALWAYS AS (...) STORED — added via raw SQL in migration
+  // embeddingVector vector(1536)? — add in future migration when pgvector is installed
+  embeddingModel  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  skillNodeLinks  ArticleSkillNode[]
+
+  @@index([domain, module])
+  @@index([status, level])
+  @@map("articles")
+}
+
+model ArticleSkillNode {
+  articleId   String
+  skillNodeId String
+
+  article   Article   @relation(fields: [articleId],   references: [id], onDelete: Cascade)
+  skillNode SkillNode @relation(fields: [skillNodeId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, skillNodeId])
+  @@map("article_skill_nodes")
 }
 
 model LlmUsageLog {

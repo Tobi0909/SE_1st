@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   Bot,
   LayoutDashboard,
   Layers,
@@ -25,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Flashcard", href: "/flashcards", icon: Layers, shortcut: "G F" },
   { label: "Lab", href: "/lab", icon: Terminal, shortcut: "G L" },
   { label: "Tutor", href: "/tutor", icon: Bot, shortcut: "G T" },
+  { label: "Tri thức", href: "/knowledge", icon: BookOpen, shortcut: "G K" },
   { label: "Team", href: "/team", icon: Users },
   { label: "Admin", href: "/admin", icon: ShieldCheck, adminOnly: true },
 ];

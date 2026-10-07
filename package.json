@@ -15,11 +15,14 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "kb:lint": "tsx scripts/kb-lint.ts"
+    "kb:lint": "tsx scripts/kb-lint.ts",
+    "kb:import": "tsx scripts/kb-import.ts",
+    "kb:import:dry": "tsx scripts/kb-import.ts --dry-run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@tailwindcss/typography": "^0.5.20",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -35,6 +38,7 @@
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
     "shadcn": "^4.21.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
