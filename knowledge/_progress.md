@@ -7,17 +7,20 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **139 / 146** (`draft`, chưa `verified`).
-- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **12** (3 từ module `networking.switching`;
+- Tổng số bài đã viết: **146 / 146** (`draft`, chưa `verified`). **Taxonomy hoàn chỉnh 100%.**
+- Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **15** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min; 1 từ
   `security.vuln-patch.patch-mgmt`: mốc thời gian ưu tiên vá (24h/7d/30d/quarter) là convention
   ngành; 3 từ `security.audit-compliance.frameworks`: số requirement PCI DSS v4.0 (12), số
-  controls ISO 27001:2022 (93), và PCI Req 10.7 chi tiết 3+9 tháng retention — kiểm tra bằng
-  `pnpm kb:lint`).
+  controls ISO 27001:2022 (93), và PCI Req 10.7 chi tiết 3+9 tháng retention; 1 từ
+  `data.message-queue.fundamentals`: Kafka default retention 7 ngày; 1 từ
+  `sre.capacity-planning.basics`: ngưỡng alert disk/CPU/RAM là convention ngành; 1 từ
+  `virt-storage.ceph.operations`: nearfull/backfill/full ratio defaults theo version —
+  kiểm tra bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 139.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 146.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1154,6 +1157,82 @@ Không có TODO-VERIFY.
 CRD spec từ argo-cd.readthedocs.io; Flux v2 CRD từ fluxcd.io/flux/concepts/; kubectl/argocd/flux
 commands gắn nhãn minh họa đúng; cross-reference "đã học ở" chỉ dùng cho bài trong prerequisites;
 Q&A đáp án phân bố tốt. Lint pass: 139 bài, 12 TODO-VERIFY.
+
+### 49. `devops.artifact-management` — Quản lý artifact (1/1 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `devops.artifact-management.repos` | `knowledge/devops/artifact-management/repos.md` | draft |
+
+Container registry (Docker Hub rate limit 100 pull/6h anonymous; GHCR; private registry), image tag vs
+digest (mutable vs immutable), pull-through proxy cache, Docker Registry v2, Nexus 3 loại repo
+(hosted/proxy/group), imagePullSecret trong K8s. Lệnh thật: python3 tính storage estimate (35 GB
+cho 20 image × 5 tag × 300MB sau 40% dedup). Minh họa: `docker pull/push/tag`, Nexus config,
+K8s Secret yaml. Không có TODO-VERIFY. Lint pass: 140 bài.
+
+### 50. `data.redis` — Redis (1/1 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `data.redis.fundamentals` | `knowledge/data/redis/fundamentals.md` | draft |
+
+In-memory data store, 5 kiểu dữ liệu cơ bản (String/Hash/List/Set/Sorted Set), persistence RDB vs AOF
+(`everysec`/`always`/`no`), eviction policy (`allkeys-lru`/`volatile-lru`/`volatile-ttl`/`noeviction`),
+single-threaded event loop, KEYS * vs SCAN, Sentinel vs Cluster. Lệnh thật: python3 tính memory
+per session key (119 bytes, 1M sessions = 113 MB). Minh họa: redis-cli commands (không cài).
+Không có TODO-VERIFY. Lint pass: 141 bài.
+
+### 51. `data.message-queue` — Message queue (1/1 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `data.message-queue.fundamentals` | `knowledge/data/message-queue/fundamentals.md` | draft |
+
+Point-to-point vs pub/sub, Kafka (log-based, retention theo thời gian, consumer group, partition parallelism,
+replay, pull model), RabbitMQ (AMQP, exchange type fanout/direct/topic/headers, ack-based, DLQ, push model),
+so sánh throughput/use case, consumer lag. Lệnh thật: python3 tính partition cần (5 partitions/5 consumers
+cho 50k msg/s; 907 GB storage cho 7 ngày RF=3). Minh họa: kafka-consumer-groups.sh, rabbitmqctl.
+1 TODO-VERIFY: Kafka default retention 7 ngày. Lint pass: 142 bài.
+
+### 52. `sre.capacity-planning` — Capacity planning (1/1 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `sre.capacity-planning.basics` | `knowledge/sre/capacity-planning/basics.md` | draft |
+
+USE Method (Utilization/Saturation/Errors), ngưỡng alert (disk 80%/90%, CPU 70%/90% sustained,
+memory 85%/95%), quy tắc 70% + lead time, headroom 30%, PromQL `predict_linear`, linear regression
+dự báo disk. Lệnh thật: python3 linear regression trên 30 ngày data (growth 0.25%/ngày, reach 70%
+sau 29 ngày = 2026-11-04); `df -h`/`grep MemAvailable /proc/meminfo` thật. Minh họa: Prometheus
+alert rule yaml. 1 TODO-VERIFY: ngưỡng disk/CPU/RAM là convention ngành. Lint pass: 143 bài.
+
+### 53. `sre.toil-automation` — Nhận diện toil (1/1 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `sre.toil-automation.identifying-toil` | `knowledge/sre/toil-automation/identifying-toil.md` | draft |
+
+6 đặc điểm toil (Google SRE Book: Manual/Repetitive/Automatable/Tactical/No enduring value/O(n) growth),
+giới hạn 50% toil, ROI tự động hóa (break-even = auto_hours / saved_per_week), ma trận ưu tiên tần suất
+× độ khó, bảng toil phổ biến + giải pháp. Lệnh thật: python3 đo phân bổ toil (25% toil, 20% project,
+13% overhead); tính ROI 4 candidates (log-cleanup break-even 1 tuần, manual-deploy 17.5h/tháng tiết kiệm).
+Minh họa: Ansible provision-user.yml. Không có TODO-VERIFY. Lint pass: 144 bài.
+
+### 54. `virt-storage.ceph` — Ceph (2/2 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `virt-storage.ceph.architecture` | `knowledge/virt-storage/ceph/architecture.md` | draft |
+| `virt-storage.ceph.operations` | `knowledge/virt-storage/ceph/operations.md` | draft |
+
+`architecture.md`: 5 thành phần (OSD/MON/MGR/MDS/RGW), CRUSH algorithm + hierarchy + failure domain,
+Pool + PG + placement flow, write flow (primary→replica ACK), recovery khi OSD down, quorum (floor(n/2)+1).
+Lệnh thật: python3 tính pg_num = 512 cho 12 OSD RF=3. Minh họa: ceph status/osd tree/health detail.
+
+`operations.md`: trạng thái health (OK/WARN/ERR), PG states (active+clean/degraded/recovering/incomplete),
+health check hàng ngày (ceph -s, health detail), quy trình xử lý OSD down (down→out→recover), noout/norecover
+maintenance flags, ceph osd df, reweight vs crush reweight. Minh họa: toàn bộ lệnh ceph (không cài).
+1 TODO-VERIFY: nearfull/backfill/full ratio defaults theo version. Lint pass: 146 bài, 15 TODO-VERIFY.
 
 ### 43. `data.mysql-postgres` — MySQL và PostgreSQL (3/3 bài hoàn thành)
 
