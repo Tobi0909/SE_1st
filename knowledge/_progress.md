@@ -7,14 +7,14 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **132 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **133 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
   bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 132.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 133.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1056,11 +1056,12 @@ types là framework standard (không cần số liệu verify); error budget fre
 Risk (dẫn trong sources); git log chạy thật, output khớp. Q&A đáp án c/b/b/b/c — phân bố hợp lý,
 mỗi câu độc lập đúng. Lint pass: 117 bài, 5 TODO-VERIFY.
 
-### 42. `security.network-security` — Bảo mật mạng (1/1 bài "cao"; bài "trung bình" chưa làm)
+### 42. `security.network-security` — Bảo mật mạng (2/2 bài — module hoàn thành)
 
 | Lesson id | File | Trạng thái |
 |---|---|---|
 | `security.network-security.fundamentals` | `knowledge/security/network-security/fundamentals.md` | draft |
+| `security.network-security.ids-ips` | `knowledge/security/network-security/ids-ips.md` | draft |
 
 `fundamentals.md`: perimeter model thất bại với lateral movement, defense in depth (6 lớp),
 segmentation bằng zones (Internet/DMZ/Internal/Data/Management), east-west vs north-south traffic,
@@ -1068,9 +1069,17 @@ DMZ architecture (2 firewall), Zero Trust (NIST SP 800-207: no implicit trust ba
 micro-segmentation, cloud security group reference thay IP. Lệnh thật: `ss -tlnp` (output thực tế
 từ máy), `ip route show` (thực tế). Minh họa: iptables rules, nc -zv. Không có TODO-VERIFY.
 
-**Tự rà soát:** NIST SP 800-207 quote từ nguồn đã fetch; DMZ kiến trúc 2-firewall là chuẩn ngành;
-`ss -tlnp` + `ip route show` chạy thật; iptables và nc gắn nhãn minh họa; Q&A đáp án c/d/a/d/b
-phân bố tốt. Lint pass: 118 bài, 5 TODO-VERIFY.
+`ids-ips.md`: IDS vs IPS (passive/alert vs inline/block), NIDS (Suricata/Snort) vs HIDS
+(OSSEC/Wazuh), signature-based vs anomaly-based, passive TAP/SPAN vs inline NFQueue mode.
+Tradeoff false positive/negative minh họa bằng số (chạy thật Python: 1M sự kiện/ngày, signature
+→ 580 alert/97% FP, anomaly → 50,097 alert/99.8% FP). Suricata rule format, EVE JSON log.
+Minh họa: Suricata commands (không cài trên máy demo), NFQueue iptables setup, Wazuh agent.
+Không có TODO-VERIFY. Sources: NIST SP 800-94, docs.suricata.io.
+
+**Tự rà soát:** Số liệu FP/FN verify lại bằng Python thật (khớp 100%); IDS/IPS/NIDS/HIDS là
+khái niệm ổn định không cần TODO-VERIFY; Suricata rule syntax từ docs chính thức; `$HOME_NET`
+là biến Suricata chuẩn; NFQueue là cơ chế kernel Linux chuẩn; EVE JSON format từ docs.suricata.io.
+Q&A đáp án c/d/b/b/a phân bố tốt. Lint pass: 133 bài, 8 TODO-VERIFY.
 
 ### 43. `data.mysql-postgres` — MySQL và PostgreSQL (3/3 bài hoàn thành)
 
