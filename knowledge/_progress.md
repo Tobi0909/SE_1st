@@ -11,6 +11,10 @@
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **4** (3 từ module `networking.switching`
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
   về định dạng key prefix S3 backend khi dùng workspace — kiểm tra bằng `pnpm kb:lint`).
+
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` trả về
+> 111 — khớp với progress này. Trước đây progress ghi 111 nhưng thực tế có 109 file (đếm lệch 2
+> từ sớm); hai bài `security.os-hardening` vừa thêm đưa con số thực tế lên đúng 111.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -945,6 +949,30 @@ backend + DynamoDB state locking, workspace, `terraform_remote_state` data sourc
 `cidrsubnet("10.0.0.0/16", 8, 0)` → `10.0.0.0/24` — đúng; DynamoDB lock key `LockID` —
 đúng; `for_each` với `each.key/value` — đúng; `import` block Terraform 1.5+ — đúng.
 1 TODO-VERIFY: định dạng key prefix khi dùng workspace với S3 backend.
+
+### 37. `security.os-hardening` — Hardening OS (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `security.os-hardening.principles` | `knowledge/security/os-hardening/principles.md` | draft |
+| `security.os-hardening.checklist` | `knowledge/security/os-hardening/checklist.md` | draft |
+
+Module đầu tiên của domain `security`. `principles.md`: 3 nguyên lý trụ cột (least privilege,
+reduce attack surface, defense in depth), phân loại attack surface theo 6 loại (network/auth/
+service/filesystem/kernel/account). Lệnh THẬT: `ss -tlnp` (port thực của máy), `systemctl
+list-units --state=running` (avahi/cups/bluetooth hiện diện), `find -perm -4000` (13 SUID binary
+thực tế, gồm pkexec và vmware-authd), `cat /proc/sys/...` (tất cả kernel params thực).
+`checklist.md`: 5 nhóm hardening: tài khoản, SSH (sshd_config directive với default chính thức
+từ man7.org), service (tắt avahi/cups/bluetooth), kernel sysctl (giá trị thực từ máy), filesystem
+(SUID audit, quyền `/etc/passwd|shadow|sudoers` thực). Thay đổi cấu hình cần sudo đều gắn nhãn
+"output minh họa". Không có TODO-VERIFY.
+
+**Tự rà soát (không dùng subagent, theo yêu cầu phiên này):** `PermitRootLogin prohibit-password`
+là default từ OpenSSH 7.0+ (xác nhận từ `sshd_config(5)` man7.org); `MaxAuthTries 6` và
+`LoginGraceTime 120` là default đúng (xác nhận từ cùng nguồn); tất cả kernel param giá trị đều
+chạy thật từ `/proc/sys/`; SUID binary list là output thật từ `find`; permission `/etc/shadow`
+0640 root:shadow đúng (chạy thật bằng `stat`). Câu hỏi Q2 bài checklist: "prohibit-password"
+giải thích đúng (tắt password+keyboard-interactive, giữ key-based). Không phát hiện lỗi.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
