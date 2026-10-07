@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **137 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **139 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **12** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
@@ -17,7 +17,7 @@
   controls ISO 27001:2022 (93), và PCI Req 10.7 chi tiết 3+9 tháng retention — kiểm tra bằng
   `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 137.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 139.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1130,6 +1130,30 @@ ISO 27001:2022, PCI Req 10.7 chi tiết 3+9 tháng. Sources: pcisecuritystandard
 **Tự rà soát:** lệnh thật verify và output ẩn danh đúng; auditd commands gắn nhãn minh họa;
 cross-reference dùng đúng "đã học ở" vs "xem thêm"; TODO-VERIFY đánh dấu đúng chỗ; Q&A đáp án
 b/c/a/b/b và b/b/c/b/b phân bố tốt. Lint pass: 137 bài, 12 TODO-VERIFY.
+
+### 48. `devops.gitops` — GitOps: nguyên lý và công cụ (2/2 bài — module hoàn thành)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `devops.gitops.principles` | `knowledge/devops/gitops/principles.md` | draft |
+| `devops.gitops.tools` | `knowledge/devops/gitops/tools.md` | draft |
+
+`principles.md`: 4 nguyên lý OpenGitOps (Declarative/Versioned+Immutable/Pulled Automatically/
+Continuously Reconciled), push vs pull deployment model, reconciliation loop (Observe→Diff→Act→Report),
+cấu trúc repo GitOps điển hình. Lệnh thật: `git log --oneline` (output minh họa — git có nhưng không
+có repo GitOps thật), `kubectl diff` (output minh họa — kubectl không cài). Không có TODO-VERIFY.
+
+`tools.md`: ArgoCD vs Flux so sánh (UI/CRD/trigger/multi-tenancy), kiến trúc ArgoCD 5 component
+(argocd-server/repo-server/application-controller/dex-server/redis), Application CRD (source/destination/
+syncPolicy), sync status (Synced/OutOfSync) và health status (Healthy/Progressing/Degraded/Suspended/
+Missing), Flux v2 GitOps Toolkit (source-controller/kustomize-controller), GitRepository + Kustomization
+CRD, App-of-Apps pattern. `argocd` và `flux` CLI: output minh họa (không cài trên máy demo).
+Không có TODO-VERIFY.
+
+**Tự rà soát:** 4 nguyên lý OpenGitOps từ opengitops.dev (đã fetch đầu phiên); ArgoCD Application
+CRD spec từ argo-cd.readthedocs.io; Flux v2 CRD từ fluxcd.io/flux/concepts/; kubectl/argocd/flux
+commands gắn nhãn minh họa đúng; cross-reference "đã học ở" chỉ dùng cho bài trong prerequisites;
+Q&A đáp án phân bố tốt. Lint pass: 139 bài, 12 TODO-VERIFY.
 
 ### 43. `data.mysql-postgres` — MySQL và PostgreSQL (3/3 bài hoàn thành)
 
