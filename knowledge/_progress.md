@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **117 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **118 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **5** (3 từ module `networking.switching`
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể; 1 từ `devops.terraform.modules-state`
   về định dạng key prefix S3 backend khi dùng workspace; 1 từ `sre.postmortem.writing` về khung
@@ -1056,6 +1056,22 @@ repo). Không có TODO-VERIFY.
 types là framework standard (không cần số liệu verify); error budget freeze từ Google SRE Embracing
 Risk (dẫn trong sources); git log chạy thật, output khớp. Q&A đáp án c/b/b/b/c — phân bố hợp lý,
 mỗi câu độc lập đúng. Lint pass: 117 bài, 5 TODO-VERIFY.
+
+### 42. `security.network-security` — Bảo mật mạng (1/1 bài "cao"; bài "trung bình" chưa làm)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `security.network-security.fundamentals` | `knowledge/security/network-security/fundamentals.md` | draft |
+
+`fundamentals.md`: perimeter model thất bại với lateral movement, defense in depth (6 lớp),
+segmentation bằng zones (Internet/DMZ/Internal/Data/Management), east-west vs north-south traffic,
+DMZ architecture (2 firewall), Zero Trust (NIST SP 800-207: no implicit trust based on location),
+micro-segmentation, cloud security group reference thay IP. Lệnh thật: `ss -tlnp` (output thực tế
+từ máy), `ip route show` (thực tế). Minh họa: iptables rules, nc -zv. Không có TODO-VERIFY.
+
+**Tự rà soát:** NIST SP 800-207 quote từ nguồn đã fetch; DMZ kiến trúc 2-firewall là chuẩn ngành;
+`ss -tlnp` + `ip route show` chạy thật; iptables và nc gắn nhãn minh họa; Q&A đáp án c/d/a/d/b
+phân bố tốt. Lint pass: 118 bài, 5 TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
