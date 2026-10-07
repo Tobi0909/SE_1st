@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **105 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **107 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
@@ -884,6 +884,26 @@ bên ngoài.
 vẫn SHA-1 — đúng), `git diff HEAD` so sánh working dir+staged vs last commit (đúng, khác `git diff
 --staged`), `--force-with-lease` so sánh remote tracking ref (đúng). Cross-reference chỉ dùng "xem
 thêm" cho bài ngoài prerequisites — không vi phạm quy ước. Không có TODO-VERIFY.
+
+### 34. `devops.cicd` — CI/CD khái niệm và công cụ (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `devops.cicd.concepts` | `knowledge/devops/cicd/concepts.md` | draft |
+| `devops.cicd.tools` | `knowledge/devops/cicd/tools.md` | draft |
+
+`concepts.md`: CI vs CD Delivery vs CD Deployment, pipeline anatomy (stage/job/runner/artifact/
+environment), pipeline-as-code, fail-fast, artifact immutability, trigger types.
+`tools.md`: GitHub Actions (workflow YAML, `needs:`, `environment:`), GitLab CI (`.gitlab-ci.yml`,
+`stages:`, `when: manual`, `rules: changes:`), Jenkins Declarative Pipeline (`withCredentials`,
+`when { branch }`, `post { failure }`). Toàn bộ YAML/Groovy là **minh hoạ** (không có CI system
+chạy thật trong sandbox).
+
+**Tự rà lại (không dùng subagent):** CI/CD Delivery vs Deployment — đúng định nghĩa (Delivery =
+manual gate, Deployment = fully auto). GitHub Actions `${{ github.sha }}`, `${{ secrets.NAME }}`,
+`needs:` — đúng. GitLab predefined variables `$CI_COMMIT_SHA`, `$CI_REGISTRY_IMAGE` — đúng.
+Jenkins `${env.BUILD_NUMBER}`, `withCredentials`, `when { branch 'main' }` — đúng. `npm ci` vs
+`npm install` — đúng (npm ci fail nếu lock file lỗi thời). Không có TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
