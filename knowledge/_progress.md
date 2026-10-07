@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **99 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **100 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
@@ -813,6 +813,26 @@ Mbps (nên link ≥100M mặc định cùng cost 1 nếu không chỉnh `auto-co
 luật chống loop iBGP (route học từ iBGP không re-advertise sang iBGP peer khác) và thứ tự BGP
 path selection (đã ghi rõ "rút gọn, không đầy đủ 100%, phụ thuộc vendor" để tránh khẳng định
 quá tay) — không phát hiện sai cần sửa; không thêm TODO-VERIFY mới cho module này.
+
+### 30. `networking.dhcp` — DHCP (1/1 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `networking.dhcp.fundamentals` | `knowledge/networking/dhcp/fundamentals.md` | draft |
+
+Module cuối còn thiếu trong domain `networking`. Khác các bài routing động trước (OSPF/BGP,
+phải minh họa vì cần ≥2 node), bài này DỰNG ĐƯỢC DHCP THẬT trong sandbox 1 container: cài
+`isc-dhcp-server`/`isc-dhcp-client` qua `apt-get`, tạo `ip netns` + cặp `veth`, chạy `dhcpd`
+thật ở 1 đầu, `dhclient` thật ở đầu kia (trong netns) — thu được đúng 4 dòng DORA log thật
+(`DHCPDISCOVER`→`DHCPOFFER`→`DHCPREQUEST`→`DHCPACK`), file `dhcpd.leases` thật, và bắt gói
+`tcpdump` thật thấy đúng 4 packet UDP 67/68. Toàn bộ output "Thực hành" trong bài là THẬT,
+không phải minh họa. Đã dọn sạch network namespace/veth/process sau khi lấy output (không để
+lại tài nguyên mạng tạm trong container).
+
+**Tự rà lại (không dùng subagent):** T1 renewal ở mốc 50% lease time (RFC 2131 mục 4.4.5:
+T1 default = 0.5 × lease time) — đúng; broadcast ở DISCOVER và REQUEST (không phải chỉ
+DISCOVER) — đúng theo RFC 2131 (REQUEST vẫn broadcast để các server khác biết IP đã bị nhận).
+Không thêm TODO-VERIFY.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
