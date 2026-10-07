@@ -7,7 +7,7 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **107 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **109 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **3** (module `networking.switching`,
   liên quan tới chi tiết vPC/LACP phụ thuộc hãng/model cụ thể — kiểm tra bằng `pnpm kb:lint`).
 - `pnpm kb:lint`: **pass**, không lỗi.
@@ -904,6 +904,28 @@ manual gate, Deployment = fully auto). GitHub Actions `${{ github.sha }}`, `${{ 
 `needs:` — đúng. GitLab predefined variables `$CI_COMMIT_SHA`, `$CI_REGISTRY_IMAGE` — đúng.
 Jenkins `${env.BUILD_NUMBER}`, `withCredentials`, `when { branch 'main' }` — đúng. `npm ci` vs
 `npm install` — đúng (npm ci fail nếu lock file lỗi thời). Không có TODO-VERIFY.
+
+### 35. `devops.ansible` — Ansible cơ bản và role (2/2 bài)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `devops.ansible.fundamentals` | `knowledge/devops/ansible/fundamentals.md` | draft |
+| `devops.ansible.roles` | `knowledge/devops/ansible/roles.md` | draft |
+
+Ansible không cài trên máy demo — toàn bộ lệnh/playbook là **minh hoạ** theo tài liệu chính thức.
+`fundamentals.md`: agentless (SSH + Python 3 trên managed node), inventory INI/YAML, group_vars/host_vars,
+cấu trúc playbook (play/hosts/become/vars/tasks/handlers), ad-hoc command, 8 module chính (apt/yum/template/
+service/file/copy/shell/user), variable/Jinja2 (`{{ var }}`), `when:`/`loop:`, task states (ok/changed/
+failed/unreachable), `--check` dry-run.
+`roles.md`: cấu trúc thư mục role, `defaults/` vs `vars/` (độ ưu tiên variable), handlers per-host,
+`ansible-galaxy install`, `requirements.yml`, project structure chuẩn (`site.yml`/`import_playbook`),
+`meta/main.yml` dependencies, tags (`--tags`/`--skip-tags`), `import_tasks` (tĩnh) vs `include_tasks`
+(động). Không có TODO-VERIFY.
+
+**Tự rà lại (không dùng subagent):** `defaults/main.yml` nằm dưới inventory/playbook vars trong thứ tự
+ưu tiên (đúng — Ansible 22 mức, defaults gần đáy nhất); handler chạy 1 lần/host (không 1 lần toàn cụm);
+`ansible-galaxy install` mặc định vào `~/.ansible/roles/` (đúng); `import_tasks` static parse-time,
+`include_tasks` dynamic runtime (đúng theo docs). Không phát hiện lỗi cần sửa.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
