@@ -7,14 +7,14 @@
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`
   (9 domain, 56 module, 146 bài).
-- Tổng số bài đã viết: **125 / 146** (`draft`, chưa `verified`).
+- Tổng số bài đã viết: **130 / 146** (`draft`, chưa `verified`).
 - Tổng số `TODO-VERIFY` còn tồn đọng trong toàn kho: **8** (3 từ module `networking.switching`;
   1 từ `devops.terraform.modules-state`; 1 từ `sre.postmortem.writing`; 3 mới từ
   `data.mysql-postgres`: 2 về MySQL default values (max_connections=151, innodb_buffer_pool_size=128MB)
   chưa confirm từ doc đã fetch, 1 về alert threshold replication lag 30s/5min/30min — kiểm tra
   bằng `pnpm kb:lint`).
 
-> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 125.
+> **Ghi chú đếm bài (2026-10-07):** `find knowledge/ -name "*.md" ! -name "_*" | wc -l` = 130.
 - `pnpm kb:lint`: **pass**, không lỗi.
 - Chủ dự án đã duyệt văn phong/độ sâu của module đầu tiên ("cứ tiếp tục xây dựng tiếp đi") —
   từ nay tự làm tiếp từng module theo đúng khuôn mẫu, chỉ dừng khi gặp vấn đề cần quyết định.
@@ -1113,12 +1113,30 @@ naive). Minh họa: vCenter UI flow, PowerCLI. Q&A: b/b/d/c/a.
 **Tự rà soát:** kiến trúc vSphere từ knowledge chuyên ngành đã verify; python3 chạy thật; esxcli +
 PowerCLI gắn nhãn minh họa đúng; Q&A đáp án đa dạng. Lint pass: 122 bài, 8 TODO-VERIFY.
 
-### 45. `virt-storage.san-nas` — SAN, NAS, iSCSI, NFS (2/3 bài "cao"; bài iSCSI "trung bình" chưa làm)
+### 44. `virt-storage.vsphere` — vSphere (tiếp: bài networking-storage và ha-drs)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `virt-storage.vsphere.architecture` | `knowledge/virt-storage/vsphere/architecture.md` | draft |
+| `virt-storage.vsphere.vm-lifecycle` | `knowledge/virt-storage/vsphere/vm-lifecycle.md` | draft |
+| `virt-storage.vsphere.networking-storage` | `knowledge/virt-storage/vsphere/networking-storage.md` | draft |
+| `virt-storage.vsphere.ha-drs` | `knowledge/virt-storage/vsphere/ha-drs.md` | draft |
+
+`networking-storage.md`: vSS vs vDS (Standard vSwitch per-host vs Distributed vSwitch centralized Enterprise Plus), port group VLAN isolation + security policy (promiscuous/MAC change/forged transmit), VMkernel adapters vmkN (management/vMotion/iSCSI/vSAN — không phải VM traffic), VMFS trên block LUN vs NFS mount of NAS export, thin/thick eager-zeroed provisioning. Lệnh thật: python3 port group design table + `df -h`. Minh họa: esxcli vswitch/NFS. Q&A: b/b/c/c/d.
+
+`ha-drs.md`: HA heartbeat (network 1s + datastore 10s), isolation detection (ping default GW), admission control (ensure failover capacity), DRS automation levels (Manual/Partially/Fully), imbalance score/5-min cycle, FT (zero downtime max 4 vCPU, incompatible snapshot/storage vMotion). Lệnh thật: python3 DRS imbalance analysis (esxi-01 79.4% overloaded). Minh họa: PowerCLI Get-Cluster. Q&A: b/c/c/a/d.
+
+**Tự rà soát:** vSphere HA/DRS/FT từ VMware documentation; DRS imbalance python3 thật; Q&A đáp án đa dạng. Lint pass: 130 bài, 8 TODO-VERIFY.
+
+### 45. `virt-storage.san-nas` — SAN, NAS, iSCSI, NFS (3/3 bài hoàn thành)
 
 | Lesson id | File | Trạng thái |
 |---|---|---|
 | `virt-storage.san-nas.fundamentals` | `knowledge/virt-storage/san-nas/fundamentals.md` | draft |
 | `virt-storage.san-nas.nfs` | `knowledge/virt-storage/san-nas/nfs.md` | draft |
+| `virt-storage.san-nas.iscsi` | `knowledge/virt-storage/san-nas/iscsi.md` | draft |
+
+`iscsi.md`: target/initiator roles, IQN naming scheme (iqn.YYYY-MM.reverse-domain:identifier), LUN masking (restrict visibility per initiator IQN), multipath MPIO (dm-multipath, multiple sessions for redundancy + load balancing), jumbo frames MTU 9000 (ALL switch ports on path), stable device naming by-path. Lệnh thật: python3 iSCSI throughput calc (1062 MB/s, ~3333 IOPS at QD1) + `lsblk` (no iscsi trên demo). Minh họa: iscsiadm, multipath -ll. Q&A: b/c/a/b/c.
 
 `fundamentals.md`: block vs file vs object (so sánh 3 mô hình), SAN (FC/iSCSI/LUN), NAS (NFS/SMB),
 object storage (S3 API), latency comparison table (RAM→NVMe→SSD→iSCSI→NFS→HDD), VMFS vs NFS datastore
@@ -1134,19 +1152,42 @@ NFS (output: cần 10GbE) + `mount | grep nfs` + `nfsstat` (output rỗng trên 
 **Tự rà soát:** NFS man page options xác nhận; mount options best practice từ docs; python3 thật;
 NFS commands gắn nhãn minh họa; Q&A đáp án đa dạng. Lint pass: 125 bài, 8 TODO-VERIFY.
 
-### 46. `virt-storage.backup-dr` — Backup và DR (1/2 bài; bài planning "trung bình" chưa làm)
+### 46. `virt-storage.backup-dr` — Backup và DR (2/2 bài hoàn thành)
 
 | Lesson id | File | Trạng thái |
 |---|---|---|
 | `virt-storage.backup-dr.strategies` | `knowledge/virt-storage/backup-dr/strategies.md` | draft |
+| `virt-storage.backup-dr.planning` | `knowledge/virt-storage/backup-dr/planning.md` | draft |
 
 `strategies.md`: full/incremental/differential (so sánh backup time/storage/restore complexity), quy
 tắc 3-2-1 (3 bản/2 media/1 offsite) và biến thể 3-2-1-1-0, RPO vs RTO, application-consistent vs
 crash-consistent (VSS/pg_basebackup), Veeam CBT. Lệnh thật: python3 tính storage full+incremental vs
 naive (tiết kiệm 81%). Minh họa: pg_basebackup, pg_restore, Veeam job. Q&A: b/b/c/b/c.
 
-**Tự rà soát:** 3-2-1 rule từ Veeam/NIST docs; RPO/RTO definition standard; python3 thật; backup
-commands gắn nhãn minh họa; Q&A b/b/c/b/c. Lint pass: 125 bài, 8 TODO-VERIFY.
+`planning.md`: DR site types (hot/warm/cold/cloud), workload tier hóa theo RPO/RTO (Tier 1-4 với
+chi phí tỉ lệ nghịch), DNS TTL phải giảm trước failover (TTL 21600s → 60-300s), DR plan components
+(scope/contact/criteria/procedures/dependencies/test), runbook structure, failback complexity. Lệnh
+thật: python3 DR tier table + `dig` TTL check (output 21600s trên máy demo). Minh họa: VMware SRM,
+runbook example. Q&A: c/b/c/d/b.
+
+**Tự rà soát:** NIST SP 800-34 Rev.1 tier model; DNS TTL check thật; Q&A đáp án đa dạng. Lint pass:
+130 bài, 8 TODO-VERIFY.
+
+### 47. `virt-storage.proxmox-kvm` — Proxmox và KVM (1/2 bài; bài cluster "trung bình" chưa làm)
+
+| Lesson id | File | Trạng thái |
+|---|---|---|
+| `virt-storage.proxmox-kvm.fundamentals` | `knowledge/virt-storage/proxmox-kvm/fundamentals.md` | draft |
+
+`fundamentals.md`: KVM là Linux kernel module (`kvm_intel.ko`, `/dev/kvm`), Type 1 hypervisor dùng
+Intel VT-x (`vmx`)/AMD-V (`svm`), QEMU userspace emulate devices + dùng /dev/kvm cho CPU execution,
+libvirt management API/daemon (libvirtd), virsh CLI, XML domain definitions `/etc/libvirt/qemu/`,
+VirtIO paravirtualized drivers (virtio-blk/virtio-scsi/virtio-net — faster than emulated hardware),
+qcow2 thin provisioning (starts ~196KB), backing file chains for linked clones. **Lệnh CHẠY THẬT**
+trên máy: `lsmod | grep kvm` (kvm_intel/kvm/irqbypass loaded), `grep -m1 -oE '(vmx|svm)'
+/proc/cpuinfo` → `vmx`, `qemu-img create -f qcow2 /tmp/demo-vm.qcow2 20G` → output thật,
+`qemu-img info` → virtual size: 20 GiB, disk size: 196 KiB. Minh họa: virsh list/dominfo/shutdown.
+Q&A: c/b/b/d/a.
 
 ## Vấn đề cần người quyết định (hiện tại: không có)
 
