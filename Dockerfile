@@ -25,6 +25,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma7.config.ts ./prisma7.config.ts
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/knowledge ./knowledge
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh && chown -R nextjs:nodejs /app
 
