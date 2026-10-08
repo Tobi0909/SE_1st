@@ -116,13 +116,18 @@ export const LabTerminal = forwardRef<LabTerminalHandle, LabTerminalProps>(funct
       term = new Terminal({
         convertEol: true,
         fontSize: 13,
-        fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+        fontFamily: "var(--font-mono), ui-monospace, monospace",
         cursorBlink: true,
         theme: { background: "#0a0a0a" },
       });
       const fitAddon = new FitAddon();
       term.loadAddon(fitAddon);
       term.open(containerRef.current);
+      // Đợi web font tự host (JetBrains Mono) load xong trước khi đo kích thước ô ký tự —
+      // nếu fit() chạy lúc còn đang fallback font hệ thống, cell size đo sai, chữ đè lên nhau
+      // khi font thật load xong (đổi line-height/width giữa chừng).
+      await document.fonts.ready;
+      if (disposed) return;
       fitAddon.fit();
       termRef.current = term;
 
