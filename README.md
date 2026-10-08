@@ -14,6 +14,8 @@ với terminal giả lập (không thực thi lệnh thật), roadmap tiến đ�
   cá nhân (tiến độ, điểm yếu, streak) và trang team.
 - **AI tutor**: chat streaming theo ngữ cảnh (câu hỏi/lab/kỹ năng đang mở), chấm câu trả lời tự
   luận và chỉ ra chỗ thiếu.
+- **Kho tri thức**: 146 bài tài liệu tham chiếu SE/DevOps/Security (`knowledge/`), tìm kiếm
+  full-text, lọc theo domain/module/level, liên kết thủ công tới node roadmap.
 - **Admin**: quản lý user (tạo/đổi role/xoá), chủ đề, nội dung bị báo sai, thống kê gọi LLM.
 
 ## Yêu cầu
