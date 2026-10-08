@@ -57,12 +57,20 @@ ALTER TABLE "article_skill_nodes" ADD CONSTRAINT "article_skill_nodes_skillNodeI
 -- config 'simple': no stemming — preserves technical terms and Vietnamese text
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
+-- unaccent() is only STABLE (phụ thuộc dictionary), Postgres không cho dùng trực
+-- tiếp trong cột GENERATED STORED (yêu cầu IMMUTABLE). Bọc qua 1 hàm SQL tự khai
+-- IMMUTABLE — an toàn vì dictionary 'unaccent' không đổi lúc runtime.
+CREATE OR REPLACE FUNCTION immutable_unaccent(text)
+    RETURNS text AS $$
+        SELECT unaccent('unaccent', $1)
+    $$ LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT;
+
 ALTER TABLE "articles"
     ADD COLUMN "search_vector" tsvector
         GENERATED ALWAYS AS (
             to_tsvector('simple',
-                unaccent(coalesce("title", ''))
-                || ' ' || unaccent(coalesce("content", ''))
+                immutable_unaccent(coalesce("title", ''))
+                || ' ' || immutable_unaccent(coalesce("content", ''))
             )
         ) STORED;
 

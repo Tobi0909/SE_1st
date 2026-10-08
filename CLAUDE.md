@@ -255,6 +255,23 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
   host. Đã test end-to-end thật (không qua Docker, xem mục dưới) — **vẫn cần người dùng tự
   chạy `docker compose up` trên máy có Docker ít nhất 1 lần để xác nhận chính container/compose
   chạy đúng**, vì sandbox phát triển không có Docker.
+- **`public/` là thư mục rỗng, Git không track thư mục rỗng** → biến mất khi clone, làm
+  `COPY --from=builder /app/public ./public` trong `Dockerfile` fail trên máy khác dù build local
+  (có `public/` vật lý sẵn trên đĩa) không phát hiện ra. Đã thêm `public/.gitkeep` để Git giữ
+  thư mục này — phát hiện khi deploy thật lần đầu lên server LAN.
+- **Migration `20261007000000_add_articles` fail trên Postgres thật** (lỗi `P3018`/`42P17`
+  "generation expression is not immutable") — cột `search_vector tsvector GENERATED STORED` gọi
+  `unaccent()` trực tiếp, nhưng `unaccent()` chỉ là `STABLE` (phụ thuộc dictionary), không phải
+  `IMMUTABLE` nên Postgres từ chối dùng trong cột generated. PGlite (dùng để test E2E không
+  Docker, xem mục dưới) không enforce ràng buộc này nên không phát hiện ra — chỉ lộ ra khi chạy
+  Postgres 16 thật qua Docker. Đã sửa bằng cách bọc `unaccent()` qua hàm SQL tự khai
+  `IMMUTABLE` (`immutable_unaccent`, định nghĩa ngay trong migration) — pattern chuẩn của cộng
+  đồng Postgres cho trường hợp này, an toàn vì dictionary `unaccent` không đổi lúc runtime. Các
+  query search thường (`src/lib/knowledge/queries.ts`, dùng `unaccent()` trực tiếp trong
+  `WHERE`/`SELECT`) không bị ảnh hưởng — ràng buộc `IMMUTABLE` chỉ áp dụng cho cột generated.
+  **Bài học**: PGlite hữu ích để test logic ứng dụng nhanh nhưng không thay thế được việc chạy
+  Postgres thật ít nhất 1 lần trước khi coi migration là xong, nhất là với generated
+  column/extension.
 
 ## Test end-to-end không cần Docker (PGlite)
 
