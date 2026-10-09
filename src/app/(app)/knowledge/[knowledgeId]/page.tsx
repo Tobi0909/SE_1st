@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, CheckCircle, Clock, ExternalLink } from "lucide-react";
 
+import { verifyArticleAction } from "@/app/(app)/knowledge/actions";
 import { requireUser } from "@/lib/rbac";
 import { getArticle } from "@/lib/knowledge/queries";
 import { ArticleBody } from "@/components/knowledge/article-body";
+import { Button } from "@/components/ui/button";
 
 const LEVEL_LABEL: Record<string, string> = {
   FOUNDATION: "Nền tảng",
@@ -28,7 +30,7 @@ export default async function ArticlePage({
   const { knowledgeId: encoded } = await params;
   const knowledgeId = decodeURIComponent(encoded);
 
-  const article = await getArticle(knowledgeId, isAdmin);
+  const article = await getArticle(knowledgeId, isAdmin, user.id);
   if (!article) notFound();
 
   // Breadcrumb: domain.module.lesson → ["domain", "module", "lesson"]
@@ -67,10 +69,18 @@ export default async function ArticlePage({
                 {LEVEL_LABEL[article.level] ?? article.level}
               </span>
 
-              {article.status === "DRAFT" && isAdmin && (
+              {article.status === "DRAFT" && (isAdmin || article.submittedBy === user.id) && (
                 <span className="rounded border border-warning/30 bg-warning/10 px-2 py-0.5 text-xs text-warning">
-                  DRAFT
+                  DRAFT{article.submittedBy && article.submittedBy !== user.id ? " · chờ duyệt" : ""}
                 </span>
+              )}
+
+              {article.status === "DRAFT" && isAdmin && (
+                <form action={verifyArticleAction.bind(null, article.id)}>
+                  <Button type="submit" size="sm" variant="outline">
+                    Duyệt bài
+                  </Button>
+                </form>
               )}
 
               {article.status === "VERIFIED" && (

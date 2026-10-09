@@ -78,6 +78,7 @@ model User {
   questionFlags  QuestionFlag[]
   labScenarioFlags LabScenarioFlag[]
   llmUsageLogs   LlmUsageLog[]
+  submittedArticles Article[]
 
   @@map("users")
 }
@@ -366,13 +367,17 @@ model Article {
   // search_vector tsvector GENERATED ALWAYS AS (...) STORED — added via raw SQL in migration
   // embeddingVector vector(1536)? — add in future migration when pgvector is installed
   embeddingModel  String?
+  submittedBy     String?       // userId — null cho bài import từ knowledge/ (file-based), có
+                                 // giá trị cho bài nộp qua UI (/knowledge/new, member hoặc admin)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   skillNodeLinks  ArticleSkillNode[]
+  submitter       User?              @relation(fields: [submittedBy], references: [id], onDelete: SetNull)
 
   @@index([domain, module])
   @@index([status, level])
+  @@index([submittedBy])
   @@map("articles")
 }
 

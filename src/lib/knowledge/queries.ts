@@ -21,6 +21,7 @@ export type ArticleDetail = ArticleListItem & {
   sources: string[];
   sourcePath: string;
   embeddingModel: string | null;
+  submittedBy: string | null;
   skillNodeLinks: { skillNodeId: string; skillNode: { title: string; topicId: string } }[];
 };
 
@@ -92,6 +93,7 @@ export async function getArticles(opts: GetArticlesOptions = {}): Promise<{
 export async function getArticle(
   knowledgeId: string,
   isAdmin = false,
+  userId?: string,
 ): Promise<ArticleDetail | null> {
   const article = await db.article.findUnique({
     where: { knowledgeId },
@@ -103,7 +105,10 @@ export async function getArticle(
   });
 
   if (!article) return null;
-  if (!isAdmin && article.status === ArticleStatus.DRAFT) return null;
+  // DRAFT chỉ xem được bởi admin hoặc chính người đã nộp bài (bài nộp qua /knowledge/new) —
+  // bài import từ file (submittedBy null) thì chỉ admin xem được khi còn DRAFT.
+  const isOwnSubmission = article.submittedBy != null && article.submittedBy === userId;
+  if (!isAdmin && !isOwnSubmission && article.status === ArticleStatus.DRAFT) return null;
 
   return article as ArticleDetail;
 }

@@ -39,11 +39,19 @@ export default async function KnowledgePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Kho tri thức</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {result.total} bài · tài liệu tham chiếu SE / DevOps / Security
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Kho tri thức</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {result.total} bài · tài liệu tham chiếu SE / DevOps / Security
+          </p>
+        </div>
+        <Link
+          href="/knowledge/new"
+          className="shrink-0 rounded-md border border-border bg-muted/20 px-3 py-1.5 text-sm hover:border-primary/40 hover:text-foreground"
+        >
+          + Nộp tài liệu
+        </Link>
       </div>
 
       <div className="flex gap-6">

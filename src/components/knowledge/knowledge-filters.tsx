@@ -6,7 +6,7 @@ import { Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const LEVEL_OPTIONS = [
+export const LEVEL_OPTIONS = [
   { value: "FOUNDATION", label: "Nền tảng" },
   { value: "OPERATION",  label: "Vận hành" },
   { value: "EXPERT",     label: "Chuyên sâu" },
@@ -17,7 +17,7 @@ const STATUS_OPTIONS = [
   { value: "DRAFT",    label: "Draft" },
 ];
 
-const DOMAIN_LABEL: Record<string, string> = {
+export const DOMAIN_LABEL: Record<string, string> = {
   "linux":          "Linux",
   "networking":     "Networking",
   "container-k8s":  "Container / K8s",

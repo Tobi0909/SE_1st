@@ -189,7 +189,7 @@ Khớp `prisma/schema.prisma` thực tế (đối chiếu 2026-10-05):
 | `LabSubmission` | Bài nộp cuối (rootCauseText, fixText) + điểm (JSON) + feedback — 1-1 với `LabSession` |
 | `ChatSession`, `ChatMessage` | Hội thoại AI tutor — đặt tên chung `Chat*` chứ không phải `Tutor*`, vì cùng cơ chế này dùng cho mọi ngữ cảnh chat (không chỉ tutor); `contextType` (NODE/QUESTION/LAB) + `contextId` xác định ngữ cảnh đang gắn |
 | `LlmUsageLog` | Log mỗi lần gọi LLM: user, `feature`, `model`, token, latency, success |
-| `Article` | Bài viết từ kho tri thức (`knowledge/`): `knowledgeId` (unique, khớp frontmatter.id), `title`, `domain`, `module`, `level` (FOUNDATION/OPERATION/EXPERT), `status` (DRAFT/VERIFIED), `contentHash` (SHA-256, dùng để import idempotent), `content` (Markdown body), `prerequisites[]`, `sources[]`, `todoVerifyCount`. Cột `search_vector tsvector GENERATED STORED` + GIN index cho full-text search. `embeddingModel` nullable chừa chỗ cho pgvector sau. |
+| `Article` | Bài viết kho tri thức: từ `knowledge/` (import qua `kb-import.ts`, `submittedBy` null) HOẶC nộp qua app (`/knowledge/new`, `submittedBy` = userId, không có file tương ứng). `knowledgeId` (unique), `title`, `domain`, `module`, `level` (FOUNDATION/OPERATION/EXPERT), `status` (DRAFT/VERIFIED — chỉ ADMIN đổi được qua action `verifyArticleAction`), `contentHash` (SHA-256, dùng để import idempotent), `content` (Markdown body), `prerequisites[]`, `sources[]`, `todoVerifyCount`. Cột `search_vector tsvector GENERATED STORED` + GIN index cho full-text search. `embeddingModel` nullable chừa chỗ cho pgvector sau. |
 | `ArticleSkillNode` | Join table n:m giữa `Article` và `SkillNode` — link thủ công, không auto-link khi import. |
 
 **Khác với bản thiết kế ban đầu:**
@@ -307,6 +307,17 @@ pnpm dev
 
 Khi triển khai Docker, `docker-entrypoint.sh` tự chạy `pnpm kb:import` sau mỗi lần container
 restart — idempotent, bài không đổi được skip, chỉ bài mới/sửa được upsert.
+
+**Nộp bài qua app** (thêm 2026-10-09, `/knowledge/new`): MEMBER hoặc ADMIN nộp bài trực tiếp
+trong UI (không qua file/git) — ghi thẳng vào DB với `status: DRAFT`, `submittedBy: userId`,
+`knowledgeId` tự sinh dạng `upload.<slug-title>-<timestamp>`, `sourcePath` là chuỗi mô tả
+("nộp qua app bởi X") thay vì đường dẫn file thật. Bài kiểu này **không có file tương ứng
+trong `knowledge/`** nên `kb-import.ts` (chỉ quét `knowledge/`) không bao giờ đụng tới —
+an toàn song song với nguồn file-based. Chỉ ADMIN duyệt được (nút "Duyệt bài" ở trang chi
+tiết, set `status: VERIFIED`) — người nộp tự xem được bài DRAFT của mình qua link trực tiếp,
+nhưng KHÔNG hiện trong danh sách/tìm kiếm chung cho tới khi được duyệt (`getArticle` kiểm tra
+`submittedBy === userId` để cho qua, `getArticles`/`searchArticles` vẫn lọc `VERIFIED`-only
+cho non-admin, chưa có mục "bài tôi đã nộp" riêng).
 
 ### Thêm một chủ đề học
 
