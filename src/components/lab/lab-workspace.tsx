@@ -4,7 +4,12 @@ import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { useState, useTransition } from "react";
 
-import { getHintAction, runCommandAction, submitLabAction } from "@/app/(app)/lab/[sessionId]/actions";
+import {
+  flagLabScenarioAction,
+  getHintAction,
+  runCommandAction,
+  submitLabAction,
+} from "@/app/(app)/lab/[sessionId]/actions";
 import { LabTerminal } from "@/components/lab/lab-terminal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +50,12 @@ export function LabWorkspace({
   const [fixText, setFixText] = useState("");
   const [grade, setGrade] = useState<SubmissionGrade | null>(initialGrade);
   const [completed, setCompleted] = useState(isCompleted);
+  const [flagged, setFlagged] = useState(false);
+
+  function reportScenario() {
+    setFlagged(true);
+    startTransition(() => flagLabScenarioAction(sessionId, ""));
+  }
 
   const initialLines = commandHistory.flatMap((h) => [`$ ${h.command}`, h.output].filter(Boolean));
 
@@ -88,11 +99,24 @@ export function LabWorkspace({
       </div>
 
       <div className="flex flex-col gap-4">
-        <Button asChild variant="outline" size="sm" className="self-start">
-          <Link href={`/tutor?contextType=LAB&contextId=${sessionId}`} target="_blank">
-            Hỏi AI tutor
-          </Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/tutor?contextType=LAB&contextId=${sessionId}`} target="_blank">
+              Hỏi AI tutor
+            </Link>
+          </Button>
+          {!flagged ? (
+            <button
+              type="button"
+              onClick={reportScenario}
+              className="text-xs text-muted-foreground underline"
+            >
+              Báo lab sai
+            </button>
+          ) : (
+            <p className="text-xs text-muted-foreground">Đã báo, cảm ơn bạn.</p>
+          )}
+        </div>
         {relatedArticles.length > 0 && (
           <div className="flex flex-col gap-1.5">
             <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">

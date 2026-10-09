@@ -24,3 +24,23 @@ export async function hideQuestionAction(questionId: string): Promise<void> {
   });
   revalidatePath("/admin/flagged");
 }
+
+export async function resolveLabFlagAction(scenarioId: string): Promise<void> {
+  await requireAdmin();
+  await db.labScenario.update({ where: { id: scenarioId }, data: { status: "ACTIVE" } });
+  await db.labScenarioFlag.updateMany({
+    where: { scenarioId, resolved: false },
+    data: { resolved: true },
+  });
+  revalidatePath("/admin/flagged");
+}
+
+export async function hideLabScenarioAction(scenarioId: string): Promise<void> {
+  await requireAdmin();
+  await db.labScenario.update({ where: { id: scenarioId }, data: { status: "HIDDEN" } });
+  await db.labScenarioFlag.updateMany({
+    where: { scenarioId, resolved: false },
+    data: { resolved: true },
+  });
+  revalidatePath("/admin/flagged");
+}

@@ -76,6 +76,7 @@ model User {
   labSessions    LabSession[]
   chatSessions   ChatSession[]
   questionFlags  QuestionFlag[]
+  labScenarioFlags LabScenarioFlag[]
   llmUsageLogs   LlmUsageLog[]
 
   @@map("users")
@@ -215,9 +216,26 @@ model LabScenario {
   topic    Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
   nodeLinks LabScenarioNode[]
   sessions LabSession[]
+  flags    LabScenarioFlag[]
 
   @@index([topicId, difficulty, status])
   @@map("lab_scenarios")
+}
+
+model LabScenarioFlag {
+  id         String   @id @default(cuid())
+  scenarioId String
+  userId     String
+  reason     String?
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  scenario LabScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([scenarioId])
+  @@index([resolved])
+  @@map("lab_scenario_flags")
 }
 
 model LabScenarioNode {

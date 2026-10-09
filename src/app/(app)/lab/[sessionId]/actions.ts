@@ -105,3 +105,14 @@ export async function submitLabAction(
   revalidatePath(`/lab/${sessionId}`);
   return grade;
 }
+
+export async function flagLabScenarioAction(sessionId: string, reason: string): Promise<void> {
+  const user = await requireUser();
+  const session = await loadOwnedSession(sessionId, user.id);
+
+  await db.labScenarioFlag.create({
+    data: { scenarioId: session.scenarioId, userId: user.id, reason: reason || null },
+  });
+  await db.labScenario.update({ where: { id: session.scenarioId }, data: { status: "FLAGGED" } });
+  revalidatePath("/admin/flagged");
+}

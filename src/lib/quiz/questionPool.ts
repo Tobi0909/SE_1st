@@ -4,6 +4,11 @@ import { db } from "@/lib/db";
 import { getLLMProvider } from "@/lib/llm/provider";
 
 const EXCLUDE_STEMS_LIMIT = 200;
+const RECENT_ATTEMPT_DAYS = 14;
+
+function shuffled<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
 
 export async function ensureQuestionPool(
   topicId: string,
@@ -62,14 +67,33 @@ export async function pickRandomQuestions(
   topicId: string,
   difficulty: Difficulty,
   count: number,
+  userId: string,
 ) {
-  const candidates = await db.question.findMany({
-    where: { topicId, difficulty, status: "ACTIVE" },
-    select: { id: true },
-  });
+  const since = new Date(Date.now() - RECENT_ATTEMPT_DAYS * 24 * 60 * 60 * 1000);
+  const [candidates, recentAttempts] = await Promise.all([
+    db.question.findMany({
+      where: { topicId, difficulty, status: "ACTIVE" },
+      select: { id: true, source: true },
+    }),
+    db.quizAttempt.findMany({
+      where: { userId, createdAt: { gte: since } },
+      select: { questionId: true },
+    }),
+  ]);
+  const recentIds = new Set(recentAttempts.map((a) => a.questionId));
 
-  const chosenIds = [...candidates]
-    .sort(() => Math.random() - 0.5)
+  // Ưu tiên theo thứ tự: ADMIN+chưa làm gần đây > LLM+chưa làm gần đây > ADMIN+đã làm gần
+  // đây > LLM+đã làm gần đây — chỉ lùi về nhóm "đã làm gần đây" khi nhóm ưu tiên cao hơn
+  // không đủ count (pool nhỏ, user đã làm gần hết thì vẫn cho lặp lại thay vì chặn).
+  const buckets = [
+    candidates.filter((c) => c.source === "ADMIN" && !recentIds.has(c.id)),
+    candidates.filter((c) => c.source === "LLM" && !recentIds.has(c.id)),
+    candidates.filter((c) => c.source === "ADMIN" && recentIds.has(c.id)),
+    candidates.filter((c) => c.source === "LLM" && recentIds.has(c.id)),
+  ];
+
+  const chosenIds = buckets
+    .flatMap(shuffled)
     .slice(0, count)
     .map((c) => c.id);
 

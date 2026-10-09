@@ -28,15 +28,10 @@ Ghi lại đây các ý tưởng hay nảy ra trong quá trình làm, không t�
     khớp `topic.slug`+`difficulty`, tái dùng mapping trong `knowledge/queries.ts`), import
     thẳng `source: "ADMIN"` — KHÔNG qua bước duyệt thủ công (146 bài kho tri thức coi như đã
     được duyệt sẵn, tin tưởng nội dung gốc, không duyệt lại từng câu hỏi sinh ra).
-  - Sửa `pickRandomQuestions` (`src/lib/quiz/questionPool.ts`): hiện ưu tiên NGẪU NHIÊN giữa
-    nguồn ADMIN/LLM (không ưu tiên ADMIN dù đã seed), và KHÔNG loại trừ câu user vừa làm gần
-    đây (`QuizAttempt` đã có index `[userId, createdAt]`, query loại trừ làm được ngay không
-    cần migration) — 2 bug/thiếu sót này cần sửa bất kể có làm hybrid hay không.
-  - Lưới an toàn khi dùng thật: quiz ĐÃ có sẵn "báo sai" → tự ẩn khỏi pool ngay
-    (`flagQuestionAction` set `status: FLAGGED`), không cần xây thêm. **Lab thì CHƯA có** — cần
-    thêm `LabScenarioFlag` (mirror `QuestionFlag`) + nút "Báo lab sai" trong `lab-workspace.tsx`
-    + mở rộng `/admin/flagged` cho cả lab (LabScenario đã dùng chung enum `QuestionStatus` nên
-    không cần đổi enum).
+  - ~~Sửa `pickRandomQuestions` ưu tiên ADMIN + loại câu user vừa làm gần đây~~ — **đã làm**
+    (2026-10-09, không chờ phần LLM, độc lập với hybrid).
+  - ~~Lưới an toàn cho lab (`LabScenarioFlag` + nút "Báo lab sai" + `/admin/flagged`)~~ —
+    **đã làm** (2026-10-09). Quiz đã có sẵn từ trước, không cần sửa.
   - Lab scenario pool (hybrid tương tự quiz): để sau, cần thêm cột `source` vào `LabScenario`
     (hiện chưa có) + mở rộng `presetCommands` — lập plan riêng sau khi quiz ổn.
   - Quyết định còn treo: có giữ bước tự-kiểm-tra bằng LLM (gọi LLM lần 2 tự giải câu không xem

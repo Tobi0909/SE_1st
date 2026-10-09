@@ -240,7 +240,10 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
   bộ nhỏ (xem thêm `IDEAS.md`).
 - `/admin/usage`: thống kê `LlmUsageLog` group theo `feature` (số lần gọi, tỉ lệ thành công,
   latency trung bình, tổng token) + danh sách 20 lượt gọi gần nhất.
-- `/admin/flagged`: đã có từ GĐ2 (câu hỏi bị báo sai).
+- `/admin/flagged`: câu hỏi bị báo sai (từ GĐ2) + lab scenario bị báo sai (thêm 2026-10-09,
+  `LabScenarioFlag` mirror `QuestionFlag`, dùng chung enum `QuestionStatus` nên không cần đổi
+  enum) — 2 danh sách riêng trên cùng trang. Báo sai (quiz lẫn lab) tự chuyển `status: FLAGGED`
+  ngay lập tức (ẩn khỏi pool random/`ensureQuestionPool` liền, không cần admin duyệt trước).
 
 ## Docker
 

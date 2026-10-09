@@ -27,7 +27,7 @@ export default async function QuizSessionPage({ searchParams }: PageProps<"/quiz
 
   await ensureQuestionPool(topic.id, difficulty, count, user.id);
   const [questions, relatedArticles] = await Promise.all([
-    pickRandomQuestions(topic.id, difficulty, count),
+    pickRandomQuestions(topic.id, difficulty, count, user.id),
     getArticlesForTopic(topicSlug, difficulty),
   ]);
 
