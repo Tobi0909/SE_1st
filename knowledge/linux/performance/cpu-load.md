@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.process-signals.monitoring"]
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8) — vmstat/nice/renice là chuẩn mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/vmstat.8.html"
   - "https://man7.org/linux/man-pages/man5/proc_loadavg.5.html"

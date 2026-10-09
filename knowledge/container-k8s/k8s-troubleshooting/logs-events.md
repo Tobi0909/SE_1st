@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-troubleshooting.pod-errors"]
 applies_to:
   - "Kubernetes 1.28+ — kubectl logs, Events API, kubectl describe; áp dụng cho mọi cloud provider"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/cluster-administration/logging/"
   - "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_logs/"

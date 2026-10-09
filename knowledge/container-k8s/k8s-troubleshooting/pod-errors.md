@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
 applies_to:
   - "Kubernetes 1.28+ — kubectl debug, Pod lifecycle, Events API; áp dụng cho mọi cloud provider và bare metal"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/"
   - "https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/"

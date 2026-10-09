@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.tcpip.ipv4-subnetting"]
 applies_to:
   - "DHCPv4 (RFC 2131/2132) — chuẩn chung; minh họa bằng ISC DHCP (dhcpd/dhclient) trên Linux"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc2131"
   - "https://man7.org/linux/man-pages/man8/dhcpd.8.html"

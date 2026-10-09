@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.shell-scripting.bash-basics"]
 applies_to:
   - "Ubuntu 22.04 LTS — GNU grep/sed/awk/findutils (xargs), hành vi tương tự mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/grep.1.html"
   - "https://man7.org/linux/man-pages/man1/sed.1.html"

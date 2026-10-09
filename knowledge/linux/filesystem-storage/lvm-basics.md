@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.filesystem-storage.partitioning"]
 applies_to:
   - "LVM2 (lvm2 package) — chuẩn trên hầu hết distro Linux hiện đại"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/pvcreate.8.html"
   - "https://man7.org/linux/man-pages/man8/vgcreate.8.html"

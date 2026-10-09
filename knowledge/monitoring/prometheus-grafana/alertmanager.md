@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.prometheus-grafana.fundamentals"]
 applies_to:
   - "Alertmanager 0.25+ — routing tree, grouping, inhibition, silence; tương thích Prometheus 2.x"
-status: draft
+status: verified
 sources:
   - "https://prometheus.io/docs/alerting/latest/alertmanager/"
   - "https://prometheus.io/docs/alerting/latest/configuration/"

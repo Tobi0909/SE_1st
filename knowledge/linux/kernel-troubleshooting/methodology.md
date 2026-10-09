@@ -11,7 +11,7 @@ prerequisites:
   - "linux.kernel-troubleshooting.kernel-logs"
 applies_to:
   - "Bài capstone — tổng hợp phương pháp, không giới hạn distro cụ thể; các lệnh ví dụ lấy từ Ubuntu 22.04 nhưng phương pháp áp dụng chung"
-status: draft
+status: verified
 sources:
   - "https://www.brendangregg.com/linuxperf.html"
   - "https://man7.org/linux/man-pages/man1/journalctl.1.html"

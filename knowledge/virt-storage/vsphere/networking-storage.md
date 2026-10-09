@@ -8,7 +8,7 @@ prerequisites: ["virt-storage.vsphere.vm-lifecycle"]
 applies_to:
   - "VMware vSphere 7.x / 8.x"
   - "Standard vSwitch (vSS) và Distributed vSwitch (vDS)"
-status: draft
+status: verified
 sources:
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-networking/GUID-D5960C77-0D19-4669-A00C-B05D58A422F8.html"
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-storage/GUID-5EE84941-366D-4D37-8B7B-767D08928888.html"

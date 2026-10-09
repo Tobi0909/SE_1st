@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.nat-firewall.firewall-concepts"]
 applies_to:
   - "Nguyên lý chung; ví dụ dùng Linux iptables/nftables và mô hình cloud security group"
-status: draft
+status: verified
 sources:
   - "https://csrc.nist.gov/publications/detail/sp/800-207/final"
   - "https://csrc.nist.gov/publications/detail/sp/800-41/rev-1/final"

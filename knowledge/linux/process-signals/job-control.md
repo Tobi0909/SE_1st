@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.process-signals.lifecycle"]
 applies_to:
   - "Bash (Ubuntu 22.04 LTS) — cú pháp job control giống nhau trên hầu hết shell POSIX (zsh, dash có job control, cú pháp tương tự)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/signal.7.html"
   - "https://www.gnu.org/software/bash/manual/html_node/Signals.html"

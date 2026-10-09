@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.process-signals.signals", "linux.process-signals.monitoring"]
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8) — hành vi subreaper/zombie là chuẩn kernel Linux, áp dụng chung mọi distro"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man2/wait.2.html"
   - "https://man7.org/linux/man-pages/man1/ps.1.html"

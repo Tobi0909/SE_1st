@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Ubuntu 22.04 LTS — useradd/usermod/groupadd (shadow-utils), format /etc/passwd chuẩn POSIX"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/useradd.8.html"
   - "https://man7.org/linux/man-pages/man8/usermod.8.html"

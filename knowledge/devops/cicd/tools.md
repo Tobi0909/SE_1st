@@ -8,7 +8,7 @@ prerequisites: ["devops.cicd.concepts"]
 applies_to:
   - "GitHub Actions (runner ubuntu-latest), GitLab CI 16+, Jenkins 2.x (Declarative Pipeline) —
     cú pháp minh hoạ theo tài liệu chính thức; không có instance chạy thật trong sandbox"
-status: draft
+status: verified
 sources:
   - "https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions"
   - "https://docs.gitlab.com/ee/ci/yaml/"

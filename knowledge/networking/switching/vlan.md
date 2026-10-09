@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.switching.basics"]
 applies_to:
   - "IEEE 802.1Q — chuẩn chung; minh họa bằng Linux (iproute2) và CLI kiểu Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://docs.kernel.org/networking/8021q.html"
   - "https://man7.org/linux/man-pages/man8/bridge.8.html"

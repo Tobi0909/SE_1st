@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "Ubuntu 22.04.5 LTS — apt 2.4.14, dpkg 1.21.1 (họ Debian: Debian, Ubuntu, Linux Mint...)"
-status: draft
+status: verified
 sources:
   - "https://manpages.debian.org/bookworm/apt/apt.8.en.html"
   - "https://man7.org/linux/man-pages/man1/dpkg.1.html"

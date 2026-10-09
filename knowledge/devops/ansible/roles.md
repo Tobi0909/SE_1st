@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["devops.ansible.fundamentals"]
 applies_to:
   - "Ansible 2.12+ (ansible-core) — cú pháp minh hoạ; không có Ansible cài trên máy demo"
-status: draft
+status: verified
 sources:
   - "https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html"
   - "https://docs.ansible.com/ansible/latest/galaxy/user_guide.html"

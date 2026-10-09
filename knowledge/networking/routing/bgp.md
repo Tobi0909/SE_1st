@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["networking.routing.ospf"]
 applies_to:
   - "BGP-4 (RFC 4271) — chuẩn chung; minh họa CLI bằng FRR (Linux routing suite) và Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc4271"
   - "https://docs.frrouting.org/en/latest/bgp.html"

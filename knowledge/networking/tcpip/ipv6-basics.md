@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.tcpip.ipv4-subnetting"]
 applies_to:
   - "IPv6 — chuẩn chung, minh họa qua Linux (iproute2)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/ipv6.7.html"
 last_verified: "2026-10-05"

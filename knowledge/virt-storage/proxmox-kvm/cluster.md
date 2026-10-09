@@ -9,7 +9,7 @@ prerequisites:
 applies_to:
   - "Proxmox VE 7.x/8.x"
   - "pvecm, qm, pct CLI tools"
-status: draft
+status: verified
 sources:
   - "https://pve.proxmox.com/wiki/Cluster_Manager"
   - "https://pve.proxmox.com/wiki/Linux_Container"

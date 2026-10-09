@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["networking.tcpip.osi-tcpip-model"]
 applies_to:
   - "Ethernet switch (L2) — chuẩn chung; minh họa lệnh bằng Linux bridge (iproute2) và CLI kiểu Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/bridge.8.html"
   - "https://docs.kernel.org/networking/bridge.html"

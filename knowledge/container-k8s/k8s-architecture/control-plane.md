@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["container-k8s.docker-internals.images"]
 applies_to:
   - "Kubernetes 1.28+ — kiến trúc control plane và data plane; etcd v3; kubelet trên node; CRI (container runtime interface) — không phụ thuộc cloud provider cụ thể"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/overview/components/"
   - "https://kubernetes.io/docs/concepts/architecture/"

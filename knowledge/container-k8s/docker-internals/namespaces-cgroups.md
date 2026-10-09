@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["linux.process-signals.lifecycle"]
 applies_to:
   - "Ubuntu 22.04 LTS — kernel 6.8.0-138-generic; cgroup v2 unified hierarchy (đây là default từ Ubuntu 22.04, khác cgroup v1 legacy có trên distro cũ); các khái niệm namespace là chuẩn chung mọi Linux kernel hiện đại"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/namespaces.7.html"
   - "https://man7.org/linux/man-pages/man7/cgroups.7.html"

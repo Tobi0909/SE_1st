@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["container-k8s.k8s-architecture.control-plane"]
 applies_to:
   - "Kubernetes 1.28+ — kubectl v1.28, YAML manifest format, REST API conventions; không phụ thuộc cloud provider"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/reference/kubectl/"
   - "https://kubernetes.io/docs/concepts/workloads/pods/"

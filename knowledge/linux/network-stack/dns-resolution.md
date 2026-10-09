@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.network-stack.tools", "networking.dns.fundamentals"]
 applies_to:
   - "Ubuntu 22.04 LTS với systemd-resolved (mặc định từ Ubuntu 18.04+) — các distro khác (hoặc Ubuntu cũ) có thể dùng resolv.conf tĩnh trực tiếp, không qua stub resolver"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/resolv.conf.5.html"
   - "https://man7.org/linux/man-pages/man5/nsswitch.conf.5.html"

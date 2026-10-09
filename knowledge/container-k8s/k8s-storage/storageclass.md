@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["container-k8s.k8s-storage.pv-pvc"]
 applies_to:
   - "Kubernetes 1.28+ — StorageClass API stable; dynamic provisioning cần provisioner tương ứng với storage backend; CSI (Container Storage Interface) là standard hiện đại thay thế in-tree plugin"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/storage/storage-classes/"
   - "https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/"

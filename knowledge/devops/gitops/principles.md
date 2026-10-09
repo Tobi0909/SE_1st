@@ -11,7 +11,7 @@ applies_to:
   - Kubernetes deployments
   - Infrastructure as Code
   - CI/CD pipelines
-status: draft
+status: verified
 sources:
   - https://opengitops.dev/
   - https://www.weave.works/technologies/gitops/

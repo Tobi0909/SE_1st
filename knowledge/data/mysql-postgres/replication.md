@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["data.mysql-postgres.fundamentals"]
 applies_to:
   - "MySQL 8.0 (binlog replication + GTID) và PostgreSQL 16+ (streaming replication)"
-status: draft
+status: verified
 sources:
   - "https://dev.mysql.com/doc/refman/8.0/en/replication-configuration.html"
   - "https://www.postgresql.org/docs/current/warm-standby.html"

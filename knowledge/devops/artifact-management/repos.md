@@ -10,7 +10,7 @@ applies_to:
   - Docker/Kubernetes environments
   - CI/CD pipelines
   - On-premises package management
-status: draft
+status: verified
 sources:
   - https://hub.docker.com/
   - https://help.sonatype.com/en/nexus-repository.html

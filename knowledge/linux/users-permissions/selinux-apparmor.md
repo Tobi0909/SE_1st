@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.users-permissions.chmod-chown"]
 applies_to:
   - "AppArmor (Ubuntu 22.04 LTS, mặc định bật) — SELinux dùng minh hoạ (RHEL/Rocky/CentOS mặc định)"
-status: draft
+status: verified
 sources:
   - "https://www.man7.org/linux/man-pages/man8/setenforce.8.html"
   - "https://manpages.ubuntu.com/manpages/jammy/man7/apparmor.7.html"

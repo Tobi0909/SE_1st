@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["container-k8s.k8s-workload.hpa-scaling"]
 applies_to:
   - "Kubernetes 1.28+ — cgroup v2, OOM killer, resource management; áp dụng cho mọi cloud provider"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
   - "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/"

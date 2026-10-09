@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["security.audit-compliance.audit-logging"]
 applies_to:
   - "Nguyên lý chung; ví dụ PCI DSS v4.0, ISO 27001:2022, SOC 2"
-status: draft
+status: verified
 sources:
   - "https://www.pcisecuritystandards.org/standards/pci-dss/"
   - "https://www.first.org/cvss/v3.1/specification-document"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.diagnostic-tools.tcpdump-wireshark"]
 applies_to:
   - "mtr, traceroute — chuẩn chung mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://manpages.ubuntu.com/manpages/jammy/man8/mtr.8.html"
   - "https://man7.org/linux/man-pages/man8/traceroute.8.html"

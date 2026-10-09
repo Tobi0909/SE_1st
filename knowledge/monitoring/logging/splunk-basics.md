@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.logging.fundamentals"]
 applies_to:
   - "Splunk Enterprise 9.x / Splunk Cloud — SPL (Search Processing Language) ổn định qua các phiên bản; Splunk Free (500MB/day) tương tự về core"
-status: draft
+status: verified
 sources:
   - "https://docs.splunk.com/Documentation/Splunk/latest/SearchReference/WhatsInThisManual"
   - "https://docs.splunk.com/Documentation/Splunk/latest/Data/Aboutindexesanddatamodel"

@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["sre.incident-response.process"]
 applies_to:
   - "Nguyên lý chung; tham chiếu Google SRE Book và PagerDuty Incident Response Process"
-status: draft
+status: verified
 sources:
   - "https://sre.google/sre-book/managing-incidents/"
   - "https://response.pagerduty.com/before/different_roles/"

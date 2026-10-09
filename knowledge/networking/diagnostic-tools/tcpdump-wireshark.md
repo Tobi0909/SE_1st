@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.tcpip.tcp-udp"]
 applies_to:
   - "tcpdump (libpcap), Wireshark — chuẩn chung mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://www.tcpdump.org/manpages/tcpdump.1.html"
   - "https://www.wireshark.org/docs/wsug_html_chunked/"

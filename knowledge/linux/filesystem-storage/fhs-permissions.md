@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Ubuntu 22.04 LTS — cấu trúc thư mục tuân theo FHS, giống hầu hết distro Linux hiện đại"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/hier.7.html"
 last_verified: "2026-10-05"

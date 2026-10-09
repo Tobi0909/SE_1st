@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.filesystem-storage.fhs-permissions", "linux.filesystem-storage.partitioning"]
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8) — df/du/lsof/fsck là công cụ chuẩn trên mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/df.1.html"
   - "https://man7.org/linux/man-pages/man8/fsck.8.html"

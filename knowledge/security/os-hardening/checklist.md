@@ -8,7 +8,7 @@ prerequisites: ["security.os-hardening.principles"]
 applies_to:
   - "Ubuntu/Debian server; kernel params và SSH directive tương đương trên RHEL/Rocky Linux"
   - "OpenSSH 8.x+ — giá trị default PermitRootLogin thay đổi qua các phiên bản"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/sshd_config.5.html"
   - "https://www.cisecurity.org/cis-benchmarks"

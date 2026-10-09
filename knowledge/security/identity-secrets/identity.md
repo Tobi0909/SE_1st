@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "Nguyên lý chung áp dụng cho mọi nền tảng; ví dụ cụ thể dùng Keycloak/OIDC và TOTP"
-status: draft
+status: verified
 sources:
   - "https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html"
   - "https://openid.net/developers/how-connect-works/"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.alerting-design.principles"]
 applies_to:
   - "Nguyên lý chung áp dụng cho mọi quy mô team; ví dụ tham chiếu Google SRE và PagerDuty IRP"
-status: draft
+status: verified
 sources:
   - "https://sre.google/sre-book/managing-incidents/"
   - "https://response.pagerduty.com/before/different_roles/"

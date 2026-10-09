@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
 applies_to:
   - "Kubernetes 1.28+ — ConfigMap/Secret API, immutable ConfigMap/Secret (1.21+); lưu ý Secret encoding base64 là KHÔNG mã hoá; encryption at rest cần kích hoạt riêng"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/configuration/configmap/"
   - "https://kubernetes.io/docs/concepts/configuration/secret/"

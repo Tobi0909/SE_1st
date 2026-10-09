@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - Redis 7.x
   - Linux production environments
-status: draft
+status: verified
 sources:
   - https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
   - https://redis.io/docs/latest/develop/data-types/

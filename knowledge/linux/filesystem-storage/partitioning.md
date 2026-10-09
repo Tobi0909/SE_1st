@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.filesystem-storage.fhs-permissions"]
 applies_to:
   - "util-linux fdisk (đi kèm hầu hết distro), GNU parted"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/fdisk.8.html"
 last_verified: "2026-10-05"

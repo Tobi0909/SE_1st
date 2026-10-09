@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.users-permissions.users-groups"]
 applies_to:
   - "sudo 1.9.x (Ubuntu 22.04 LTS), Linux-PAM"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/sudoers.5.html"
   - "https://man7.org/linux/man-pages/man5/pam.conf.5.html"

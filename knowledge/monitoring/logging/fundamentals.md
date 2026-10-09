@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Concept-level — không phụ thuộc platform cụ thể; ví dụ dùng RFC 5424 (syslog), JSON log format, và trường hợp chung"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc5424"
   - "https://12factor.net/logs"

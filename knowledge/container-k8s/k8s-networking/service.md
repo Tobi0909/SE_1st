@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
 applies_to:
   - "Kubernetes 1.28+ — Service API stable; kube-proxy iptables/ipvs mode; không phụ thuộc cloud provider cho ClusterIP/NodePort; LoadBalancer cần cloud provider integration hoặc MetalLB trên bare metal"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/services-networking/service/"
   - "https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/"

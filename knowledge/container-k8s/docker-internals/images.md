@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["container-k8s.docker-internals.namespaces-cgroups"]
 applies_to:
   - "Docker Engine (containerd runtime) — khái niệm layer/overlay2 là chuẩn OCI (Open Container Initiative), áp dụng chung cho Podman, containerd, nerdctl"
-status: draft
+status: verified
 sources:
   - "https://docs.docker.com/storage/storagedriver/overlayfs-driver/"
   - "https://docs.docker.com/reference/dockerfile/"

@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "KVM (Kernel-based Virtual Machine) trên Linux kernel 5.x+"
   - "QEMU 6.x+, libvirt 8.x+, Proxmox VE 7.x/8.x"
-status: draft
+status: verified
 sources:
   - "https://www.linux-kvm.org/page/Main_Page"
   - "https://qemu.readthedocs.io/en/latest/system/introduction.html"

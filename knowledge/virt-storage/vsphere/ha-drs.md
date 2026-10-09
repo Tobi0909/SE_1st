@@ -8,7 +8,7 @@ prerequisites: ["virt-storage.vsphere.vm-lifecycle"]
 applies_to:
   - "VMware vSphere 7.x / 8.x"
   - "vSphere HA và DRS trong cluster có shared storage"
-status: draft
+status: verified
 sources:
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-availability/GUID-5432CA24-14F1-44E3-87FB-61D937831CF6.html"
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-resource-management/GUID-517C3B16-E87B-4BE3-A757-6CDDC1E15AEF.html"

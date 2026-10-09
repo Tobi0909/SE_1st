@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.tcpip.ipv4-subnetting"]
 applies_to:
   - "Linux netfilter (iptables/nftables) — NAT khái niệm chung mọi hệ thống mạng"
-status: draft
+status: verified
 sources:
   - "https://www.netfilter.org/documentation/HOWTO/NAT-HOWTO.txt"
   - "https://man7.org/linux/man-pages/man8/iptables.8.html"

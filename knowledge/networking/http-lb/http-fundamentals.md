@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "HTTP/1.1, HTTP/2 (RFC 9110/9112/9113) — minh họa qua curl trên domain công khai"
-status: draft
+status: verified
 sources:
   - "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods"
   - "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status"

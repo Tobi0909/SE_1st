@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
 applies_to:
   - "Kubernetes 1.28+ — HPA v2 API (autoscaling/v2, stable từ K8s 1.23); metrics-server cần được cài riêng; VPA là add-on không có sẵn"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
   - "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/"

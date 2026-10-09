@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-workload.statefulset-daemonset"]
 applies_to:
   - "Kubernetes 1.28+ — PV/PVC API stable; không phụ thuộc cloud provider cho khái niệm cốt lõi; cần StorageClass và provisioner cho dynamic provisioning"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/storage/persistent-volumes/"
   - "https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/"

@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["networking.tcpip.ipv4-subnetting"]
 applies_to:
   - "IPv4 routing — chuẩn chung; minh họa lệnh bằng Linux (iproute2) và CLI kiểu Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/ip-route.8.html"
   - "https://www.rfc-editor.org/rfc/rfc1812"

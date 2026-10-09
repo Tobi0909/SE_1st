@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8) — hành vi OOM killer/swap chuẩn mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/proc_pid_oom_score.5.html"
   - "https://man7.org/linux/man-pages/man5/proc_meminfo.5.html"

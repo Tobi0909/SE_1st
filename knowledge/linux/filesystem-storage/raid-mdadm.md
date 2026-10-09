@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.filesystem-storage.partitioning"]
 applies_to:
   - "mdadm (Linux software RAID) — chuẩn trên hầu hết distro"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/mdadm.8.html"
 last_verified: "2026-10-05"

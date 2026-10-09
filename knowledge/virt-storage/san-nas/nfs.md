@@ -8,7 +8,7 @@ prerequisites: ["virt-storage.san-nas.fundamentals"]
 applies_to:
   - "NFS v3 và NFSv4 trên Linux (Ubuntu 22.04, RHEL/Rocky 8+)"
   - "NFS làm datastore vSphere và file share cho application server"
-status: draft
+status: verified
 sources:
   - "https://linux.die.net/man/5/exports"
   - "https://man7.org/linux/man-pages/man5/nfs.5.html"

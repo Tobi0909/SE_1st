@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.routing.static"]
 applies_to:
   - "OSPFv2 (RFC 2328) — chuẩn chung; minh họa CLI bằng FRR (Linux routing suite) và Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc2328"
   - "https://docs.frrouting.org/en/latest/ospfd.html"

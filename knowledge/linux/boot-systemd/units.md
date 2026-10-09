@@ -8,7 +8,7 @@ prerequisites: ["linux.boot-systemd.boot-process"]
 applies_to:
   - "Ubuntu 22.04 LTS (systemd 249)"
   - "Cấu trúc unit file áp dụng chung cho mọi distro dùng systemd (RHEL/Rocky/Debian/SUSE...)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/systemd.service.5.html"
   - "https://man7.org/linux/man-pages/man7/bootup.7.html"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.nat-firewall.firewall-concepts"]
 applies_to:
   - "Khái niệm chung network ACL/security group — minh họa theo AWS VPC (phổ biến nhất)"
-status: draft
+status: verified
 sources:
   - "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-group-vs-network-acl.html"
 last_verified: "2026-10-05"

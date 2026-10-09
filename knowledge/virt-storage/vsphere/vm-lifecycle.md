@@ -8,7 +8,7 @@ prerequisites: ["virt-storage.vsphere.architecture"]
 applies_to:
   - "VMware vSphere 7.x / 8.x"
   - "vCenter Server quản lý ESXi cluster"
-status: draft
+status: verified
 sources:
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-vm-administration/GUID-E1D541EE-B253-4D65-9785-6F97E8E44C0B.html"
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-vmotion-resource-management/GUID-A15DC2C0-3C13-420D-B00B-0BE01D19FF1D.html"

@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Prometheus 2.x — pull model, TSDB, PromQL; các tính năng mô tả đây ổn định từ Prometheus 2.0 (2017)"
-status: draft
+status: verified
 sources:
   - "https://prometheus.io/docs/introduction/overview/"
   - "https://prometheus.io/docs/concepts/metric_types/"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.logging.fundamentals"]
 applies_to:
   - "Elasticsearch 8.x + Kibana 8.x + Filebeat 8.x — OpenSearch (AWS fork) tương tự nhưng UI khác; Elastic Stack 7.x tương tự về core"
-status: draft
+status: verified
 sources:
   - "https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html"
   - "https://www.elastic.co/guide/en/beats/filebeat/current/index.html"

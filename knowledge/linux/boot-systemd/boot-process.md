@@ -9,7 +9,7 @@ applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8, systemd 249)"
   - "GRUB2, firmware UEFI"
   - "Khái niệm boot cơ bản đúng cho hầu hết distro Linux hiện đại (RHEL/Rocky/Debian) dùng GRUB2 + systemd"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/bootup.7.html"
   - "https://docs.rockylinux.org/10/books/admin_guide/10-boot/"

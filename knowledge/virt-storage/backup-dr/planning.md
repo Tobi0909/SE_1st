@@ -8,7 +8,7 @@ prerequisites: ["virt-storage.backup-dr.strategies"]
 applies_to:
   - "DR planning cho datacenter on-premises và hybrid cloud"
   - "NIST SP 800-34 Contingency Planning Guide"
-status: draft
+status: verified
 sources:
   - "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-34r1.pdf"
   - "https://docs.vmware.com/en/VMware-Live-Recovery/index.html"

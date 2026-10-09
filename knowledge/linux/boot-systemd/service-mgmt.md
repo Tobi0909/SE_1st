@@ -8,7 +8,7 @@ prerequisites: ["linux.boot-systemd.units"]
 applies_to:
   - "Ubuntu 22.04 LTS (systemd 249)"
   - "Lệnh systemctl giống nhau trên mọi distro dùng systemd; khác biệt chỉ ở tên service"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/systemd.service.5.html"
 last_verified: "2026-10-05"

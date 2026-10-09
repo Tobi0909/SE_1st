@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "Backup cho server Linux/Windows, VM, database"
   - "Quy tắc 3-2-1 và biến thể 3-2-1-1-0 cho môi trường hiện đại"
-status: draft
+status: verified
 sources:
   - "https://www.veeam.com/blog/321-backup-rule.html"
   - "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-209.pdf"

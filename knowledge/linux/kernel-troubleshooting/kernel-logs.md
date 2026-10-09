@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.kernel-troubleshooting.modules"]
 applies_to:
   - "Ubuntu 22.04 LTS với systemd-journald — `dmesg` bị giới hạn quyền đọc bởi `kernel.dmesg_restrict=1` (mặc định Ubuntu); `journalctl -k` không cần root nếu user thuộc group `adm`"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/journalctl.1.html"
   - "https://man7.org/linux/man-pages/man1/dmesg.1.html"

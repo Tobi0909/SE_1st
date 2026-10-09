@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["sre.incident-response.process"]
 applies_to:
   - "Nguyên lý chung; ví dụ tham chiếu Google SRE Book và mẫu postmortem thực tế"
-status: draft
+status: verified
 sources:
   - "https://sre.google/sre-book/postmortem-culture/"
 last_verified: "2026-10-07"

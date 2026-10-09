@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Khái niệm tầng mạng áp dụng chung cho mọi hệ thống, minh họa bằng Linux (iproute2)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/tcp.7.html"
   - "https://man7.org/linux/man-pages/man7/ip.7.html"

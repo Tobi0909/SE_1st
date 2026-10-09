@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-workload.pods-deployments"]
 applies_to:
   - "Kubernetes 1.28+ — StatefulSet, DaemonSet, PersistentVolumeClaim; headless Service; không phụ thuộc cloud provider"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/"
   - "https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/"

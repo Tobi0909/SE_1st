@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.filesystem-storage.lvm-basics"]
 applies_to:
   - "LVM2 — snapshot/thin provisioning là tính năng chuẩn của lvm2, không cần cài thêm gói"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/lvextend.8.html"
   - "https://man7.org/linux/man-pages/man8/lvcreate.8.html"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-networking.service"]
 applies_to:
   - "Kubernetes 1.28+ — Ingress API (networking.k8s.io/v1, stable từ K8s 1.19); cần Ingress controller (nginx-ingress, Traefik...) cài riêng — không có sẵn trong K8s"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/services-networking/ingress/"
   - "https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-architecture.api-objects"]
 applies_to:
   - "Kubernetes 1.28+ — RBAC API (rbac.authorization.k8s.io/v1) stable; RBAC được bật mặc định từ K8s 1.8+; áp dụng cho mọi cloud provider và bare metal"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
   - "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"

@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Linux server/desktop chung — các nguyên lý này áp dụng bất kể distro"
-status: draft
+status: verified
 sources:
   - "https://csrc.nist.gov/publications/detail/sp/800-123/final"
   - "https://www.cisecurity.org/cis-benchmarks"

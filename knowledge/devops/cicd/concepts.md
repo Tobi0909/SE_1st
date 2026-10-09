@@ -8,7 +8,7 @@ prerequisites: ["devops.git.fundamentals"]
 applies_to:
   - "Platform-agnostic — nguyên lý áp dụng cho GitHub Actions, GitLab CI, Jenkins, và mọi
     CI/CD system; ví dụ minh hoạ không phụ thuộc tool cụ thể"
-status: draft
+status: verified
 sources:
   - "https://docs.gitlab.com/ee/ci/introduction/"
   - "https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions"

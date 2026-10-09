@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["networking.tcpip.osi-tcpip-model"]
 applies_to:
   - "Ubuntu 22.04 LTS — iproute2 (ip/ss), công cụ thay thế chuẩn cho net-tools (ifconfig/route/netstat) cũ trên mọi distro hiện đại"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/ip.8.html"
   - "https://man7.org/linux/man-pages/man8/ss.8.html"

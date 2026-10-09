@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.switching.vlan"]
 applies_to:
   - "IEEE 802.1AX (trước đây 802.3ad) — Linux bonding mode 802.3ad và CLI kiểu Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://docs.kernel.org/networking/bonding.html"
   - "https://man7.org/linux/man-pages/man8/ip-link.8.html"

@@ -9,7 +9,7 @@ applies_to:
   - Kafka 3.x
   - RabbitMQ 3.x
   - Distributed systems
-status: draft
+status: verified
 sources:
   - https://kafka.apache.org/documentation/
   - https://www.rabbitmq.com/docs

@@ -8,7 +8,7 @@ prerequisites: ["linux.boot-systemd.units"]
 applies_to:
   - "Ubuntu 22.04 LTS (systemd 249)"
   - "cron (vixie-cron/cronie — cú pháp crontab giống nhau giữa các distro)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/systemd.timer.5.html"
 last_verified: "2026-10-05"

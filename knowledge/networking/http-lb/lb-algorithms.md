@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.http-lb.reverse-proxy"]
 applies_to:
   - "Nginx upstream, HAProxy — minh họa cơ chế bằng load balancer Python tối giản"
-status: draft
+status: verified
 sources:
   - "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
 last_verified: "2026-10-06"

@@ -8,7 +8,7 @@ prerequisites: ["linux.process-signals.lifecycle"]
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8)"
   - "Bảng signal là chuẩn POSIX, số hiệu giống nhau trên hầu hết Linux x86/ARM"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/signal.7.html"
 last_verified: "2026-10-05"

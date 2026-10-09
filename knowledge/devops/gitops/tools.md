@@ -9,7 +9,7 @@ prerequisites:
 applies_to:
   - Kubernetes clusters
   - GitOps CD pipelines
-status: draft
+status: verified
 sources:
   - https://argo-cd.readthedocs.io/en/stable/
   - https://fluxcd.io/flux/concepts/

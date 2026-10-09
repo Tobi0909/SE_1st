@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "VMware vSphere 7.x / 8.x (VCSA, ESXi)"
   - "Khái niệm đúng cho mọi phiên bản vSphere từ 6.5 trở lên"
-status: draft
+status: verified
 sources:
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-vcenter-esxi-management/GUID-65658D77-3138-47F0-BCA8-68D8CEC4B1A0.html"
   - "https://docs.vmware.com/en/VMware-vSphere/8.0/vsphere-resource-management/GUID-98BD5A8A-260A-494F-BAAE-74781F5C4B87.html"

@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.performance.io"]
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8) — strace/lsof, Yama LSM (ptrace_scope)"
-status: draft
+status: verified
 sources:
   - "https://www.kernel.org/doc/html/latest/admin-guide/LSM/Yama.html"
   - "https://man7.org/linux/man-pages/man1/strace.1.html"

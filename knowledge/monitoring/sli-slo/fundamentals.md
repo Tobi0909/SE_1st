@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "Platform-agnostic — SLI/SLO/SLA là framework khái niệm, không phụ thuộc vào tool cụ thể;
     ví dụ dùng Prometheus nhưng nguyên tắc áp dụng cho bất kỳ monitoring platform nào"
-status: draft
+status: verified
 sources:
   - "https://sre.google/sre-book/service-level-objectives/"
   - "https://sre.google/workbook/implementing-slos/"

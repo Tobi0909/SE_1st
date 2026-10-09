@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-workload.configmap-secret"]
 applies_to:
   - "Helm 3.x — Tiller đã bị loại bỏ từ Helm 3 (2019); không áp dụng cho Helm 2"
-status: draft
+status: verified
 sources:
   - "https://helm.sh/docs/intro/using_helm/"
   - "https://helm.sh/docs/chart_template_guide/"

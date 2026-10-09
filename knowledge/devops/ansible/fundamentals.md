@@ -8,7 +8,7 @@ prerequisites: ["linux.shell-scripting.bash-basics"]
 applies_to:
   - "Ansible 2.12+ (ansible-core) — cú pháp minh hoạ; không có Ansible cài trên máy demo,
     output lấy theo tài liệu chính thức docs.ansible.com"
-status: draft
+status: verified
 sources:
   - "https://docs.ansible.com/ansible/latest/getting_started/get_started_inventory.html"
   - "https://docs.ansible.com/ansible/latest/getting_started/get_started_playbook.html"

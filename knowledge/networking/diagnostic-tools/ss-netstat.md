@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "ss (iproute2), netstat (net-tools, deprecated nhưng vẫn phổ biến) — Ubuntu 22.04 LTS"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/ss.8.html"
   - "https://man7.org/linux/man-pages/man8/netstat.8.html"

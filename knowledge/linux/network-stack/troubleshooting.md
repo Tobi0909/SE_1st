@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.network-stack.tools", "linux.network-stack.firewall"]
 applies_to:
   - "Ubuntu 22.04 LTS — ping/ip/ss là chuẩn chung mọi distro; bonding cần kernel module bonding (thường có sẵn nhưng cần thiết bị/cấu hình để demo)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/ping.8.html"
   - "https://www.kernel.org/doc/Documentation/networking/bonding.txt"

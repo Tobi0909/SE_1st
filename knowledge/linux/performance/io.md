@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.performance.cpu-load", "linux.performance.memory-swap"]
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8) — /proc/diskstats, vmstat; iostat (sysstat) minh họa do không có sẵn"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/iostat.1.html"
   - "https://www.kernel.org/doc/Documentation/iostats.txt"

@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.prometheus-grafana.fundamentals"]
 applies_to:
   - "Grafana 10.x/11.x — panel types, data source, dashboard JSON; phần lớn khái niệm tương thích ngược về Grafana 8+"
-status: draft
+status: verified
 sources:
   - "https://grafana.com/docs/grafana/latest/datasources/"
   - "https://grafana.com/docs/grafana/latest/panels-visualizations/"

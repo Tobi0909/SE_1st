@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "RHEL 9/CentOS Stream 9/Rocky Linux 9/Fedora — dnf là công cụ hiện đại, yum vẫn còn trên RHEL 7/8 (alias trỏ sang dnf từ RHEL 8)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/dnf.8.html"
   - "https://man7.org/linux/man-pages/man8/rpm.8.html"

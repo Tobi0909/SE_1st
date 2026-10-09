@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Git 2.x — chuẩn chung; ví dụ chạy thật trên Git 2.34.1 (Ubuntu 22.04)"
-status: draft
+status: verified
 sources:
   - "https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository"
   - "https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell"

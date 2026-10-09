@@ -8,7 +8,7 @@ prerequisites: ["virt-storage.san-nas.fundamentals"]
 applies_to:
   - "iSCSI trên Linux (open-iscsi) và vSphere ESXi"
   - "iSCSI target: TrueNAS, Linux targetcli, EMC/NetApp"
-status: draft
+status: verified
 sources:
   - "https://linux.die.net/man/8/iscsiadm"
   - "https://www.open-iscsi.com/"

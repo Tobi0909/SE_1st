@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.docker-internals.images", "networking.tcpip.osi-tcpip-model"]
 applies_to:
   - "Docker Engine trên Linux — driver bridge/host/overlay; bridge network dùng Linux bridge + iptables/nftables trên host; hành vi khác biệt trên Docker Desktop (Mac/Windows dùng VM)"
-status: draft
+status: verified
 sources:
   - "https://docs.docker.com/network/"
   - "https://docs.docker.com/network/network-tutorial-standalone/"

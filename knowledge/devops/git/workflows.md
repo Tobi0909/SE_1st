@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["devops.git.fundamentals"]
 applies_to:
   - "Git 2.x — chuẩn chung; ví dụ chạy thật trên Git 2.34.1 (Ubuntu 22.04)"
-status: draft
+status: verified
 sources:
   - "https://git-scm.com/book/en/v2/Git-Branching-Rebasing"
   - "https://git-scm.com/book/en/v2/Git-Tools-Stashing-and-Cleaning"

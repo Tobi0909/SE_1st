@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["container-k8s.helm.basics"]
 applies_to:
   - "Helm 3.x — template syntax, hooks, Chart.yaml schema; không áp dụng cho Helm 2"
-status: draft
+status: verified
 sources:
   - "https://helm.sh/docs/chart_template_guide/"
   - "https://helm.sh/docs/topics/charts/"

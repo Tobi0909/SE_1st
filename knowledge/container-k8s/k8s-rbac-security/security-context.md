@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["container-k8s.k8s-rbac-security.rbac"]
 applies_to:
   - "Kubernetes 1.28+ — SecurityContext stable; Pod Security Admission (PSA) stable từ K8s 1.25 (thay thế PodSecurityPolicy đã bị removed từ 1.25)"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/"
   - "https://kubernetes.io/docs/concepts/security/pod-security-standards/"

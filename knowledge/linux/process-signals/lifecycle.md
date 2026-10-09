@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "Ubuntu 22.04 LTS (kernel 6.8)"
   - "Khái niệm fork/exec/wait là chuẩn POSIX, đúng cho mọi distro Linux"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man2/wait.2.html"
   - "https://man7.org/linux/man-pages/man1/ps.1.html"

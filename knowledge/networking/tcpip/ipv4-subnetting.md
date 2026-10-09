@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["networking.tcpip.osi-tcpip-model"]
 applies_to:
   - "IPv4, CIDR (Classless Inter-Domain Routing) — chuẩn chung mọi hệ thống mạng hiện đại"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/ip.7.html"
 last_verified: "2026-10-05"

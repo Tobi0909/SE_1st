@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["security.vuln-patch.scanning"]
 applies_to:
   - "Ubuntu/Debian (unattended-upgrades, apt) và RHEL/CentOS (dnf-automatic, dnf); chu trình zero-day là nguyên lý chung"
-status: draft
+status: verified
 sources:
   - "https://ubuntu.com/security/livepatch"
   - "https://www.first.org/cvss/v3.1/specification-document"

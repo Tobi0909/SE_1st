@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "Nguyên lý chung; tham chiếu Google SRE Book (Release Engineering) và ITIL 4 change management"
-status: draft
+status: verified
 sources:
   - "https://sre.google/sre-book/release-engineering/"
   - "https://sre.google/sre-book/embracing-risk/"

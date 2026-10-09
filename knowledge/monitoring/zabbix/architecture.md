@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Zabbix 6.x/7.x — khái niệm cốt lõi về architecture tương thích cả 2 phiên bản; UI thay đổi nhỏ giữa phiên bản"
-status: draft
+status: verified
 sources:
   - "https://www.zabbix.com/documentation/current/en/manual/concepts"
   - "https://www.zabbix.com/documentation/current/en/manual/introduction/overview"

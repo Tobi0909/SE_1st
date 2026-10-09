@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "Nguyên lý chung; ví dụ dùng HashiCorp Vault OSS và AWS KMS concept"
   - "Git 2.x cho phần phát hiện secret trong source code"
-status: draft
+status: verified
 sources:
   - "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
   - "https://developer.hashicorp.com/vault/docs/concepts/seal"

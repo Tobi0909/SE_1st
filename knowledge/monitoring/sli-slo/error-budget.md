@@ -8,7 +8,7 @@ prerequisites: ["monitoring.sli-slo.fundamentals"]
 applies_to:
   - "Platform-agnostic — error budget là framework quyết định; ví dụ burn rate alert dùng
     Prometheus/Alertmanager nhưng concept áp dụng cho bất kỳ SLO implementation nào"
-status: draft
+status: verified
 sources:
   - "https://sre.google/workbook/alerting-on-slos/"
   - "https://sre.google/sre-book/embracing-risk/"

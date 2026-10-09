@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["networking.switching.lacp"]
 applies_to:
   - "Khái niệm MLAG chung; vPC là triển khai của Cisco Nexus (chi tiết cú pháp phụ thuộc phiên bản NX-OS)"
-status: draft
+status: verified
 sources:
   - "https://docs.kernel.org/networking/bonding.html"
 last_verified: "2026-10-06"

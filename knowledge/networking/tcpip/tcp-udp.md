@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["networking.tcpip.osi-tcpip-model"]
 applies_to:
   - "TCP/UDP — chuẩn giao vận Internet, minh họa qua Linux (ss, dig)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man7/tcp.7.html"
   - "https://man7.org/linux/man-pages/man7/udp.7.html"

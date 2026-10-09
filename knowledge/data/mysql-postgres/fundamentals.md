@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "MySQL 8.0 và PostgreSQL 16+ (góc nhìn vận hành, không phải phát triển ứng dụng)"
-status: draft
+status: verified
 sources:
   - "https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html"
   - "https://www.postgresql.org/docs/current/runtime-config-connection.html"

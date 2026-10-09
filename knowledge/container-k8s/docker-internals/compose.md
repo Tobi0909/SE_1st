@@ -9,7 +9,7 @@ prerequisites:
   - "container-k8s.docker-internals.storage"
 applies_to:
   - "Docker Compose v2 (plugin, lệnh `docker compose`) — phổ biến từ Docker Engine 20.10+; khác với Compose v1 standalone binary (`docker-compose` có dấu gạch ngang)"
-status: draft
+status: verified
 sources:
   - "https://docs.docker.com/compose/"
   - "https://docs.docker.com/compose/compose-file/"

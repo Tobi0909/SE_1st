@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.tls-pki.pki-cert-mgmt"]
 applies_to:
   - "openssl, curl — Ubuntu 22.04 LTS"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc6066"
 last_verified: "2026-10-06"

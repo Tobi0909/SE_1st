@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.network-stack.tools"]
 applies_to:
   - "Ubuntu 22.04 LTS — nftables là backend kernel mặc định (iptables-nft tương thích ngược qua cùng backend), ufw là frontend quản lý của Ubuntu/Debian"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/iptables.8.html"
   - "https://manpages.debian.org/bookworm/nftables/nft.8.en.html"

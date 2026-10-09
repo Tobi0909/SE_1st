@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.docker-internals.images"]
 applies_to:
   - "Docker Engine trên Linux — volume driver local, bind mount, tmpfs; hành vi tương tự trên Docker Desktop với lưu ý path host ánh xạ vào VM trên Mac/Windows"
-status: draft
+status: verified
 sources:
   - "https://docs.docker.com/storage/"
   - "https://docs.docker.com/storage/volumes/"

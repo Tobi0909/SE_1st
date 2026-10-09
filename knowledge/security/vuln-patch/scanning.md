@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "Trivy (container/image scanning), OpenVAS/Greenbone (network scanning); CVE/CVSS là tiêu chuẩn chung không phụ thuộc công cụ"
-status: draft
+status: verified
 sources:
   - "https://www.first.org/cvss/v3.1/specification-document"
   - "https://nvd.nist.gov/vuln-metrics/cvss"

@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["linux.users-permissions.users-groups"]
 applies_to:
   - "Ubuntu 22.04 LTS — chmod/chown (coreutils), hành vi SUID/SGID chuẩn POSIX"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/chmod.1.html"
   - "https://man7.org/linux/man-pages/man1/chown.1.html"

@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["devops.terraform.fundamentals"]
 applies_to:
   - "Terraform 1.x — cú pháp minh hoạ; không có Terraform cài trên máy demo"
-status: draft
+status: verified
 sources:
   - "https://developer.hashicorp.com/terraform/language/modules"
   - "https://developer.hashicorp.com/terraform/language/state/backends"

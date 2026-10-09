@@ -10,7 +10,7 @@ applies_to:
   - SRE teams
   - DevOps operations
   - Any team managing production systems
-status: draft
+status: verified
 sources:
   - https://sre.google/sre-book/eliminating-toil/
   - https://sre.google/workbook/eliminating-toil/

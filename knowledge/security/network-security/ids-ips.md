@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["security.network-security.fundamentals"]
 applies_to:
   - "Suricata (NIDS/NIPS open-source) và OSSEC/Wazuh (HIDS); nguyên lý chung áp dụng cho mọi IDS/IPS"
-status: draft
+status: verified
 sources:
   - "https://csrc.nist.gov/publications/detail/sp/800-94/final"
   - "https://docs.suricata.io/en/latest/"

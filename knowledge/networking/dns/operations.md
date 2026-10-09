@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.dns.fundamentals"]
 applies_to:
   - "DNS (BIND zone file format), dig/nslookup/host (dnsutils, Ubuntu 22.04 LTS)"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc1035"
   - "https://www.rfc-editor.org/rfc/rfc2308"

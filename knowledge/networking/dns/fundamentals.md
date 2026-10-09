@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: ["networking.tcpip.osi-tcpip-model"]
 applies_to:
   - "DNS (RFC 1034/1035) — chuẩn chung, minh họa qua systemd-resolved (Ubuntu 22.04 LTS)"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc1035"
   - "https://man7.org/linux/man-pages/man5/resolv.conf.5.html"

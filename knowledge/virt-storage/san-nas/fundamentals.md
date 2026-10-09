@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "SAN (FC/iSCSI), NAS (NFS/SMB), Object storage (S3-compatible)"
   - "Applicable cho môi trường datacenter on-premises và hybrid cloud"
-status: draft
+status: verified
 sources:
   - "https://www.snia.org/education/storage_networking_primer/san/what_is_a_san"
   - "https://nvmexpress.org/education/nvme-over-fabrics-nvme-of/"

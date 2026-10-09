@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.nat-firewall.nat-types"]
 applies_to:
   - "Linux netfilter (iptables/nftables), firewalld, ufw — Ubuntu 22.04 LTS"
-status: draft
+status: verified
 sources:
   - "https://www.netfilter.org/projects/nftables/manpage.html"
   - "https://man7.org/linux/man-pages/man8/iptables.8.html"

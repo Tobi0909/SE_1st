@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.kernel-troubleshooting.modules"]
 applies_to:
   - "Ubuntu 22.04 LTS — kernel 6.8.0-138-generic; không gian tham số sysctl (namespace net.*, vm.*, kernel.*) là chuẩn chung mọi distro Linux hiện đại với cùng kernel version"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/sysctl.8.html"
   - "https://man7.org/linux/man-pages/man5/sysctl.d.5.html"

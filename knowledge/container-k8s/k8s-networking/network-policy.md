@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["container-k8s.k8s-networking.service"]
 applies_to:
   - "Kubernetes 1.28+ — NetworkPolicy API (networking.k8s.io/v1, stable); cần CNI plugin hỗ trợ (Calico, Cilium, Weave Net...) — một số CNI phổ biến như Flannel KHÔNG enforce NetworkPolicy"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
   - "https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/"

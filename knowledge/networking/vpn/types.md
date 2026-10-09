@@ -8,7 +8,7 @@ prerequisites: ["networking.tls-pki.handshake"]
 applies_to:
   - "IPsec (RFC 4301), SSL VPN/OpenVPN, WireGuard — khái niệm chung"
   - "Ubuntu 22.04 LTS, NetworkManager (lệnh nmcli chạy thật)"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc4301"
   - "https://www.wireguard.com/"

@@ -8,7 +8,7 @@ prerequisites:
   - "data.mysql-postgres.fundamentals"
 applies_to:
   - "MySQL 8.0 và PostgreSQL 16+ (góc nhìn vận hành)"
-status: draft
+status: verified
 sources:
   - "https://dev.mysql.com/doc/refman/8.0/en/backup-methods.html"
   - "https://dev.mysql.com/doc/refman/8.0/en/slow-query-log.html"

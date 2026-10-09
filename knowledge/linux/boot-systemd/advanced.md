@@ -8,7 +8,7 @@ prerequisites: ["linux.boot-systemd.service-mgmt"]
 applies_to:
   - "Ubuntu 22.04 LTS (systemd 249)"
   - "Khái niệm socket activation/journald áp dụng chung mọi distro dùng systemd"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/systemd.socket.5.html"
   - "https://man7.org/linux/man-pages/man5/journald.conf.5.html"

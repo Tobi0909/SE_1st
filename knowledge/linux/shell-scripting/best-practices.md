@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.shell-scripting.bash-advanced"]
 applies_to:
   - "Ubuntu 22.04 LTS, GNU bash 5.1.16 — nguyên tắc áp dụng cho mọi script vận hành chạy qua cron/CI"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/bash.1.html"
   - "https://tldp.org/LDP/abs/html/exitcodes.html"

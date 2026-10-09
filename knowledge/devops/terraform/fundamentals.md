@@ -8,7 +8,7 @@ prerequisites: []
 applies_to:
   - "Terraform 1.x (OpenTofu tương thích cú pháp) — cú pháp minh hoạ; không có Terraform
     cài trên máy demo, output lấy theo tài liệu chính thức developer.hashicorp.com/terraform"
-status: draft
+status: verified
 sources:
   - "https://developer.hashicorp.com/terraform/intro"
   - "https://developer.hashicorp.com/terraform/language/state"

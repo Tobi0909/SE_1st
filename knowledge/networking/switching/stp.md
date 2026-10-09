@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.switching.vlan"]
 applies_to:
   - "IEEE 802.1D (STP), 802.1w (RSTP), 802.1s (MSTP) — Linux bridge và CLI kiểu Cisco IOS"
-status: draft
+status: verified
 sources:
   - "https://docs.kernel.org/networking/bridge.html"
   - "https://man7.org/linux/man-pages/man8/bridge.8.html"

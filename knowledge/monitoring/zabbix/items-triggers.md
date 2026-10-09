@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.zabbix.architecture"]
 applies_to:
   - "Zabbix 6.x/7.x — item keys, trigger expression syntax, template export/import"
-status: draft
+status: verified
 sources:
   - "https://www.zabbix.com/documentation/current/en/manual/config/items"
   - "https://www.zabbix.com/documentation/current/en/manual/config/triggers"

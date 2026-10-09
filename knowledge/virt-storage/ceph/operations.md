@@ -9,7 +9,7 @@ prerequisites:
 applies_to:
   - Ceph Reef (18.x) / Quincy (17.x)
   - On-premises storage clusters
-status: draft
+status: verified
 sources:
   - https://docs.ceph.com/en/reef/rados/operations/monitoring/
   - https://docs.ceph.com/en/reef/rados/operations/add-or-rm-osds/

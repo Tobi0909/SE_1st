@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.tls-pki.handshake"]
 applies_to:
   - "PKI X.509, openssl — Ubuntu 22.04 LTS"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc5280"
 last_verified: "2026-10-06"

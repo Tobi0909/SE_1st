@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["linux.process-signals.lifecycle"]
 applies_to:
   - "Ubuntu 22.04 LTS — procps-ng (ps/top/free/uptime), htop (nếu đã cài)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man1/ps.1.html"
   - "https://man7.org/linux/man-pages/man5/proc_loadavg.5.html"

@@ -7,7 +7,7 @@ level: "nền tảng"
 prerequisites: []
 applies_to:
   - "Ubuntu 22.04 LTS, GNU bash 5.1.16 — cú pháp cơ bản giống nhau trên hầu hết distro Linux"
-status: draft
+status: verified
 sources:
   - "https://www.gnu.org/software/bash/manual/bash.html"
   - "https://man7.org/linux/man-pages/man1/test.1.html"

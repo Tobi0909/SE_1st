@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["container-k8s.k8s-architecture.api-objects"]
 applies_to:
   - "Kubernetes 1.28+ — Deployment/ReplicaSet/Pod API stable; rolling update strategy, revision history, rollback; không phụ thuộc cloud provider"
-status: draft
+status: verified
 sources:
   - "https://kubernetes.io/docs/concepts/workloads/pods/"
   - "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"

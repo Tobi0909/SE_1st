@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: []
 applies_to:
   - "TLS 1.2/1.3 (RFC 8446) — minh họa qua openssl/curl, Ubuntu 22.04 LTS"
-status: draft
+status: verified
 sources:
   - "https://www.rfc-editor.org/rfc/rfc8446"
 last_verified: "2026-10-06"

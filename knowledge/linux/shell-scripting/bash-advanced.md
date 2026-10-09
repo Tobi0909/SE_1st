@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.shell-scripting.bash-basics", "linux.shell-scripting.text-processing"]
 applies_to:
   - "Ubuntu 22.04 LTS, GNU bash 5.1.16"
-status: draft
+status: verified
 sources:
   - "https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin"
   - "https://www.gnu.org/software/bash/manual/bash.html#Bourne-Shell-Builtins"

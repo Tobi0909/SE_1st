@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["monitoring.logging.fundamentals"]
 applies_to:
   - "Linux (auditd, systemd journal, rsyslog); nguyên lý log integrity áp dụng cho mọi nền tảng"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/auditd.8.html"
   - "https://man7.org/linux/man-pages/man5/auditd.conf.5.html"

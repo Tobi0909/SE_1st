@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: ["linux.users-permissions.chmod-chown"]
 applies_to:
   - "Ubuntu 22.04 LTS — ACL POSIX.1e (acl package), extended attributes (xattr), chattr (ext4)"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man5/acl.5.html"
   - "https://man7.org/linux/man-pages/man1/setfattr.1.html"

@@ -7,7 +7,7 @@ level: "chuyên sâu"
 prerequisites: []
 applies_to:
   - "Ubuntu 22.04 LTS — kernel 6.8.0-138-generic; cấu trúc /proc/modules và /sys/module là chuẩn chung mọi distro Linux hiện đại"
-status: draft
+status: verified
 sources:
   - "https://man7.org/linux/man-pages/man8/lsmod.8.html"
   - "https://man7.org/linux/man-pages/man8/modinfo.8.html"

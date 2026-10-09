@@ -10,7 +10,7 @@ applies_to:
   - Linux servers
   - Kubernetes clusters
   - General infrastructure
-status: draft
+status: verified
 sources:
   - https://sre.google/workbook/table-of-contents/
   - https://www.brendangregg.com/usemethod.html

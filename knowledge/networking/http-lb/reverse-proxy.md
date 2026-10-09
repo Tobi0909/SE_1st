@@ -7,7 +7,7 @@ level: "vận hành"
 prerequisites: ["networking.http-lb.http-fundamentals"]
 applies_to:
   - "Nginx, HAProxy — khái niệm reverse proxy chung; minh họa cơ chế bằng proxy Python tối giản"
-status: draft
+status: verified
 sources:
   - "https://nginx.org/en/docs/http/ngx_http_upstream_module.html"
   - "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For"

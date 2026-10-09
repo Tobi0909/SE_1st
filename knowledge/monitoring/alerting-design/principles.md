@@ -8,7 +8,7 @@ prerequisites: ["monitoring.prometheus-grafana.alertmanager"]
 applies_to:
   - "Platform-agnostic — nguyên tắc áp dụng cho Alertmanager, Zabbix, PagerDuty, OpsGenie, Grafana
     Alerting hay bất kỳ hệ thống alert nào; ví dụ lấy từ Prometheus/Alertmanager"
-status: draft
+status: verified
 sources:
   - "https://sre.google/sre-book/practical-alerting/"
   - "https://www.oreilly.com/library/view/effective-monitoring-and/9781449333515/"
