@@ -123,17 +123,72 @@ hello timer, MTU).
 
 ## 7. Tự kiểm tra
 
-1. OSPF là link-state hay distance-vector? Khác biệt chính là gì?
-   <details><summary>Đáp án</summary>Link-state — mỗi router gửi thông tin link của chính nó cho cả area, mọi router tự tính SPF trên cùng 1 bản đồ topology, khác distance-vector (gửi cả bảng route đã tính sẵn).</details>
+**Câu 1**: OSPF là link-state hay distance-vector? Khác biệt chính là gì?
 
-2. DR/BDR được bầu trên loại mạng nào, và vì sao cần?
-   <details><summary>Đáp án</summary>Mạng multi-access (Ethernet); để giảm số adjacency cần đồng bộ từ O(n²) xuống O(n).</details>
+a) Link-state — mỗi router gửi thông tin link của chính nó cho cả area, mọi router tự tính SPF
+   trên cùng một bản đồ topology, khác distance-vector (gửi cả bảng route đã tính sẵn)
+b) Distance-vector — mỗi router chỉ gửi bảng route đã tính sẵn cho hàng xóm, không có khái niệm
+   topology chung
+c) Link-state, nhưng mỗi router chỉ biết link của hàng xóm trực tiếp, không có bản đồ toàn mạng
+d) Cả link-state và distance-vector tùy theo phiên bản OSPFv2/OSPFv3 đang dùng
 
-3. Hai router DROTHER (không phải DR/BDR) ở trạng thái 2-Way với nhau — đây có phải lỗi?
-   <details><summary>Đáp án</summary>Không, đây là hành vi bình thường — DROTHER chỉ Full với DR/BDR.</details>
+**Đáp án: a** — Link-state — mỗi router gửi thông tin link của chính nó cho cả area, mọi
+router tự tính SPF trên cùng 1 bản đồ topology, khác distance-vector (gửi cả bảng route đã
+tính sẵn). OSPF không phải distance-vector — đó là mô tả của RIP, không phải OSPF (loại b);
+OSPF link-state cho mỗi router một bản đồ TOÀN area, không chỉ biết hàng xóm trực tiếp (loại
+c); OSPFv2 (IPv4) và OSPFv3 (IPv6) đều là link-state, không đổi bản chất giao thức (loại d).
 
-4. Vì sao cần chỉnh `reference-bandwidth` khi mạng có link ≥ 1 Gbps?
-   <details><summary>Đáp án</summary>Cost mặc định dựa trên reference-bandwidth 100 Mbps nên mọi link ≥100M mặc định cùng cost 1, không phản ánh đúng chênh lệch băng thông thật giữa 1G/10G.</details>
+---
+
+**Câu 2**: DR/BDR được bầu trên loại mạng nào, và vì sao cần?
+
+a) Point-to-point links; để tránh hai router tranh giành vai trò master trên đường truyền trực
+   tiếp
+b) Mạng multi-access (Ethernet); để giảm số adjacency cần đồng bộ từ O(n²) xuống O(n)
+c) Mạng multi-access; để tăng tốc hội tụ bằng cách DR tự chuyển tiếp mọi gói unicast giữa các
+   router
+d) Bất kỳ loại mạng nào có trên 2 router OSPF, không phân biệt point-to-point hay multi-access
+
+**Đáp án: b** — Mạng multi-access (Ethernet); để giảm số adjacency cần đồng bộ từ O(n²) xuống
+O(n). Point-to-point link chỉ có 2 router nên không cần bầu DR/BDR (loại a); DR không chuyển
+tiếp gói dữ liệu unicast thay các router khác, nó chỉ tập trung việc đồng bộ LSA (loại c); việc
+bầu DR/BDR gắn liền với đặc tính multi-access, không áp dụng cho point-to-point (loại d).
+
+---
+
+**Câu 3**: Hai router DROTHER (không phải DR/BDR) ở trạng thái 2-Way với nhau — đây có phải
+lỗi?
+
+a) Có, đây là lỗi nghiêm trọng vì mọi router OSPF phải đạt Full với nhau để hội tụ đúng
+b) Không, nhưng chỉ vì cả hai đang trong quá trình bầu DR/BDR, trạng thái này sẽ biến mất khi
+   bầu xong
+c) Không, đây là hành vi bình thường — DROTHER chỉ Full với DR/BDR, không cần Full với DROTHER
+   khác
+d) Có, lỗi này thường do cấu hình sai area ID giữa hai router DROTHER
+
+**Đáp án: c** — Không, đây là hành vi bình thường — DROTHER chỉ Full với DR/BDR. Trên mạng
+multi-access, DROTHER với DROTHER chỉ cần 2-Way, không cần Full — đây là thiết kế OSPF để
+giảm tải đồng bộ, không phải lỗi (loại a); trạng thái 2-Way giữa hai DROTHER là ổn định lâu
+dài, không phải tạm thời trong lúc bầu DR/BDR (loại b); area ID sai sẽ khiến hai router không
+hình thành adjacency gì cả (kẹt ở Down/Init), không dừng ở 2-Way (loại d).
+
+---
+
+**Câu 4**: Vì sao cần chỉnh `reference-bandwidth` khi mạng có link ≥ 1 Gbps?
+
+a) Vì OSPF mặc định không hỗ trợ tính cost cho link trên 100 Mbps, bắt buộc phải cấu hình thủ
+   công
+b) Vì reference-bandwidth quyết định số lượng area tối đa OSPF có thể hỗ trợ
+c) Vì các link tốc độ cao cần reference-bandwidth riêng để tính toán thời gian hội tụ SPF
+d) Cost mặc định dựa trên reference-bandwidth 100 Mbps nên mọi link ≥100M mặc định cùng cost 1,
+   không phản ánh đúng chênh lệch băng thông thật giữa 1G/10G
+
+**Đáp án: d** — Cost mặc định dựa trên reference-bandwidth 100 Mbps nên mọi link ≥100M mặc
+định cùng cost 1, không phản ánh đúng chênh lệch băng thông thật giữa 1G/10G. OSPF vẫn tính
+được cost cho link trên 100 Mbps, chỉ là cost đó bị "bão hoà" ở giá trị 1, không phải không hỗ
+trợ (loại a); reference-bandwidth không liên quan tới số lượng area (loại b); nó không ảnh
+hưởng tới thời gian hội tụ SPF, chỉ ảnh hưởng tới giá trị cost dùng để SPF so sánh đường đi
+(loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

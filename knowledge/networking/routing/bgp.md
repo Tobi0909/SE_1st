@@ -127,17 +127,74 @@ ISP, ISP còn lại gần như không dùng dù đã lên BGP (`Established`).
 
 ## 7. Tự kiểm tra
 
-1. Khác biệt chính giữa eBGP và iBGP?
-   <details><summary>Đáp án</summary>eBGP giữa 2 AS khác nhau; iBGP giữa router cùng 1 AS, dùng để phân phối route học từ eBGP ra toàn AS.</details>
+**Câu 1**: Khác biệt chính giữa eBGP và iBGP?
 
-2. Vì sao BGP có thể chọn 1 route "chậm hơn" thay vì route băng thông cao hơn?
-   <details><summary>Đáp án</summary>BGP path selection ưu tiên chính sách (weight, LOCAL_PREF) và AS-PATH ngắn nhất, không xét băng thông/tốc độ thực tế.</details>
+a) eBGP giữa 2 AS khác nhau; iBGP giữa router cùng 1 AS, dùng để phân phối route học từ eBGP ra
+   toàn AS
+b) eBGP dùng TCP, iBGP dùng UDP để trao đổi route nhanh hơn trong nội bộ
+c) eBGP chỉ dùng cho IPv4, iBGP chỉ dùng cho IPv6
+d) eBGP và iBGP giống nhau hoàn toàn về cấu hình, chỉ khác tên gọi theo vị trí địa lý router
 
-3. Vì sao iBGP cần full-mesh hoặc route-reflector?
-   <details><summary>Đáp án</summary>Route học qua iBGP không được re-advertise tiếp cho 1 iBGP peer khác (chống loop), nên cần mọi router iBGP nối trực tiếp nhau hoặc dùng route-reflector để route vẫn lan tới toàn AS.</details>
+**Đáp án: a** — eBGP giữa 2 AS khác nhau; iBGP giữa router cùng 1 AS, dùng để phân phối route
+học từ eBGP ra toàn AS. Cả eBGP và iBGP đều dùng TCP port 179, không có biến thể UDP (loại b);
+cả hai hoạt động được với cả IPv4 và IPv6 (qua các address family tương ứng), không phân biệt
+theo kiểu đó (loại c); eBGP và iBGP có một số khác biệt cấu hình thật (ví dụ quy tắc re-
+advertise, TTL mặc định), không chỉ khác tên gọi (loại d).
 
-4. `show ip bgp summary` hiện trạng thái tên (`Active`) thay vì số ở cột PfxRcd — nghĩa là gì?
-   <details><summary>Đáp án</summary>Phiên BGP CHƯA lên Established; cần chẩn đoán kết nối TCP 179 và cấu hình neighbor trước khi nghi route.</details>
+---
+
+**Câu 2**: Vì sao BGP có thể chọn 1 route "chậm hơn" thay vì route băng thông cao hơn?
+
+a) Vì BGP luôn chọn route có latency thấp nhất đo được qua keepalive, băng thông chỉ là yếu tố
+   phụ
+b) BGP path selection ưu tiên chính sách (weight, LOCAL_PREF) và AS-PATH ngắn nhất, không xét
+   băng thông/tốc độ thực tế
+c) Vì route "chậm hơn" luôn có AS-PATH dài hơn nên được BGP ưu tiên theo thiết kế
+d) Vì BGP không có khái niệm "chọn route", mọi route hợp lệ đều được dùng đồng thời
+
+**Đáp án: b** — BGP path selection ưu tiên chính sách (weight, LOCAL_PREF) và AS-PATH ngắn
+nhất, không xét băng thông/tốc độ thực tế. BGP keepalive chỉ để duy trì phiên, không đo latency
+để chọn route (loại a); AS-PATH ngắn được ưu tiên, không phải AS-PATH dài (loại c, đảo ngược
+tiêu chí); BGP luôn chọn ra một route tốt nhất duy nhất cho mỗi prefix theo thuật toán path
+selection, không dùng đồng thời mọi route hợp lệ (loại d).
+
+---
+
+**Câu 3**: Vì sao iBGP cần full-mesh hoặc route-reflector?
+
+a) Vì iBGP không hỗ trợ TCP, cần route-reflector làm trung gian chuyển đổi giao thức
+b) Vì full-mesh/route-reflector giúp giảm số AS-PATH cần quảng bá ra ngoài AS
+c) Route học qua iBGP không được re-advertise tiếp cho một iBGP peer khác (chống loop), nên cần
+   mọi router iBGP nối trực tiếp nhau hoặc dùng route-reflector để route vẫn lan tới toàn AS
+d) Vì mỗi router iBGP chỉ được phép giữ tối đa 1 route trong bảng BGP, cần route-reflector tổng
+   hợp
+
+**Đáp án: c** — Route học qua iBGP không được re-advertise tiếp cho 1 iBGP peer khác (chống
+loop), nên cần mọi router iBGP nối trực tiếp nhau hoặc dùng route-reflector để route vẫn lan
+tới toàn AS. iBGP vẫn dùng TCP port 179 như eBGP (loại a); full-mesh/route-reflector giải quyết
+vấn đề lan truyền route NỘI BỘ AS, không liên quan tới AS-PATH quảng bá ra ngoài (loại b); mỗi
+router iBGP vẫn giữ đầy đủ route trong bảng BGP như bình thường, không bị giới hạn 1 route
+(loại d).
+
+---
+
+**Câu 4**: `show ip bgp summary` hiện trạng thái tên (`Active`) thay vì số ở cột PfxRcd — nghĩa
+là gì?
+
+a) Nghĩa là router đang nhận chính xác 0 route hợp lệ từ neighbor dù phiên đã Established bình
+   thường
+b) Nghĩa là neighbor đã bị shutdown thủ công, cần `no neighbor shutdown` để khôi phục ngay
+c) Nghĩa là BGP đang lọc toàn bộ route nhận được bằng route-map, cần kiểm tra route-map trước
+d) Phiên BGP CHƯA lên Established; cần chẩn đoán kết nối TCP 179 và cấu hình neighbor trước khi
+   nghi route
+
+**Đáp án: d** — Phiên BGP CHƯA lên Established; cần chẩn đoán kết nối TCP 179 và cấu hình
+neighbor trước khi nghi route. Nếu phiên đã Established, cột PfxRcd hiện SỐ (kể cả 0), không
+hiện chữ trạng thái như "Active" (loại a); trạng thái tên khác "Active" (ví dụ "Idle") mới
+thường tương ứng shutdown thủ công, "Active" là một trạng thái cụ thể khác trong quá trình
+thiết lập phiên (loại b); route-map lọc route chỉ có ý nghĩa SAU khi phiên đã Established — khi
+còn ở trạng thái tên như "Active", vấn đề nằm ở tầng thiết lập kết nối, chưa tới bước lọc route
+(loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

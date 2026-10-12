@@ -43,8 +43,12 @@ mới), `kb:lint` pass. Không có câu nào phải bỏ qua.
 5 bài cập nhật, `kb:build-quiz` → 19 câu mới (tổng 387 câu), idempotent, `kb:lint` pass. Không
 có câu nào phải bỏ qua.
 
-**Còn lại trong `networking`**: 8 module (routing 3 bài, dns 2, dhcp 1, nat-firewall 3, tls-pki
-3, http-lb 3, vpn 1, diagnostic-tools 3 = 19 bài).
+`networking.routing` (3 bài, 12 câu — xem commit theo sau trong git log): `static`, `ospf`,
+`bgp`. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz` → 12 câu mới (tổng 399
+câu), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Còn lại trong `networking`**: 7 module (dns 2 bài, dhcp 1, nat-firewall 3, tls-pki 3, http-lb
+3, vpn 1, diagnostic-tools 3 = 16 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

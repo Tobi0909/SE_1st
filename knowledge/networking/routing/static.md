@@ -136,17 +136,62 @@ chờn.
 
 ## 7. Tự kiểm tra
 
-1. Có 2 route `10.0.0.0/8` và `10.1.0.0/16` tới cùng đích `10.1.2.3`. Route nào được chọn?
-   <details><summary>Đáp án</summary>`10.1.0.0/16` — prefix dài hơn (longest prefix match), bất kể thứ tự khai.</details>
+**Câu 1**: Có 2 route `10.0.0.0/8` và `10.1.0.0/16` tới cùng đích `10.1.2.3`. Route nào được
+chọn?
 
-2. Default route `0.0.0.0/0` được dùng khi nào?
-   <details><summary>Đáp án</summary>Chỉ khi KHÔNG có route nào khác (cụ thể hơn) khớp địa chỉ đích.</details>
+a) `10.1.0.0/16` — prefix dài hơn (longest prefix match) được chọn, bất kể thứ tự khai báo
+b) `10.0.0.0/8`, vì route khai báo trước luôn được ưu tiên hơn route khai sau
+c) Cả hai route được dùng đồng thời, traffic load-balance giữa hai route
+d) `10.0.0.0/8`, vì prefix ngắn hơn luôn đại diện mạng tổng quát hơn nên được ưu tiên
 
-3. Vì sao không cần khai static route cho mạng trực tiếp kết nối với interface?
-   <details><summary>Đáp án</summary>Kernel tự sinh "connected route" khi gán IP/subnet cho interface.</details>
+**Đáp án: a** — `10.1.0.0/16` — prefix dài hơn (longest prefix match), bất kể thứ tự khai. Thứ
+tự khai báo không quyết định route nào thắng (loại b); hai route có prefix khác nhau không tự
+động load-balance, kernel chọn đúng MỘT route cụ thể hơn (loại c); nguyên lý longest prefix
+match ưu tiên prefix DÀI hơn (cụ thể hơn), không phải ngắn hơn (loại d).
 
-4. Hai route cùng prefix, khác metric — route nào được dùng?
-   <details><summary>Đáp án</summary>Route có metric THẤP hơn; route metric cao làm dự phòng.</details>
+---
+
+**Câu 2**: Default route `0.0.0.0/0` được dùng khi nào?
+
+a) Luôn được ưu tiên dùng trước mọi route khác vì là route gốc của hệ thống
+b) Chỉ khi KHÔNG có route nào khác (cụ thể hơn) khớp địa chỉ đích
+c) Chỉ dùng khi có từ 2 route cụ thể cùng metric trở lên, đóng vai trò tie-breaker
+d) Chỉ dùng cho traffic broadcast, không áp dụng cho traffic unicast thông thường
+
+**Đáp án: b** — Chỉ khi KHÔNG có route nào khác (cụ thể hơn) khớp địa chỉ đích. Default route
+có prefix `/0`, ngắn nhất nên luôn bị route cụ thể hơn thắng theo longest prefix match, không
+phải được ưu tiên trước (loại a); default route không liên quan tới việc tie-break giữa các
+route cùng metric (loại c); default route áp dụng cho traffic unicast thông thường đi ra ngoài,
+không giới hạn ở broadcast (loại d).
+
+---
+
+**Câu 3**: Vì sao không cần khai static route cho mạng trực tiếp kết nối với interface?
+
+a) Vì mạng trực tiếp kết nối luôn dùng chung route với default route `0.0.0.0/0`
+b) Vì switch Layer 2 tự xử lý toàn bộ traffic trong mạng trực tiếp, không cần routing table
+c) Kernel tự sinh "connected route" khi gán IP/subnet cho interface
+d) Vì các router hiện đại tự học route này qua broadcast ARP định kỳ, không liên quan tới cấu
+   hình interface
+
+**Đáp án: c** — Kernel tự sinh "connected route" khi gán IP/subnet cho interface. Mạng trực
+tiếp kết nối có route riêng (connected route), không dùng chung với default route (loại a);
+việc này xảy ra ở Layer 3 (routing table của kernel), không phải do switch Layer 2 xử lý (loại
+b); connected route sinh ra ngay khi gán IP, không cần đợi ARP định kỳ (loại d).
+
+---
+
+**Câu 4**: Hai route cùng prefix, khác metric — route nào được dùng?
+
+a) Route có metric cao hơn, vì metric cao thể hiện độ ưu tiên cao hơn trong một số hệ thống
+b) Cả hai được dùng song song, chia tải theo tỉ lệ nghịch với metric
+c) Route được khai báo sau luôn thắng, bất kể giá trị metric
+d) Route có metric THẤP hơn; route metric cao hơn chỉ đóng vai trò dự phòng
+
+**Đáp án: d** — Route có metric THẤP hơn; route metric cao làm dự phòng. Metric thấp hơn mới
+là route được ưu tiên, không phải metric cao (loại a); kernel chọn một route chính theo metric,
+không tự chia tải theo tỉ lệ nghịch (loại b); thứ tự khai báo không quyết định, metric mới là
+tiêu chí (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
