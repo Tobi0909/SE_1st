@@ -170,37 +170,96 @@ Một ứng dụng containerized (chạy trong Kubernetes, cấu hình dual-stac
 
 ## 7. Tự kiểm tra
 
-1. `ip addr` hiển thị một interface có `inet6 fe80::1234:5678:9abc:def0/64 scope link`. Địa
-   chỉ này có dùng được để kết nối tới một server ở ngoài Internet không?
-   <details><summary>Đáp án</summary>Không. <code>scope link</code> xác nhận đây là địa chỉ
-   link-local, chỉ hoạt động trong phạm vi segment mạng cục bộ, không định tuyến được ra
-   ngoài.</details>
+**Câu 1**: `ip addr` hiển thị một interface có `inet6 fe80::1234:5678:9abc:def0/64 scope link`.
+Địa chỉ này có dùng được để kết nối tới một server ở ngoài Internet không?
 
-2. Viết rút gọn của địa chỉ `2001:0db8:0000:0000:0000:0000:0000:0001` là gì?
-   <details><summary>Đáp án</summary><code>2001:db8::1</code> — bỏ số 0 dẫn đầu mỗi nhóm, và
-   thay toàn bộ chuỗi nhóm <code>0000</code> liên tiếp bằng <code>::</code> (chỉ dùng một lần
-   trong một địa chỉ).</details>
+a) Có, vì IPv6 không cần NAT nên mọi loại địa chỉ đều định tuyến được ra Internet
+b) Có, nhưng chỉ nếu router hỗ trợ NPTv6 để dịch địa chỉ link-local ra ngoài
+c) Không. `scope link` xác nhận đây là địa chỉ link-local, chỉ hoạt động trong phạm vi segment
+   mạng cục bộ, không định tuyến được ra ngoài
+d) Không thể xác định chỉ từ `scope link`, cần kiểm tra thêm bằng traceroute
 
-3. Vì sao IPv6 về thiết kế KHÔNG cần NAT như IPv4, dù một số tổ chức vẫn dùng kỹ thuật tương
-   tự (NPTv6)?
-   <details><summary>Đáp án</summary>Không gian địa chỉ IPv6 (128 bit) đủ lớn để cấp một địa
-   chỉ global unicast RIÊNG cho mỗi thiết bị, không cần "giả lập nhiều máy dùng chung 1 IP"
-   như NAT IPv4 giải quyết (NAT ra đời vì IPv4 thực sự THIẾU địa chỉ). NPTv6 (nếu dùng) phục vụ
-   mục đích khác (ẩn cấu trúc mạng, dễ đổi ISP), không phải vì thiếu địa chỉ.</details>
+**Đáp án: c** — Không. `scope link` xác nhận đây là địa chỉ link-local, chỉ hoạt động trong
+phạm vi segment mạng cục bộ, không định tuyến được ra ngoài. IPv6 bỏ NAT ở địa chỉ global
+unicast, không có nghĩa MỌI loại địa chỉ (kể cả link-local) đều định tuyến ra ngoài được (loại
+a); NPTv6 dịch địa chỉ global, không áp dụng cho link-local — link-local vẫn không định tuyến
+được dù có NPTv6 (loại b); `scope link` đã đủ để xác định phạm vi, không cần traceroute (loại
+d).
 
-4. Vì sao `ping -6 fe80::1` (không chỉ định interface) có thể báo lỗi trên một máy có nhiều
-   network interface?
-   <details><summary>Đáp án</summary>Địa chỉ link-local chỉ duy nhất TRONG PHẠM VI một segment
-   mạng, không duy nhất trên toàn máy nếu có nhiều interface — hệ thống cần biết gửi qua
-   interface nào (chỉ định qua cú pháp <code>%&lt;interface&gt;</code>), thiếu thông tin này
-   gây lỗi hoặc không rõ hành vi.</details>
+---
 
-5. Một service dual-stack chỉ bind `0.0.0.0` (không bind `::`). DNS cấp cả bản ghi A và AAAA
-   cho nó. Điều gì có thể xảy ra với client ưu tiên thử IPv6 trước?
-   <details><summary>Đáp án</summary>Client thử kết nối qua địa chỉ IPv6 (từ bản ghi AAAA)
-   nhưng service KHÔNG lắng nghe ở đó — nhận "connection refused" ngay, dù dịch vụ vẫn hoạt
-   động tốt qua IPv4 nếu được thử. Giải pháp đúng là bind cả hai họ địa chỉ, không chỉ xoá bản
-   ghi AAAA.</details>
+**Câu 2**: Viết rút gọn của địa chỉ `2001:0db8:0000:0000:0000:0000:0000:0001` là gì?
+
+a) `2001:db8:0:0:1`
+b) `2001:0db8::0001`
+c) `2001:db8:0000::1`
+d) `2001:db8::1`
+
+**Đáp án: d** — `2001:db8::1` — bỏ số 0 dẫn đầu mỗi nhóm, và thay toàn bộ chuỗi nhóm `0000`
+liên tiếp bằng `::` (chỉ dùng một lần trong một địa chỉ). `2001:db8:0:0:1` thiếu một nhóm (chỉ
+còn 5 nhóm thay vì phải đại diện đủ 8, không hợp lệ nếu không dùng `::` — loại a); `2001:0db8::
+0001` giữ lại số 0 dẫn đầu không cần thiết ở cả nhóm đầu và nhóm cuối (loại b); `2001:db8:0000::
+1` còn sót một nhóm `0000` chưa được gộp vào `::`, trong khi toàn bộ 5 nhóm 0 liên tiếp phải gộp
+chung một lần (loại c).
+
+---
+
+**Câu 3**: Vì sao IPv6 về thiết kế KHÔNG cần NAT như IPv4, dù một số tổ chức vẫn dùng kỹ thuật
+tương tự (NPTv6)?
+
+a) Không gian địa chỉ IPv6 (128 bit) đủ lớn để cấp một địa chỉ global unicast riêng cho mỗi
+   thiết bị, không cần "giả lập nhiều máy dùng chung 1 IP" như NAT IPv4 giải quyết; NPTv6 (nếu
+   dùng) phục vụ mục đích khác (ẩn cấu trúc mạng, dễ đổi ISP), không phải vì thiếu địa chỉ
+b) Vì IPv6 cấm hoàn toàn việc dùng NAT ở mức giao thức, thiết bị hỗ trợ NAT sẽ không tương
+   thích chuẩn
+c) Vì NPTv6 thực chất là một dạng NAT bắt buộc để IPv6 hoạt động được qua Internet công khai
+d) Vì mọi thiết bị IPv6 đều dùng chung một địa chỉ global unicast cấp bởi ISP, không cần địa
+   chỉ riêng từng thiết bị
+
+**Đáp án: a** — Không gian địa chỉ IPv6 (128 bit) đủ lớn để cấp một địa chỉ global unicast
+RIÊNG cho mỗi thiết bị, không cần "giả lập nhiều máy dùng chung 1 IP" như NAT IPv4 giải quyết
+(NAT ra đời vì IPv4 thực sự THIẾU địa chỉ). NPTv6 (nếu dùng) phục vụ mục đích khác (ẩn cấu trúc
+mạng, dễ đổi ISP), không phải vì thiếu địa chỉ. IPv6 không cấm NAT ở mức giao thức, chỉ là
+không CẦN nó (loại b); NPTv6 là lựa chọn tuỳ chọn, không bắt buộc để IPv6 hoạt động (loại c);
+mỗi thiết bị IPv6 thường có địa chỉ global unicast riêng, không dùng chung một địa chỉ (loại d).
+
+---
+
+**Câu 4**: Vì sao `ping -6 fe80::1` (không chỉ định interface) có thể báo lỗi trên một máy có
+nhiều network interface?
+
+a) Vì lệnh `ping -6` không hỗ trợ địa chỉ link-local, phải luôn dùng global unicast
+b) Địa chỉ link-local chỉ duy nhất trong phạm vi một segment mạng, không duy nhất trên toàn máy
+   nếu có nhiều interface — hệ thống cần biết gửi qua interface nào (chỉ định qua cú pháp
+   `%<interface>`), thiếu thông tin này gây lỗi hoặc không rõ hành vi
+c) Vì `fe80::1` là địa chỉ dự trữ không được gán cho interface thực tế nào
+d) Vì hệ thống luôn ưu tiên route IPv4 trước, gây xung đột khi ping một địa chỉ IPv6 link-local
+
+**Đáp án: b** — Địa chỉ link-local chỉ duy nhất TRONG PHẠM VI một segment mạng, không duy nhất
+trên toàn máy nếu có nhiều interface — hệ thống cần biết gửi qua interface nào (chỉ định qua cú
+pháp `%<interface>`), thiếu thông tin này gây lỗi hoặc không rõ hành vi. `ping -6` vẫn hỗ trợ
+link-local bình thường, vấn đề là thiếu chỉ định interface (loại a); `fe80::1` chỉ là một ví dụ
+địa chỉ hợp lệ trong dải link-local, không phải địa chỉ dự trữ đặc biệt (loại c); đây không liên
+quan tới route IPv4 (loại d).
+
+---
+
+**Câu 5**: Một service dual-stack chỉ bind `0.0.0.0` (không bind `::`). DNS cấp cả bản ghi A và
+AAAA cho nó. Điều gì có thể xảy ra với client ưu tiên thử IPv6 trước?
+
+a) Client sẽ tự động fallback sang IPv4 ngay lập tức mà không có lỗi nào xuất hiện
+b) DNS sẽ tự động loại bỏ bản ghi AAAA khi phát hiện service không lắng nghe IPv6
+c) Client thử kết nối qua địa chỉ IPv6 (từ bản ghi AAAA) nhưng service không lắng nghe ở đó —
+   nhận "connection refused" ngay, dù dịch vụ vẫn hoạt động tốt qua IPv4 nếu được thử; giải pháp
+   đúng là bind cả hai họ địa chỉ, không chỉ xoá bản ghi AAAA
+d) Client sẽ treo vô thời hạn chờ phản hồi từ địa chỉ IPv6 vì không có timeout mặc định
+
+**Đáp án: c** — Client thử kết nối qua địa chỉ IPv6 (từ bản ghi AAAA) nhưng service KHÔNG lắng
+nghe ở đó — nhận "connection refused" ngay, dù dịch vụ vẫn hoạt động tốt qua IPv4 nếu được thử.
+Giải pháp đúng là bind cả hai họ địa chỉ, không chỉ xoá bản ghi AAAA. Service không lắng nghe
+IPv6 nên trả RST ngay lập tức chứ không fallback tự động êm thấm (loại a); DNS chỉ trả về bản
+ghi đã cấu hình, không tự biết và không tự xoá AAAA (loại b); "connection refused" là phản hồi
+ngay, không phải treo vô thời hạn (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

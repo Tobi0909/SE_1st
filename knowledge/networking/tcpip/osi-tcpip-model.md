@@ -186,37 +186,97 @@ LAN nội bộ, khác subnet).
 
 ## 7. Tự kiểm tra
 
-1. `ping` một server thành công nhưng SSH vào server đó bị treo (không connect). Vấn đề nhiều
-   khả năng nằm ở tầng nào?
-   <details><summary>Đáp án</summary>Không phải tầng Internet (ping đã xác nhận routing/ICMP ổn)
-   — khả năng cao ở tầng Transport (firewall chặn port 22, hoặc SSH daemon không chạy) hoặc
-   Application (SSH service lỗi).</details>
+**Câu 1**: `ping` một server thành công nhưng SSH vào server đó bị treo (không connect). Vấn đề
+nhiều khả năng nằm ở tầng nào?
 
-2. Vì sao cùng một máy laptop có thể giữ NGUYÊN địa chỉ MAC nhưng đổi địa chỉ IP khi chuyển từ
-   WiFi nhà sang WiFi công ty?
-   <details><summary>Đáp án</summary>MAC gắn với THIẾT BỊ VẬT LÝ (card mạng), không đổi theo
-   môi trường. IP là địa chỉ LOGIC gắn với MẠNG đang kết nối — đổi mạng (đổi tầng Internet) thì
-   IP phải đổi theo để định tuyến đúng, dù tầng Link (MAC) không đổi.</details>
+a) Tầng Transport (firewall chặn port 22) hoặc Application (SSH service lỗi) — ping đã xác nhận
+   tầng Internet ổn
+b) Tầng Internet — ping chỉ xác nhận được tầng Link, chưa chắc gói tin đã định tuyến đúng tới
+   đích
+c) Tầng Link (Data Link) — địa chỉ MAC có thể bị ARP cache cũ dẫn tới gói tin đi sai hướng
+d) Tầng Physical — rất có thể cáp mạng hoặc cổng switch đang chập chờn
 
-3. Tại sao TCP/IP (mô hình thực tế) không tách riêng tầng Presentation/Session như OSI?
-   <details><summary>Đáp án</summary>Vì chức năng của hai tầng đó (mã hoá/nén, quản lý session)
-   trong thực tế được xử lý NGAY trong tầng ứng dụng (ví dụ TLS nằm giữa HTTP và TCP, vẫn thuộc
-   "Application" theo TCP/IP) — không cần một tầng riêng biệt để mô tả đúng cách Internet vận
-   hành thật.</details>
+**Đáp án: a** — Không phải tầng Internet (ping đã xác nhận routing/ICMP ổn) — khả năng cao ở
+tầng Transport (firewall chặn port 22, hoặc SSH daemon không chạy) hoặc Application (SSH
+service lỗi). Ping thành công đã loại trừ cả tầng Link/Physical (b, c, d sai vì gói tin đã đi
+qua được các tầng đó).
 
-4. `nc -zv <ip> <port>` trả về "Connection refused" ngay lập tức. Điều này cho biết gì khác với
-   "Connection timed out"?
-   <details><summary>Đáp án</summary>"Refused" nghĩa là gói tin TỚI ĐƯỢC đích (tầng Internet
-   ổn) nhưng KHÔNG CÓ service nào lắng nghe đúng port đó (tầng Application/Transport) — máy
-   đích chủ động gửi lại TCP RST. "Timed out" nghĩa là gói tin KHÔNG TỚI ĐƯỢC đích hoặc phản
-   hồi không quay lại được — thường là vấn đề routing/firewall ở tầng thấp hơn.</details>
+---
 
-5. Vì sao "đi theo tầng" (từ Link lên Application, hoặc ngược lại) là chiến lược debug tốt hơn
-   so với đoán ngẫu nhiên nguyên nhân?
-   <details><summary>Đáp án</summary>Vì mỗi bước xác nhận MỘT tầng hoạt động hay không sẽ LOẠI
-   TRỪ toàn bộ các tầng đã xác nhận ổn khỏi danh sách nghi ngờ, thu hẹp phạm vi tìm lỗi một
-   cách có hệ thống — tránh lãng phí thời gian điều tra sai tầng (ví dụ debug firewall khi vấn
-   đề thật là service chưa chạy).</details>
+**Câu 2**: Vì sao cùng một máy laptop có thể giữ NGUYÊN địa chỉ MAC nhưng đổi địa chỉ IP khi
+chuyển từ WiFi nhà sang WiFi công ty?
+
+a) MAC cũng đổi theo mạng, nhưng hệ điều hành cache giá trị cũ nên nhìn như không đổi
+b) MAC gắn với thiết bị vật lý (card mạng) nên không đổi theo môi trường; IP là địa chỉ logic
+   gắn với mạng đang kết nối, phải đổi theo để định tuyến đúng
+c) IP được NAT giữ nguyên qua router, còn MAC mới được DHCP cấp lại ở mỗi mạng
+d) Cả MAC và IP đều do nhà sản xuất card mạng gán cố định ngay từ khi sản xuất
+
+**Đáp án: b** — MAC gắn với THIẾT BỊ VẬT LÝ (card mạng), không đổi theo môi trường. IP là địa
+chỉ LOGIC gắn với MẠNG đang kết nối — đổi mạng (đổi tầng Internet) thì IP phải đổi theo để định
+tuyến đúng, dù tầng Link (MAC) không đổi. MAC không hề đổi (loại a); DHCP cấp IP mới chứ không
+cấp MAC (loại c); cả hai không cố định vĩnh viễn theo kiểu đó (loại d, IP luôn thay đổi theo
+mạng).
+
+---
+
+**Câu 3**: Tại sao TCP/IP (mô hình thực tế) không tách riêng tầng Presentation/Session như OSI?
+
+a) Vì hai tầng đó được gộp chung vào tầng Transport để giảm độ trễ xử lý gói tin
+b) Vì Presentation và Session chỉ cần thiết cho giao thức UDP, không áp dụng cho TCP
+c) Vì chức năng của hai tầng đó (mã hoá/nén, quản lý session) được xử lý ngay trong tầng
+   Application trong thực tế — không cần tầng riêng để mô tả đúng cách Internet vận hành
+d) Vì TCP/IP không có khái niệm mã hoá hay quản lý session ở bất kỳ tầng nào
+
+**Đáp án: c** — Vì chức năng của hai tầng đó (mã hoá/nén, quản lý session) trong thực tế được xử
+lý NGAY trong tầng ứng dụng (ví dụ TLS nằm giữa HTTP và TCP, vẫn thuộc "Application" theo
+TCP/IP) — không cần một tầng riêng biệt để mô tả đúng cách Internet vận hành thật. Chức năng đó
+không nằm ở Transport (loại a); vẫn áp dụng cho cả TCP và UDP (loại b); và TCP/IP vẫn có các
+khái niệm đó, chỉ không tách tầng riêng (loại d).
+
+---
+
+**Câu 4**: `nc -zv <ip> <port>` trả về "Connection refused" ngay lập tức. Điều này cho biết gì
+khác với "Connection timed out"?
+
+a) "Refused" nghĩa là NAT giữa đường đã chặn gói tin, "timed out" nghĩa là port đang mở nhưng
+   service đang quá tải không kịp phản hồi
+b) Cả hai đều có nghĩa service không lắng nghe port đó, chỉ khác nhau ở thời gian client phải
+   chờ trước khi nhận lỗi
+c) "Refused" nghĩa là địa chỉ IP đích không tồn tại trên mạng, "timed out" nghĩa là địa chỉ tồn
+   tại nhưng tên miền chưa phân giải được
+d) "Refused" là gói tin tới được đích (tầng Internet ổn) nhưng không có service nào lắng nghe
+   đúng port đó, máy đích chủ động gửi lại TCP RST; "timed out" là gói tin không tới được đích
+   hoặc phản hồi không quay lại được, thường do vấn đề routing/firewall ở tầng thấp hơn
+
+**Đáp án: d** — "Refused" nghĩa là gói tin TỚI ĐƯỢC đích (tầng Internet ổn) nhưng KHÔNG CÓ
+service nào lắng nghe đúng port đó (tầng Application/Transport) — máy đích chủ động gửi lại TCP
+RST. "Timed out" nghĩa là gói tin KHÔNG TỚI ĐƯỢC đích hoặc phản hồi không quay lại được — thường
+là vấn đề routing/firewall ở tầng thấp hơn. NAT chặn hẳn gói tin thường biểu hiện như timeout,
+không phải refused ngay (loại a); hai lỗi này có ý nghĩa khác nhau về việc gói tin có tới đích
+hay không, không chỉ khác thời gian chờ (loại b); cả hai đều giả định địa chỉ IP đã tồn tại và
+đã được phân giải (loại c).
+
+---
+
+**Câu 5**: Vì sao "đi theo tầng" (từ Link lên Application, hoặc ngược lại) là chiến lược debug
+tốt hơn so với đoán ngẫu nhiên nguyên nhân?
+
+a) Vì mỗi bước xác nhận một tầng hoạt động hay không sẽ loại trừ toàn bộ các tầng đã xác nhận ổn
+   khỏi danh sách nghi ngờ, thu hẹp phạm vi tìm lỗi có hệ thống
+b) Vì quy trình chuẩn luôn yêu cầu debug từ tầng Application xuống trước, bất kể dấu hiệu lỗi là
+   gì
+c) Vì mỗi tầng có một công cụ chẩn đoán riêng, đi theo tầng chỉ giúp chọn đúng công cụ, không
+   giúp thu hẹp nguyên nhân
+d) Vì các tầng hoạt động độc lập, không liên quan nhau nên có thể kiểm tra song song toàn bộ các
+   tầng cùng lúc để tiết kiệm thời gian
+
+**Đáp án: a** — Vì mỗi bước xác nhận MỘT tầng hoạt động hay không sẽ LOẠI TRỪ toàn bộ các tầng
+đã xác nhận ổn khỏi danh sách nghi ngờ, thu hẹp phạm vi tìm lỗi một cách có hệ thống — tránh lãng
+phí thời gian điều tra sai tầng (ví dụ debug firewall khi vấn đề thật là service chưa chạy).
+Không có quy trình bắt buộc phải đi từ Application xuống (loại b); việc chọn đúng công cụ không
+phải lý do chính, lý do chính là loại trừ nguyên nhân (loại c); các tầng phụ thuộc lẫn nhau theo
+thứ tự (tầng trên cần tầng dưới hoạt động), không kiểm tra song song vô nghĩa được (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

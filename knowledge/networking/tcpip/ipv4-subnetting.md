@@ -176,36 +176,96 @@ Team mạng báo "máy chủ mới (IP `192.168.25.50/24`) không ping được 
 
 ## 7. Tự kiểm tra
 
-1. Hai IP `10.0.5.100/22` và `10.0.6.50/22` có cùng subnet không? (Gợi ý: `/22` = mask
-   `255.255.252.0`)
-   <details><summary>Đáp án</summary>Có. <code>/22</code> gộp 4 octet thứ-3 liên tiếp
-   (<code>4, 5, 6, 7</code> trong trường hợp này rơi vào cùng một block 4-số) vào một mạng —
-   tính <code>AND</code> cả hai IP với mask <code>/22</code> đều ra network address
-   <code>10.0.4.0</code>, xác nhận cùng mạng dù octet thứ 3 khác nhau (<code>5</code> vs
-   <code>6</code>).</details>
+**Câu 1**: Hai IP `10.0.5.100/22` và `10.0.6.50/22` có cùng subnet không? (Gợi ý: `/22` = mask
+`255.255.252.0`)
 
-2. Một mạng `/27` có tổng bao nhiêu địa chỉ? Bao nhiêu host dùng được?
-   <details><summary>Đáp án</summary>Tổng <code>2^(32-27) = 2^5 = 32</code> địa chỉ. Host dùng
-   được: <code>32 - 2 = 30</code> (trừ network address và broadcast address).</details>
+a) Không, vì octet thứ ba khác nhau (5 vs 6) nên luôn thuộc hai subnet khác nhau trừ khi dùng
+   VLSM đặc biệt
+b) Có — `/22` gộp 4 octet thứ-3 liên tiếp (4, 5, 6, 7 đều rơi vào cùng một block) vào một mạng;
+   `AND` cả hai IP với mask `/22` đều ra network address `10.0.4.0`, xác nhận cùng mạng dù octet
+   thứ 3 khác nhau
+c) Không thể xác định nếu không biết thêm địa chỉ gateway của mạng
+d) Có, nhưng chỉ vì hai địa chỉ nằm trong cùng dải `/24` kề nhau (`10.0.5.0/24` và
+   `10.0.6.0/24`)
 
-3. Máy A (`172.16.1.5/24`) và máy B (`172.16.1.200/24`) cùng subnet. Máy A có cần default
-   gateway để ping được máy B không?
-   <details><summary>Đáp án</summary>Không cần. Cùng subnet thì giao tiếp TRỰC TIẾP qua
-   Ethernet/ARP, không đi qua gateway — default gateway chỉ cần cho giao tiếp RA NGOÀI subnet
-   hiện tại.</details>
+**Đáp án: b** — Có. `/22` gộp 4 octet thứ-3 liên tiếp (`4, 5, 6, 7` trong trường hợp này rơi vào
+cùng một block 4-số) vào một mạng — tính `AND` cả hai IP với mask `/22` đều ra network address
+`10.0.4.0`, xác nhận cùng mạng dù octet thứ 3 khác nhau (`5` vs `6`). Octet thứ 3 khác nhau
+không tự động nghĩa là khác subnet khi mask gộp nhiều octet (loại a); kết luận tính được trực
+tiếp từ IP và mask, không cần gateway (loại c); việc gộp mạng theo `/22` không đơn thuần là hai
+dải `/24` kề nhau — phải đúng khối 4-số bắt đầu từ `4` (loại d, vô tình đúng ở ví dụ này nhưng
+sai về nguyên lý: khối `/22` không phải lúc nào cũng là 2 dải `/24` liền kề đang xét).
 
-4. Vì sao CIDR (classless) được coi là cải tiến so với hệ thống Class A/B/C cũ?
-   <details><summary>Đáp án</summary>Class cũ chỉ có 3 kích thước mạng cố định (/8, /16, /24),
-   buộc tổ chức cần số lượng địa chỉ nằm GIỮA các mức đó phải lấy dư thừa rất nhiều (lãng phí).
-   CIDR cho phép chọn CHÍNH XÁC prefix length cần, linh hoạt và tiết kiệm địa chỉ hơn nhiều.
-   </details>
+---
 
-5. Bạn cần cấp một dải IP cho 100 máy, dự kiến tăng lên 150 trong năm tới. Nên chọn prefix
-   length nào, và vì sao không nên chọn đúng mức tối thiểu cho 100 máy hiện tại?
-   <details><summary>Đáp án</summary>Nên chọn <code>/24</code> (254 host dùng được, đủ cho cả
-   100 hiện tại và 150 dự kiến), không chọn <code>/25</code> (126 host — chỉ hơn 100 một chút,
-   không đủ khi tăng lên 150). Luôn tính trước nhu cầu mở rộng khi quy hoạch subnet, vì đổi lại
-   sau khi đã có nhiều máy đang dùng tốn công hơn nhiều so với chọn dư ngay từ đầu.</details>
+**Câu 2**: Một mạng `/27` có tổng bao nhiêu địa chỉ? Bao nhiêu host dùng được?
+
+a) Tổng 64 địa chỉ, host dùng được 62
+b) Tổng 32 địa chỉ, host dùng được 32
+c) Tổng 32 địa chỉ (`2^(32-27) = 2^5 = 32`), host dùng được 30 (trừ network address và broadcast
+   address)
+d) Tổng 16 địa chỉ, host dùng được 14
+
+**Đáp án: c** — Tổng `2^(32-27) = 2^5 = 32` địa chỉ. Host dùng được: `32 - 2 = 30` (trừ network
+address và broadcast address). Con số 64/62 là của `/26`, không phải `/27` (loại a); quên trừ 2
+địa chỉ network/broadcast thì sai (loại b); con số 16/14 là của `/28` (loại d).
+
+---
+
+**Câu 3**: Máy A (`172.16.1.5/24`) và máy B (`172.16.1.200/24`) cùng subnet. Máy A có cần default
+gateway để ping được máy B không?
+
+a) Có, mọi gói tin luôn phải qua default gateway trước khi tới bất kỳ máy nào trong mạng
+b) Chỉ cần gateway nếu hai máy nằm trên hai switch vật lý khác nhau, dù cùng subnet logic
+c) Không cần, nhưng chỉ vì cả hai máy dùng cùng một dải DHCP nên switch tự định tuyến nội bộ
+d) Không cần — cùng subnet giao tiếp trực tiếp qua Ethernet/ARP, không đi qua gateway; default
+   gateway chỉ cần cho giao tiếp ra ngoài subnet hiện tại
+
+**Đáp án: d** — Không cần. Cùng subnet thì giao tiếp TRỰC TIẾP qua Ethernet/ARP, không đi qua
+gateway — default gateway chỉ cần cho giao tiếp RA NGOÀI subnet hiện tại. Gói tin trong cùng
+subnet không bắt buộc qua gateway (loại a); việc có cần gateway hay không phụ thuộc vào subnet
+logic (IP/mask), không phụ thuộc số switch vật lý (loại b); lý do đúng là cùng subnet IP, không
+liên quan tới việc dùng chung dải DHCP (loại c).
+
+---
+
+**Câu 4**: Vì sao CIDR (classless) được coi là cải tiến so với hệ thống Class A/B/C cũ?
+
+a) Class cũ chỉ có 3 kích thước mạng cố định (`/8`, `/16`, `/24`), buộc tổ chức cần số lượng địa
+   chỉ nằm giữa các mức đó phải lấy dư thừa rất nhiều; CIDR cho phép chọn chính xác prefix
+   length cần, linh hoạt và tiết kiệm địa chỉ hơn
+b) Vì CIDR cho phép bỏ hoàn toàn subnet mask, router tự suy ra kích thước mạng từ địa chỉ IP
+c) Vì CIDR chỉ áp dụng cho mạng nội bộ private, không ảnh hưởng tới cấp phát địa chỉ public
+d) Vì Class A/B/C vẫn linh hoạt tương đương CIDR, chỉ khác ở cách ghi ký hiệu mask
+
+**Đáp án: a** — Class cũ chỉ có 3 kích thước mạng cố định (/8, /16, /24), buộc tổ chức cần số
+lượng địa chỉ nằm GIỮA các mức đó phải lấy dư thừa rất nhiều (lãng phí). CIDR cho phép chọn
+CHÍNH XÁC prefix length cần, linh hoạt và tiết kiệm địa chỉ hơn nhiều. CIDR vẫn cần subnet mask
+(ghi dưới dạng prefix length), không bỏ nó (loại b); CIDR áp dụng cho cả địa chỉ public và
+private (loại c); Class cũ kém linh hoạt hơn CIDR về số lượng mức kích thước mạng có thể chọn
+(loại d).
+
+---
+
+**Câu 5**: Bạn cần cấp một dải IP cho 100 máy, dự kiến tăng lên 150 trong năm tới. Nên chọn
+prefix length nào, và vì sao không nên chọn đúng mức tối thiểu cho 100 máy hiện tại?
+
+a) Nên chọn `/25` (126 host) vì đã đủ hơn 100 máy hiện tại, mở rộng sau bằng cách cấp thêm
+   subnet mới liền kề
+b) Nên chọn `/24` (254 host dùng được, đủ cho cả 100 hiện tại và 150 dự kiến), không chọn `/25`
+   (126 host — chỉ hơn 100 một chút, không đủ khi tăng lên 150); luôn tính trước nhu cầu mở rộng
+   khi quy hoạch subnet
+c) Nên chọn `/23` để chắc chắn dư thừa gấp nhiều lần nhu cầu, tránh phải tính toán lại trong
+   tương lai
+d) Nên chọn `/26` (62 host) và chia thành 2 subnet riêng cho 100 máy hiện tại, nâng cấp khi cần
+
+**Đáp án: b** — Nên chọn `/24` (254 host dùng được, đủ cho cả 100 hiện tại và 150 dự kiến),
+không chọn `/25` (126 host — chỉ hơn 100 một chút, không đủ khi tăng lên 150). Luôn tính trước
+nhu cầu mở rộng khi quy hoạch subnet, vì đổi lại sau khi đã có nhiều máy đang dùng tốn công hơn
+nhiều so với chọn dư ngay từ đầu. `/25` không đủ khi tăng lên 150 máy, và cấp thêm subnet liền kề
+sau này phức tạp hơn chọn đúng ngay từ đầu (loại a); `/23` dư thừa không cần thiết, lãng phí địa
+chỉ (loại c); `/26` (62 host) còn nhỏ hơn cả nhu cầu hiện tại 100 máy, hoàn toàn không đủ (loại
+d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

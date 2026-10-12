@@ -27,10 +27,23 @@ rải đều A/B/C/D trong mỗi module; nhiễu phải sai dứt khoát theo đ
 `linux.package-management` (2 bài, 6 câu — commit `61f0172`),
 `linux.kernel-troubleshooting` (4 bài, 12 câu — xem commit theo sau trong git log).
 
-Domain `linux` đã xong hoàn toàn (9/9 module). Tiếp theo: domain `networking`.
+Domain `linux` đã xong hoàn toàn (9/9 module). Đang chuyển domain `networking` (10 module, theo
+đúng thứ tự xuất hiện trong `_taxonomy.yaml`: tcpip → switching → routing → dns → dhcp →
+nat-firewall → tls-pki → http-lb → vpn → diagnostic-tools).
 
-**Còn lại**: 71 bài, ~15 module. Chưa bài nào phải bỏ qua vì không nghĩ ra được lựa chọn nhiễu
-đáng tin cậy.
+`networking.tcpip` (4 bài, 20 câu — xem commit theo sau trong git log): `osi-tcpip-model`,
+`ipv4-subnetting`, `ipv6-basics`, `tcp-udp`. Verify qua PGlite (dựng lại server mới ở
+scratchpad do server PGlite cũ từ phiên trước đã hỏng migration state): `kb:import` → 146 bài,
+`kb:build-quiz` → 368 câu MCQ (gồm 36 bài format-C cũ không đổi), idempotent (chạy lại = 0 câu
+mới), `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Còn lại trong `networking`**: 9 module (switching 5 bài, routing 3, dns 2, dhcp 1,
+nat-firewall 3, tls-pki 3, http-lb 3, vpn 1, diagnostic-tools 3 = 24 bài).
+
+**Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
+rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
+còn khoảng 51 bài sau khi xong `networking`. Chưa bài nào phải bỏ qua vì không nghĩ ra được lựa
+chọn nhiễu đáng tin cậy.
 
 ## Trạng thái tổng quan
 
