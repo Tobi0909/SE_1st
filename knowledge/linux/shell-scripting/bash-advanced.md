@@ -213,28 +213,68 @@ báo lỗi) nhưng file backup thực tế trống/hỏng:
 
 ## 7. Tự kiểm tra
 
-1. `set -e` có làm script dừng khi một lệnh lỗi NẰM TRONG điều kiện `if lenh_loi; then` không?
-   <details><summary>Đáp án</summary>Không — đây là một trong các ngoại lệ của
-   <code>set -e</code>: lệnh đang được kiểm tra CHỦ ĐỘNG trong <code>if</code>/<code>while</code>/
-   <code>&&</code>/<code>||</code> không kích hoạt dừng script dù lỗi.</details>
+**Câu 1**: `set -e` có làm script dừng khi một lệnh lỗi NẰM TRONG điều kiện
+`if lenh_loi; then` không?
 
-2. Vì sao phải đọc `$?` vào một biến `local` NGAY dòng đầu của hàm `cleanup` được gọi qua
-   `trap ... EXIT`, trước khi chạy bất kỳ lệnh nào khác trong hàm?
-   <details><summary>Đáp án</summary>Vì <code>$?</code> luôn phản ánh exit code của LỆNH VỪA
-   CHẠY GẦN NHẤT — nếu chạy một lệnh khác (như <code>rm</code>) trước khi đọc, <code>$?</code>
-   sẽ bị ghi đè thành exit code của lệnh đó, mất giá trị gốc cho biết TẠI SAO script dừng.</details>
+a) Có, `set -e` luôn dừng script ngay khi bất kỳ lệnh nào trả về khác 0, không có ngoại lệ
+b) Có, nhưng chỉ nếu lỗi xảy ra ở lệnh cuối cùng trong block `if`, các lệnh giữa thì không
+c) Không — đây là một trong các ngoại lệ của `set -e`: lệnh đang được kiểm tra CHỦ ĐỘNG
+   trong `if`/`while`/`&&`/`||` không kích hoạt dừng script dù lỗi
+d) Không, nhưng chỉ vì `if` luôn tự động vô hiệu hoá `set -e` cho toàn bộ phần còn lại của
+   script
 
-3. Pipeline `a | b` với `a` lỗi, `b` thành công, KHÔNG có `pipefail`. Exit code của pipeline là
-   gì, và vì sao đây là một "cạm bẫy"?
-   <details><summary>Đáp án</summary>Exit code là của <code>b</code> (lệnh CUỐI pipeline) —
-   tức thành công (<code>0</code>) dù <code>a</code> đã lỗi. Đây là cạm bẫy vì script/cron chỉ
-   kiểm tra exit code cuối sẽ KHÔNG BIẾT lệnh đầu pipeline đã thất bại, trừ khi bật
-   <code>set -o pipefail</code>.</details>
+**Đáp án: c** — Không — đây là một trong các ngoại lệ của `set -e`: lệnh đang được kiểm tra
+CHỦ ĐỘNG trong `if`/`while`/`&&`/`||` không kích hoạt dừng script dù lỗi.
 
-4. `trap cleanup EXIT` có chạy `cleanup` khi process bị `kill -9` không? Vì sao?
-   <details><summary>Đáp án</summary>Không — <code>SIGKILL</code> không thể bị bắt hoặc xử lý
-   bởi bất kỳ cơ chế trap/signal handler nào ở tầng ứng dụng, nên <code>trap</code> (dựa trên
-   bắt signal) không có cơ hội chạy.</details>
+---
+
+**Câu 2**: Vì sao phải đọc `$?` vào một biến `local` NGAY dòng đầu của hàm `cleanup` được
+gọi qua `trap ... EXIT`, trước khi chạy bất kỳ lệnh nào khác trong hàm?
+
+a) Vì `$?` chỉ có giá trị hợp lệ trong vòng 1 giây sau khi lệnh trước đó kết thúc, cần đọc
+   ngay để không bị timeout
+b) Vì biến `local` luôn nhanh hơn biến global khi đọc trong trap, lý do chính là tối ưu
+   hiệu năng
+c) Vì `trap EXIT` reset `$?` về 0 ngay khi hàm `cleanup` bắt đầu chạy, nên phải lưu trước
+   khi vào hàm
+d) Vì `$?` luôn phản ánh exit code của LỆNH VỪA CHẠY GẦN NHẤT — nếu chạy một lệnh khác
+   (như `rm`) trước khi đọc, `$?` sẽ bị ghi đè thành exit code của lệnh đó, mất giá trị gốc
+   cho biết TẠI SAO script dừng
+
+**Đáp án: d** — Vì `$?` luôn phản ánh exit code của LỆNH VỪA CHẠY GẦN NHẤT — nếu chạy một
+lệnh khác (như `rm`) trước khi đọc, `$?` sẽ bị ghi đè thành exit code của lệnh đó, mất giá
+trị gốc cho biết TẠI SAO script dừng.
+
+---
+
+**Câu 3**: Pipeline `a | b` với `a` lỗi, `b` thành công, KHÔNG có `pipefail`. Exit code của
+pipeline là gì, và vì sao đây là một "cạm bẫy"?
+
+a) Exit code là của `b` (lệnh CUỐI pipeline) — tức thành công (`0`) dù `a` đã lỗi. Đây là
+   cạm bẫy vì script/cron chỉ kiểm tra exit code cuối sẽ KHÔNG BIẾT lệnh đầu pipeline đã
+   thất bại, trừ khi bật `set -o pipefail`
+b) Exit code là của `a` (lỗi), vì bash luôn lấy exit code của lệnh ĐẦU TIÊN trong pipeline
+   theo mặc định
+c) Exit code là giá trị lớn nhất giữa `a` và `b`, tự động chọn lỗi nghiêm trọng hơn
+d) Exit code không xác định được — ngẫu nhiên giữa `a` và `b` tuỳ hệ thống
+
+**Đáp án: a** — Exit code là của `b` (lệnh CUỐI pipeline) — tức thành công (`0`) dù `a` đã
+lỗi. Đây là cạm bẫy vì script/cron chỉ kiểm tra exit code cuối sẽ KHÔNG BIẾT lệnh đầu
+pipeline đã thất bại, trừ khi bật `set -o pipefail`.
+
+---
+
+**Câu 4**: `trap cleanup EXIT` có chạy `cleanup` khi process bị `kill -9` không? Vì sao?
+
+a) Có, `trap EXIT` luôn chạy bất kể process bị kết thúc bằng tín hiệu nào, kể cả `SIGKILL`
+b) Không — `SIGKILL` không thể bị bắt hoặc xử lý bởi bất kỳ cơ chế trap/signal handler nào
+   ở tầng ứng dụng, nên `trap` (dựa trên bắt signal) không có cơ hội chạy
+c) Có, nhưng chỉ nếu `cleanup` được định nghĩa là hàm async chạy nền trước đó
+d) Không, nhưng chỉ vì `EXIT` trap chỉ áp dụng khi script tự `exit` bằng lệnh `exit`, không
+   áp dụng khi bị kill bởi bất kỳ tín hiệu nào kể cả `SIGTERM`
+
+**Đáp án: b** — Không — `SIGKILL` không thể bị bắt hoặc xử lý bởi bất kỳ cơ chế trap/signal
+handler nào ở tầng ứng dụng, nên `trap` (dựa trên bắt signal) không có cơ hội chạy.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

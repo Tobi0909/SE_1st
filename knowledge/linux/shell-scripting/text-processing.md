@@ -168,24 +168,49 @@ nghi vấn tấn công hoặc client lỗi)?
 
 ## 7. Tự kiểm tra
 
-1. `sed 's/foo/bar/' file.txt` có sửa `file.txt` không? Cần thêm gì để sửa thật?
-   <details><summary>Đáp án</summary>Không — mặc định <code>sed</code> chỉ IN kết quả ra
-   stdout, không đổi file gốc. Cần thêm cờ <code>-i</code> (in-place) để ghi đè file, nên xem
-   thử không có <code>-i</code> trước khi áp dụng thật.</details>
+**Câu 1**: `sed 's/foo/bar/' file.txt` có sửa `file.txt` không? Cần thêm gì để sửa thật?
 
-2. Vì sao `find . -name "*.log" | xargs rm` có thể xoá SAI file nếu tên file chứa khoảng
-   trắng?
-   <details><summary>Đáp án</summary><code>xargs</code> mặc định tách tham số theo khoảng
-   trắng/dòng mới, nên một tên file có khoảng trắng bị tách thành nhiều tham số riêng. Dùng
-   <code>find -print0</code> kèm <code>xargs -0</code> (phân cách bằng NUL) để tránh lỗi
-   này.</details>
+a) Có, `sed` luôn sửa file gốc trực tiếp theo mặc định, không cần cờ gì thêm
+b) Không, và không có cách nào để `sed` sửa file trực tiếp, phải dùng `awk` thay thế
+c) Có, nhưng chỉ sửa được 1 dòng đầu tiên khớp mẫu, cần thêm `-i` để sửa toàn bộ
+d) Không — mặc định `sed` chỉ IN kết quả ra stdout, không đổi file gốc. Cần thêm cờ `-i`
+   (in-place) để ghi đè file
 
-3. `awk '{sum[$1] += $2} END {...}'` dùng cơ chế gì của `awk` để tổng hợp được theo nhóm chỉ
-   trong một lệnh?
-   <details><summary>Đáp án</summary>Biến mảng (<code>sum[$1]</code>, mảng associative theo
-   khoá là field) TỒN TẠI SUỐT quá trình xử lý toàn bộ input (không reset mỗi dòng), và khối
-   <code>END { }</code> chạy một lần duy nhất sau khi đọc hết input để in kết quả tổng hợp
-   cuối cùng.</details>
+**Đáp án: d** — Không — mặc định `sed` chỉ IN kết quả ra stdout, không đổi file gốc. Cần
+thêm cờ `-i` (in-place) để ghi đè file, nên xem thử không có `-i` trước khi áp dụng thật.
+
+---
+
+**Câu 2**: Vì sao `find . -name "*.log" | xargs rm` có thể xoá SAI file nếu tên file chứa
+khoảng trắng?
+
+a) `xargs` mặc định tách tham số theo khoảng trắng/dòng mới, nên một tên file có khoảng
+   trắng bị tách thành nhiều tham số riêng. Dùng `find -print0` kèm `xargs -0` (phân cách
+   bằng NUL) để tránh lỗi này
+b) Vì `rm` mặc định không hỗ trợ tên file có khoảng trắng dưới bất kỳ hình thức nào
+c) Vì `find` luôn trả về đường dẫn tuyệt đối sai khi tên file có khoảng trắng
+d) Vì pipe `|` giữa `find` và `xargs` tự động cắt bớt ký tự khoảng trắng trong tên file
+
+**Đáp án: a** — `xargs` mặc định tách tham số theo khoảng trắng/dòng mới, nên một tên file
+có khoảng trắng bị tách thành nhiều tham số riêng. Dùng `find -print0` kèm `xargs -0` (phân
+cách bằng NUL) để tránh lỗi này.
+
+---
+
+**Câu 3**: `awk '{sum[$1] += $2} END {...}'` dùng cơ chế gì của `awk` để tổng hợp được theo
+nhóm chỉ trong một lệnh?
+
+a) Dùng vòng lặp `for` ẩn tự động chạy lại toàn bộ file sau mỗi dòng mới để cập nhật tổng
+b) Biến mảng (`sum[$1]`, mảng associative theo khoá là field) TỒN TẠI SUỐT quá trình xử lý
+   toàn bộ input (không reset mỗi dòng), và khối `END { }` chạy một lần duy nhất sau khi đọc
+   hết input
+c) `sum[$1]` chỉ tồn tại trong phạm vi dòng hiện tại, `END{}` tự thu thập lại toàn bộ giá
+   trị cũ từ log nội bộ
+d) `END{}` chạy sau MỖI dòng input, không chỉ một lần duy nhất ở cuối
+
+**Đáp án: b** — Biến mảng (`sum[$1]`, mảng associative theo khoá là field) TỒN TẠI SUỐT quá
+trình xử lý toàn bộ input (không reset mỗi dòng), và khối `END { }` chạy một lần duy nhất
+sau khi đọc hết input để in kết quả tổng hợp cuối cùng.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

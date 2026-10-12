@@ -142,23 +142,52 @@ không đúng như mong đợi:
 
 ## 7. Tự kiểm tra
 
-1. Vì sao `[ "$BIEN" = "5" ]` và `[ "$BIEN" -eq 5 ]` có thể cho kết quả KHÁC NHAU nếu
-   `BIEN="05"`?
-   <details><summary>Đáp án</summary><code>=</code> so sánh CHUỖI ký tự ("05" khác "5" về mặt
-   ký tự) nên trả về SAI; <code>-eq</code> so sánh SỐ (05 bằng 5 về giá trị số) nên trả về
-   ĐÚNG. Hai toán tử thuộc hai hệ so sánh khác nhau.</details>
+**Câu 1**: Vì sao `[ "$BIEN" = "5" ]` và `[ "$BIEN" -eq 5 ]` có thể cho kết quả KHÁC NHAU nếu
+`BIEN="05"`?
 
-2. Script có `if some_command; then echo "ok"; fi` — "điều kiện" ở đây thực chất kiểm tra cái
-   gì?
-   <details><summary>Đáp án</summary>Exit code của <code>some_command</code> — <code>0</code>
-   (thành công) được coi là "đúng", khác <code>0</code> được coi là "sai". <code>if</code>
-   không giới hạn ở phép so sánh, nó chạy BẤT KỲ lệnh và kiểm tra exit code.</details>
+a) `=` so sánh CHUỖI ký tự ("05" khác "5" về mặt ký tự) nên trả về SAI; `-eq` so sánh SỐ (05
+   bằng 5 về giá trị số) nên trả về ĐÚNG
+b) `=` so sánh số, `-eq` so sánh chuỗi — ngược lại hoàn toàn với tên gọi thường gặp
+c) Cả hai đều so sánh số, không có khác biệt nào khi `BIEN="05"`
+d) Cả hai đều cho cùng kết quả vì bash tự động ép kiểu số trước khi so sánh trong mọi trường
+   hợp
 
-3. Tại sao nên quote biến (`"$BIEN"`) khi dùng trong `[ ]`, kể cả khi tin chắc biến không chứa
-   khoảng trắng?
-   <details><summary>Đáp án</summary>Vì biến có thể RỖNG (chưa gán, hoặc gán rỗng) — không
-   quote khiến phần đó "biến mất" khỏi câu lệnh do word-splitting, làm <code>[ ]</code> thiếu
-   tham số và báo lỗi cú pháp thay vì so sánh sai/đúng như mong đợi.</details>
+**Đáp án: a** — `=` so sánh CHUỖI ký tự ("05" khác "5" về mặt ký tự) nên trả về SAI; `-eq` so
+sánh SỐ (05 bằng 5 về giá trị số) nên trả về ĐÚNG. Hai toán tử thuộc hai hệ so sánh khác nhau.
+
+---
+
+**Câu 2**: Script có `if some_command; then echo "ok"; fi` — "điều kiện" ở đây thực chất
+kiểm tra cái gì?
+
+a) Giá trị output (stdout) của `some_command` có rỗng hay không
+b) Exit code của `some_command` — `0` (thành công) được coi là "đúng", khác `0` được coi là
+   "sai". `if` không giới hạn ở phép so sánh, nó chạy BẤT KỲ lệnh và kiểm tra exit code
+c) Giá trị biến môi trường `$?` đã được set từ TRƯỚC khi chạy `if`, không liên quan tới
+   `some_command`
+d) Việc `some_command` có tồn tại trong `PATH` hay không, không quan tâm nó chạy thành công
+   hay không
+
+**Đáp án: b** — Exit code của `some_command` — `0` (thành công) được coi là "đúng", khác `0`
+được coi là "sai". `if` không giới hạn ở phép so sánh, nó chạy BẤT KỲ lệnh và kiểm tra exit
+code.
+
+---
+
+**Câu 3**: Tại sao nên quote biến (`"$BIEN"`) khi dùng trong `[ ]`, kể cả khi tin chắc biến
+không chứa khoảng trắng?
+
+a) Vì không quote sẽ khiến bash tự động chuyển biến thành số nguyên, gây sai kết quả so sánh
+   chuỗi
+b) Vì `[ ]` yêu cầu bắt buộc cú pháp có dấu ngoặc kép, thiếu sẽ báo lỗi cú pháp ngay lập tức
+   bất kể giá trị biến
+c) Vì biến có thể RỖNG (chưa gán, hoặc gán rỗng) — không quote khiến phần đó "biến mất"
+   khỏi câu lệnh do word-splitting, làm `[ ]` thiếu tham số và báo lỗi cú pháp
+d) Vì quote giúp tăng tốc độ thực thi lệnh `[ ]` đáng kể so với không quote
+
+**Đáp án: c** — Vì biến có thể RỖNG (chưa gán, hoặc gán rỗng) — không quote khiến phần đó
+"biến mất" khỏi câu lệnh do word-splitting, làm `[ ]` thiếu tham số và báo lỗi cú pháp thay
+vì so sánh sai/đúng như mong đợi.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

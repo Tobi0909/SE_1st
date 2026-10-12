@@ -152,25 +152,54 @@ trùng):
 
 ## 7. Tự kiểm tra
 
-1. Vì sao `mkdir -p` được coi là idempotent nhưng `mkdir` (không `-p`) thì không?
-   <details><summary>Đáp án</summary><code>mkdir -p</code> không báo lỗi nếu thư mục ĐÃ tồn
-   tại (chạy lại nhiều lần cho cùng kết quả cuối — thư mục tồn tại, không lỗi). <code>mkdir</code>
-   thường báo lỗi "File exists" ở lần chạy thứ hai — kết quả (exit code) KHÁC nhau giữa lần 1 và
-   lần sau, không idempotent.</details>
+**Câu 1**: Vì sao `mkdir -p` được coi là idempotent nhưng `mkdir` (không `-p`) thì không?
 
-2. Một script không có `exit` tường minh ở cuối, dòng cuối cùng là `echo "Da xong"`. Exit code
-   của script là gì, và vì sao điều này có thể gây hiểu nhầm?
-   <details><summary>Đáp án</summary>Exit code của script là exit code của <code>echo</code>
-   (luôn là <code>0</code>, thành công). Điều này gây hiểu nhầm vì cron/hệ thống gọi script sẽ
-   nghĩ script THÀNH CÔNG dù logic chính trước đó có thể đã gặp lỗi không làm dừng script (nếu
-   không có <code>set -e</code> hoặc lỗi nằm trong điều kiện được kiểm tra).</details>
+a) `mkdir -p` tạo thư mục với quyền khác mỗi lần chạy, còn `mkdir` thường giữ quyền cố định
+b) `mkdir -p` luôn xoá thư mục cũ rồi tạo lại mới, đảm bảo trạng thái sạch mỗi lần
+c) `mkdir -p` không báo lỗi nếu thư mục ĐÃ tồn tại (chạy lại nhiều lần cho cùng kết quả
+   cuối). `mkdir` thường báo lỗi "File exists" ở lần chạy thứ hai — kết quả KHÁC nhau giữa
+   lần 1 và lần sau, không idempotent
+d) Cả hai đều idempotent như nhau, không có sự khác biệt thực tế giữa `mkdir` và `mkdir -p`
 
-3. Vì sao nên dùng `grep -qF "..." file || echo "..." >> file` thay vì `echo "..." >> file`
-   trực tiếp khi script có thể chạy lại nhiều lần (ví dụ qua cron)?
-   <details><summary>Đáp án</summary><code>echo >> file</code> trực tiếp sẽ thêm dòng MỖI LẦN
-   script chạy, dẫn tới trùng lặp nếu script chạy lại (không idempotent).
-   <code>grep -qF ... ||</code> kiểm tra dòng đã tồn tại chưa, chỉ thêm khi CHƯA có, đảm bảo kết
-   quả cuối giống nhau dù chạy bao nhiều lần.</details>
+**Đáp án: c** — `mkdir -p` không báo lỗi nếu thư mục ĐÃ tồn tại (chạy lại nhiều lần cho cùng
+kết quả cuối — thư mục tồn tại, không lỗi). `mkdir` thường báo lỗi "File exists" ở lần chạy
+thứ hai — kết quả (exit code) KHÁC nhau giữa lần 1 và lần sau, không idempotent.
+
+---
+
+**Câu 2**: Một script không có `exit` tường minh ở cuối, dòng cuối cùng là `echo "Da xong"`.
+Exit code của script là gì, và vì sao điều này có thể gây hiểu nhầm?
+
+a) Exit code luôn là `1`, vì thiếu lệnh `exit` tường minh bash tự coi là lỗi
+b) Exit code là exit code của lệnh ĐẦU TIÊN trong script, không phải lệnh cuối
+c) Exit code không xác định — phụ thuộc vào shell đang dùng để gọi script (bash/sh/zsh cho
+   kết quả khác nhau)
+d) Exit code của script là exit code của `echo` (luôn là `0`, thành công). Điều này gây
+   hiểu nhầm vì cron/hệ thống gọi script sẽ nghĩ script THÀNH CÔNG dù logic chính trước đó
+   có thể đã gặp lỗi không làm dừng script
+
+**Đáp án: d** — Exit code của script là exit code của `echo` (luôn là `0`, thành công).
+Điều này gây hiểu nhầm vì cron/hệ thống gọi script sẽ nghĩ script THÀNH CÔNG dù logic chính
+trước đó có thể đã gặp lỗi không làm dừng script (nếu không có `set -e` hoặc lỗi nằm trong
+điều kiện được kiểm tra).
+
+---
+
+**Câu 3**: Vì sao nên dùng `grep -qF "..." file || echo "..." >> file` thay vì
+`echo "..." >> file` trực tiếp khi script có thể chạy lại nhiều lần (ví dụ qua cron)?
+
+a) `echo >> file` trực tiếp sẽ thêm dòng MỖI LẦN script chạy, dẫn tới trùng lặp nếu script
+   chạy lại (không idempotent). `grep -qF ... ||` kiểm tra dòng đã tồn tại chưa, chỉ thêm
+   khi CHƯA có, đảm bảo kết quả cuối giống nhau dù chạy bao nhiều lần
+b) Vì `grep -qF` luôn chạy nhanh hơn `echo` về mặt hiệu năng I/O
+c) Vì `echo >> file` trực tiếp sẽ ghi đè toàn bộ nội dung file cũ, còn `grep -qF ||` giữ
+   nguyên nội dung cũ
+d) Vì `grep -qF` chỉ hoạt động đúng khi file đã tồn tại từ trước, `echo >>` hoạt động cả khi
+   file chưa tồn tại
+
+**Đáp án: a** — `echo >> file` trực tiếp sẽ thêm dòng MỖI LẦN script chạy, dẫn tới trùng lặp
+nếu script chạy lại (không idempotent). `grep -qF ... ||` kiểm tra dòng đã tồn tại chưa, chỉ
+thêm khi CHƯA có, đảm bảo kết quả cuối giống nhau dù chạy bao nhiều lần.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
