@@ -27,6 +27,7 @@ enum QuestionStatus {
   ACTIVE
   FLAGGED
   HIDDEN
+  STALE
 }
 
 enum ChatContextType {
@@ -109,13 +110,22 @@ model Question {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  topic       Topic              @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  options     QuestionOption[]
-  flags       QuestionFlag[]
-  attempts    QuizAttempt[]
-  flashcards  FlashcardState[]
+  // Câu sinh từ knowledge/ (kb:build-quiz) — null cho câu sinh bằng LLM. questionIndex là số
+  // thứ tự câu trong mục "Tự kiểm tra" của bài; articleVersion là contentHash của Article lúc
+  // sinh câu, dùng để phát hiện bài đã đổi nội dung (câu cũ đánh dấu STALE, câu mới upsert).
+  sourceArticleId String?
+  questionIndex   Int?
+  articleVersion  String?
+
+  topic         Topic              @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  sourceArticle Article?           @relation(fields: [sourceArticleId], references: [id], onDelete: SetNull)
+  options       QuestionOption[]
+  flags         QuestionFlag[]
+  attempts      QuizAttempt[]
+  flashcards    FlashcardState[]
 
   @@index([topicId, difficulty, status])
+  @@index([sourceArticleId, questionIndex])
   @@map("questions")
 }
 
@@ -374,6 +384,7 @@ model Article {
 
   skillNodeLinks  ArticleSkillNode[]
   submitter       User?              @relation(fields: [submittedBy], references: [id], onDelete: SetNull)
+  questions       Question[]
 
   @@index([domain, module])
   @@index([status, level])

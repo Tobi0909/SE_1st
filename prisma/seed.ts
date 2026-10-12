@@ -16,6 +16,9 @@ const SAMPLE_TOPICS = [
   { slug: "monitoring-logging", name: "Monitoring & Logging", description: "Zabbix, Prometheus, Splunk", order: 5 },
   { slug: "cicd-iac", name: "CI/CD & IaC", description: "CI/CD pipeline và Infrastructure as Code", order: 6 },
   { slug: "security-hardening", name: "Security Hardening", description: "Bảo mật và hardening hệ thống", order: 7 },
+  // Thêm khi import knowledge base (kb:build-quiz) phủ 2 domain chưa có topic khớp sẵn.
+  { slug: "data", name: "Data", description: "MySQL/PostgreSQL, Redis, message queue", order: 8 },
+  { slug: "sre", name: "SRE", description: "Incident response, postmortem, change management, capacity planning", order: 9 },
 ];
 
 async function main() {
