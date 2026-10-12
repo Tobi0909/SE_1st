@@ -188,39 +188,103 @@ không xuất hiện trên bất kỳ client nào, dù đã `rndc reload` (lện
 
 ## 7. Tự kiểm tra
 
-1. Bạn sửa một record IP trong zone file, reload DNS server thành công (không lỗi), nhưng
-   QUÊN tăng `serial`. Điều gì xảy ra với secondary DNS server của domain đó?
-   <details><summary>Đáp án</summary>Secondary KHÔNG đồng bộ lại — nó chỉ đồng bộ khi thấy
-   <code>serial</code> trên primary LỚN HƠN số nó đang lưu. Vì serial không đổi, secondary coi
-   như "không có gì mới", tiếp tục trả lời dữ liệu CŨ.</details>
+**Câu 1**: Bạn sửa một record IP trong zone file, reload DNS server thành công (không lỗi),
+nhưng QUÊN tăng `serial`. Điều gì xảy ra với secondary DNS server của domain đó?
 
-2. `dig +short SOA example.com` trả về 5 số sau tên hai server. Số thứ 4 (expire) có ý nghĩa
-   gì?
-   <details><summary>Đáp án</summary>Khoảng thời gian (giây) secondary server coi dữ liệu đã
-   cache là HẾT HIỆU LỰC hoàn toàn nếu không đồng bộ được với primary trong suốt khoảng đó —
-   sau <code>expire</code>, secondary ngừng trả lời cho zone này (coi như không còn đáng tin)
-   thay vì tiếp tục phục vụ dữ liệu quá cũ.</details>
+a) Secondary tự phát hiện IP thay đổi qua so sánh checksum zone file, không cần serial
+b) Secondary KHÔNG đồng bộ lại — nó chỉ đồng bộ khi thấy `serial` trên primary LỚN HƠN số nó
+   đang lưu. Vì serial không đổi, secondary coi như "không có gì mới", tiếp tục trả lời dữ liệu
+   CŨ
+c) Secondary vẫn đồng bộ bình thường vì reload trên primary đã kích hoạt notify
+d) Secondary sẽ báo lỗi và dừng phục vụ zone đó ngay khi phát hiện serial không đổi
 
-3. Một domain mới đăng ký đã cấu hình NS/A record đúng, nhưng một resolver cụ thể vẫn trả
-   NXDOMAIN nhiều giờ sau. Nguyên nhân khả năng cao nhất là gì?
-   <details><summary>Đáp án</summary>Negative caching — resolver đó đã hỏi domain này TRƯỚC
-   KHI nó được cấu hình xong, nhận NXDOMAIN và cache lại trong khoảng thời gian bằng
-   <code>minimum</code> TTL của SOA. Phải chờ hết khoảng đó, resolver mới hỏi lại và nhận được
-   kết quả đúng.</details>
+**Đáp án: b** — Secondary KHÔNG đồng bộ lại — nó chỉ đồng bộ khi thấy `serial` trên primary
+LỚN HƠN số nó đang lưu. Vì serial không đổi, secondary coi như "không có gì mới", tiếp tục trả
+lời dữ liệu CŨ. Secondary không tự so sánh checksum zone file — cơ chế chuẩn dựa trên serial,
+không phải checksum (loại a); notify (nếu có) chỉ báo "có thể có thay đổi, hãy kiểm tra serial"
+— nếu serial không đổi, secondary vẫn kết luận không có gì mới (loại c); secondary không báo
+lỗi khi serial không đổi, đó là trạng thái bình thường "đã đồng bộ", không phải lỗi (loại d).
 
-4. `www.example.com` là CNAME tới `example.com`. Có thể thêm thêm một record `MX` cho đúng
-   tên `www.example.com` không?
-   <details><summary>Đáp án</summary>Không. Theo chuẩn DNS, một tên có CNAME thì KHÔNG được có
-   bất kỳ loại record khác cho CÙNG TÊN đó (trừ một số ngoại lệ DNSSEC) — đây là ràng buộc của
-   chuẩn, không phải hạn chế riêng của một DNS server cụ thể.</details>
+---
 
-5. Vì sao `nslookup` hiển thị dòng "Non-authoritative answer" cho hầu hết truy vấn thông
-   thường từ máy cá nhân?
-   <details><summary>Đáp án</summary>Vì máy cá nhân hỏi qua một RESOLVER (ví dụ stub cục bộ
-   127.0.0.53, hoặc DNS của ISP) — resolver này không phải authoritative server của domain
-   đang hỏi, nó chỉ trả lời từ dữ liệu đã cache hoặc vừa đi hỏi recursive hộ, nên được đánh dấu
-   "non-authoritative" để phân biệt với câu trả lời trực tiếp từ chính authoritative
-   server.</details>
+**Câu 2**: `dig +short SOA example.com` trả về 5 số sau tên hai server. Số thứ 4 (expire) có ý
+nghĩa gì?
+
+a) Thời gian tối thiểu giữa hai lần secondary gửi yêu cầu kiểm tra serial tới primary
+b) Thời gian primary giữ log thay đổi để secondary đồng bộ incremental
+c) Khoảng thời gian (giây) secondary server coi dữ liệu đã cache là HẾT HIỆU LỰC hoàn toàn nếu
+   không đồng bộ được với primary trong suốt khoảng đó — sau `expire`, secondary ngừng trả lời
+   cho zone này thay vì tiếp tục phục vụ dữ liệu quá cũ
+d) Thời gian cache record thường (không phải SOA) tồn tại trên resolver trước khi hết hạn
+
+**Đáp án: c** — Khoảng thời gian (giây) secondary server coi dữ liệu đã cache là HẾT HIỆU LỰC
+hoàn toàn nếu không đồng bộ được với primary trong suốt khoảng đó — sau `expire`, secondary
+ngừng trả lời cho zone này (coi như không còn đáng tin) thay vì tiếp tục phục vụ dữ liệu quá cũ.
+Khoảng thời gian giữa hai lần kiểm tra serial là `refresh` (số thứ 2), không phải `expire` (loại
+a); SOA không định nghĩa "log thay đổi" cho đồng bộ incremental theo cách đó (loại b); TTL của
+record thường là giá trị riêng của mỗi record, không phải trường `expire` trong SOA (loại d).
+
+---
+
+**Câu 3**: Một domain mới đăng ký đã cấu hình NS/A record đúng, nhưng một resolver cụ thể vẫn
+trả NXDOMAIN nhiều giờ sau. Nguyên nhân khả năng cao nhất là gì?
+
+a) Vì domain chưa được lan truyền qua DNSSEC, cần chờ ký lại toàn bộ chain of trust
+b) Vì resolver đó bị lỗi phần mềm, cần restart service DNS trên resolver
+c) Vì TTL dương (positive TTL) của record A quá dài nên resolver chưa hỏi lại
+d) Negative caching — resolver đó đã hỏi domain này TRƯỚC KHI nó được cấu hình xong, nhận
+   NXDOMAIN và cache lại trong khoảng thời gian bằng `minimum` TTL của SOA; phải chờ hết khoảng
+   đó, resolver mới hỏi lại và nhận được kết quả đúng
+
+**Đáp án: d** — Negative caching — resolver đó đã hỏi domain này TRƯỚC KHI nó được cấu hình
+xong, nhận NXDOMAIN và cache lại trong khoảng thời gian bằng `minimum` TTL của SOA. Phải chờ
+hết khoảng đó, resolver mới hỏi lại và nhận được kết quả đúng. DNSSEC không liên quan tới
+NXDOMAIN kéo dài theo kiểu này (loại a); đây không nhất thiết là lỗi phần mềm — hành vi cache
+âm là đúng theo chuẩn (loại b); TTL dương của record A chỉ áp dụng SAU khi resolver nhận được
+câu trả lời thành công, không giải thích được NXDOMAIN kéo dài (loại c).
+
+---
+
+**Câu 4**: `www.example.com` là CNAME tới `example.com`. Có thể thêm thêm một record `MX` cho
+đúng tên `www.example.com` không?
+
+a) Không. Theo chuẩn DNS, một tên có CNAME thì KHÔNG được có bất kỳ loại record khác cho CÙNG
+   TÊN đó (trừ một số ngoại lệ DNSSEC) — đây là ràng buộc của chuẩn, không phải hạn chế riêng
+   của một DNS server cụ thể
+b) Có, miễn là MX record trỏ tới đúng mail server đang dùng cho `example.com`
+c) Có, nhưng chỉ nếu CNAME và MX được khai trên hai DNS server khác nhau
+d) Không, nhưng chỉ vì giới hạn kỹ thuật của phần mềm DNS server cụ thể, không phải chuẩn chung
+
+**Đáp án: a** — Không. Theo chuẩn DNS, một tên có CNAME thì KHÔNG được có bất kỳ loại record
+khác cho CÙNG TÊN đó (trừ một số ngoại lệ DNSSEC) — đây là ràng buộc của chuẩn, không phải hạn
+chế riêng của một DNS server cụ thể. Mục đích MX trỏ đúng không thay đổi được ràng buộc chuẩn
+này (loại b); ràng buộc áp dụng cho TÊN đó trong toàn bộ hệ thống DNS, không phụ thuộc việc
+khai trên bao nhiêu server khác nhau (loại c); đây là ràng buộc của CHUẨN DNS (RFC), không chỉ
+riêng một phần mềm server cụ thể (loại d).
+
+---
+
+**Câu 5**: Vì sao `nslookup` hiển thị dòng "Non-authoritative answer" cho hầu hết truy vấn
+thông thường từ máy cá nhân?
+
+a) Vì nslookup luôn đánh dấu mọi kết quả là non-authoritative bất kể nguồn trả lời là ai, chỉ
+   là quy ước hiển thị
+b) Vì máy cá nhân hỏi qua một RESOLVER (ví dụ stub cục bộ 127.0.0.53, hoặc DNS của ISP) —
+   resolver này không phải authoritative server của domain đang hỏi, nó chỉ trả lời từ dữ liệu
+   đã cache hoặc vừa đi hỏi recursive hộ, nên được đánh dấu "non-authoritative" để phân biệt
+   với câu trả lời trực tiếp từ chính authoritative server
+c) Vì domain đang hỏi chưa có DNSSEC nên không được coi là câu trả lời chính thức
+d) Vì máy cá nhân không có quyền truy vấn authoritative server trực tiếp theo chính sách bảo
+   mật DNS
+
+**Đáp án: b** — Vì máy cá nhân hỏi qua một RESOLVER (ví dụ stub cục bộ 127.0.0.53, hoặc DNS của
+ISP) — resolver này không phải authoritative server của domain đang hỏi, nó chỉ trả lời từ dữ
+liệu đã cache hoặc vừa đi hỏi recursive hộ, nên được đánh dấu "non-authoritative". Nếu truy vấn
+đúng authoritative server trực tiếp, nslookup KHÔNG đánh dấu non-authoritative — nhãn này phụ
+thuộc vào nguồn trả lời thật, không phải quy ước cố định (loại a); DNSSEC không quyết định
+nhãn authoritative/non-authoritative (loại c); máy cá nhân HOÀN TOÀN có thể hỏi trực tiếp
+authoritative server nếu muốn (ví dụ `dig @ns1.example.com`), không bị cấm theo chính sách nào
+(loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

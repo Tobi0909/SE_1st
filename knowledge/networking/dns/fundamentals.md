@@ -201,36 +201,98 @@ sang IP mới, nhưng 30 phút sau một số client vẫn kết nối tới ser
 
 ## 7. Tự kiểm tra
 
-1. Phân biệt resolver (recursive) và authoritative server — ai "tự đi hỏi", ai "trả lời ngay
-   từ dữ liệu mình giữ"?
-   <details><summary>Đáp án</summary>Resolver (recursive) TỰ ĐI HỎI qua nhiều bước (root → TLD
-   → authoritative) để tìm câu trả lời, không có sẵn dữ liệu (trừ cache). Authoritative server
-   TRẢ LỜI NGAY từ dữ liệu nó giữ cho zone đó, không hỏi ai khác.</details>
+**Câu 1**: Phân biệt resolver (recursive) và authoritative server — ai "tự đi hỏi", ai "trả lời
+ngay từ dữ liệu mình giữ"?
 
-2. Một record DNS có TTL `300` giây. Sau khi admin sửa giá trị record đó trên authoritative
-   server, một resolver ĐÃ cache giá trị cũ trước đó 100 giây. Resolver này sẽ trả giá trị gì
-   nếu được hỏi NGAY bây giờ?
-   <details><summary>Đáp án</summary>Giá trị CŨ (đã cache) — vì mới qua 100/300 giây, cache
-   chưa hết hạn, resolver chưa hỏi lại authoritative server để lấy giá trị mới.</details>
+a) Resolver (recursive) TỰ ĐI HỎI qua nhiều bước (root → TLD → authoritative) để tìm câu trả
+   lời, không có sẵn dữ liệu (trừ cache); Authoritative server TRẢ LỜI NGAY từ dữ liệu nó giữ
+   cho zone đó, không hỏi ai khác
+b) Authoritative server tự đi hỏi root/TLD trước khi trả lời; resolver chỉ lưu cache tĩnh,
+   không bao giờ đi hỏi
+c) Cả hai đều tự đi hỏi nhau liên tục để đồng bộ dữ liệu real-time
+d) Resolver trả lời ngay từ cache cố định nạp sẵn; authoritative luôn phải hỏi lại ISP trước
+   khi trả lời
 
-3. `dig NS example.com` và `dig MX example.com` cho ra hai giá trị TTL khác nhau RẤT NHIỀU.
-   Đây có phải lỗi cấu hình không?
-   <details><summary>Đáp án</summary>Không. Mỗi LOẠI record có TTL RIÊNG, độc lập — hoàn toàn
-   bình thường khi NS (ít đổi) có TTL dài còn MX (có thể đổi thường xuyên hơn) có TTL ngắn hơn
-   nhiều cho cùng một domain.</details>
+**Đáp án: a** — Resolver (recursive) TỰ ĐI HỎI qua nhiều bước (root → TLD → authoritative) để
+tìm câu trả lời, không có sẵn dữ liệu (trừ cache). Authoritative server TRẢ LỜI NGAY từ dữ liệu
+nó giữ cho zone đó, không hỏi ai khác. Vai trò bị đảo ngược hoàn toàn (loại b); authoritative
+server không cần tự đi hỏi gì, nó CHÍNH LÀ nguồn dữ liệu (loại c); resolver không có cache "cố
+định nạp sẵn", nó tự đi hỏi và cache tạm theo TTL (loại d).
 
-4. Trước khi migrate server và đổi IP trong record DNS, nên làm gì với TTL để giảm thời gian
-   "một số người vẫn thấy IP cũ" sau khi migrate?
-   <details><summary>Đáp án</summary>HẠ TTL xuống thấp (ví dụ vài phút) một khoảng thời gian
-   TRƯỚC thời điểm migrate (ít nhất bằng TTL gốc, để cache cũ với TTL dài kịp hết hạn trước khi
-   migrate thật diễn ra) — sau đó thay đổi mới sẽ lan nhanh hơn vì TTL mới ngắn.</details>
+---
 
-5. Vì sao không thể "ép" một resolver ở xa (ví dụ DNS của một ISP khác) xoá cache ngay lập tức
-   sau khi sửa record trên authoritative server của mình?
-   <details><summary>Đáp án</summary>Vì resolver đó hoàn toàn ĐỘC LẬP, không có cơ chế "thông
-   báo" chủ động từ authoritative server tới mọi resolver đã cache — resolver chỉ tự hỏi lại
-   khi TTL đã cache hết hạn. Người quản trị domain không có quyền kiểm soát hành vi cache của
-   resolver bên thứ ba.</details>
+**Câu 2**: Một record DNS có TTL `300` giây. Sau khi admin sửa giá trị record đó trên
+authoritative server, một resolver ĐÃ cache giá trị cũ trước đó 100 giây. Resolver này sẽ trả
+giá trị gì nếu được hỏi NGAY bây giờ?
+
+a) Giá trị MỚI, vì resolver luôn kiểm tra lại authoritative server trước khi trả lời bất kỳ
+   truy vấn nào
+b) Giá trị CŨ (đã cache) — vì mới qua 100/300 giây, cache chưa hết hạn, resolver chưa hỏi lại
+   authoritative server để lấy giá trị mới
+c) Giá trị CŨ, nhưng chỉ vì bản ghi mới chưa được ký DNSSEC
+d) Không trả lời được (SERVFAIL) vì dữ liệu cache và dữ liệu thật đang mâu thuẫn
+
+**Đáp án: b** — Giá trị CŨ (đã cache) — vì mới qua 100/300 giây, cache chưa hết hạn, resolver
+chưa hỏi lại authoritative server để lấy giá trị mới. Resolver KHÔNG kiểm tra lại mỗi lần được
+hỏi — đó là lý do cache tồn tại (loại a); DNSSEC không liên quan tới việc cache còn hạn hay
+không (loại c); mâu thuẫn dữ liệu cache/thật là bình thường trong window TTL, không gây
+SERVFAIL (loại d).
+
+---
+
+**Câu 3**: `dig NS example.com` và `dig MX example.com` cho ra hai giá trị TTL khác nhau RẤT
+NHIỀU. Đây có phải lỗi cấu hình không?
+
+a) Có, mọi loại record trong cùng domain phải dùng chung 1 TTL theo chuẩn DNS
+b) Không, nhưng chỉ vì NS record luôn mặc định dùng TTL của SOA minimum, không tính riêng
+c) Không. Mỗi LOẠI record có TTL RIÊNG, độc lập — hoàn toàn bình thường khi NS (ít đổi) có TTL
+   dài còn MX (có thể đổi thường xuyên hơn) có TTL ngắn hơn nhiều cho cùng một domain
+d) Có, đây là dấu hiệu zone file bị cấu hình sai thứ tự record
+
+**Đáp án: c** — Không. Mỗi LOẠI record có TTL RIÊNG, độc lập — hoàn toàn bình thường khi NS (ít
+đổi) có TTL dài còn MX (có thể đổi thường xuyên hơn) có TTL ngắn hơn nhiều cho cùng một domain.
+Chuẩn DNS không yêu cầu TTL chung cho mọi record (loại a); NS record có TTL riêng do admin đặt,
+không tự động dùng SOA minimum (SOA minimum chỉ chi phối negative caching, khác vai trò — loại
+b); thứ tự record trong zone file không ảnh hưởng tới TTL (loại d).
+
+---
+
+**Câu 4**: Trước khi migrate server và đổi IP trong record DNS, nên làm gì với TTL để giảm
+thời gian "một số người vẫn thấy IP cũ" sau khi migrate?
+
+a) Tăng TTL lên cao để tránh resolver hỏi lại liên tục trong lúc migrate
+b) Giữ nguyên TTL, chỉ cần đổi IP đúng lúc migrate là đủ
+c) Xoá hẳn record cũ trước khi migrate rồi mới tạo record mới với IP mới
+d) HẠ TTL xuống thấp (ví dụ vài phút) một khoảng thời gian TRƯỚC thời điểm migrate (ít nhất
+   bằng TTL gốc, để cache cũ với TTL dài kịp hết hạn trước khi migrate thật diễn ra) — sau đó
+   thay đổi mới sẽ lan nhanh hơn vì TTL mới ngắn
+
+**Đáp án: d** — HẠ TTL xuống thấp (ví dụ vài phút) một khoảng thời gian TRƯỚC thời điểm migrate
+(ít nhất bằng TTL gốc, để cache cũ với TTL dài kịp hết hạn trước khi migrate thật diễn ra) — sau
+đó thay đổi mới sẽ lan nhanh hơn vì TTL mới ngắn. Tăng TTL làm cache cũ tồn tại LÂU HƠN, ngược
+với mục tiêu (loại a); giữ nguyên TTL nghĩa là resolver đã cache IP cũ với TTL dài vẫn tiếp tục
+thấy IP cũ lâu sau migrate (loại b); xoá record cũ đột ngột không xoá được cache đã có ở các
+resolver khác — cache vẫn tồn tại độc lập cho tới khi hết TTL (loại c).
+
+---
+
+**Câu 5**: Vì sao không thể "ép" một resolver ở xa (ví dụ DNS của một ISP khác) xoá cache ngay
+lập tức sau khi sửa record trên authoritative server của mình?
+
+a) Vì resolver đó hoàn toàn ĐỘC LẬP, không có cơ chế "thông báo" chủ động từ authoritative
+   server tới mọi resolver đã cache — resolver chỉ tự hỏi lại khi TTL đã cache hết hạn; người
+   quản trị domain không có quyền kiểm soát hành vi cache của resolver bên thứ ba
+b) Vì giao thức DNS yêu cầu phải có xác thực DNSSEC mới được phép xoá cache từ xa
+c) Vì resolver luôn đồng bộ cache qua một kênh trung tâm do ICANN quản lý, không thể can thiệp
+   thủ công
+d) Vì chỉ có resolver gốc (root server) mới có quyền xoá cache của resolver cấp dưới
+
+**Đáp án: a** — Vì resolver đó hoàn toàn ĐỘC LẬP, không có cơ chế "thông báo" chủ động từ
+authoritative server tới mọi resolver đã cache — resolver chỉ tự hỏi lại khi TTL đã cache hết
+hạn. Người quản trị domain không có quyền kiểm soát hành vi cache của resolver bên thứ ba.
+DNSSEC xác thực dữ liệu, không liên quan tới quyền xoá cache từ xa (loại b); không có kênh
+đồng bộ cache tập trung nào do ICANN vận hành (loại c); root server không quản lý hay xoá cache
+của resolver cấp dưới — root chỉ trả lời referral tới TLD (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
