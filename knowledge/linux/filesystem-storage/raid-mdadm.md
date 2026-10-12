@@ -180,37 +180,85 @@ degraded" cho server lưu trữ file chia sẻ nội bộ.
 
 ## 7. Tự kiểm tra
 
-1. Một RAID 0 gồm 4 đĩa. Một đĩa trong số đó hỏng. Có thể khôi phục lại dữ liệu từ 3 đĩa còn
-   lại không? Vì sao?
-   <details><summary>Đáp án</summary>Không. RAID 0 không có dự phòng — dữ liệu bị "xé" (stripe)
-   rải đều qua TẤT CẢ đĩa, mỗi đĩa chứa một phần không thể thiếu. Mất bất kỳ đĩa nào cũng mất
-   toàn bộ dữ liệu của cả mảng, không chỉ phần trên đĩa đó.</details>
+**Câu 1**: Một RAID 0 gồm 4 đĩa. Một đĩa trong số đó hỏng. Có thể khôi phục lại dữ liệu từ 3
+đĩa còn lại không? Vì sao?
 
-2. `/proc/mdstat` hiện `[4/3] [UUU_]` cho một mảng RAID 5. Mảng này có đang bảo vệ được dữ liệu
-   khỏi MỘT lỗi đĩa tiếp theo không?
-   <details><summary>Đáp án</summary>Không. Mảng đang ở trạng thái degraded (1 trên 4 đĩa đã
-   down) — RAID 5 chỉ chịu được 1 đĩa hỏng, đã dùng hết "ngân sách" chịu lỗi đó. Thêm một đĩa
-   hỏng nữa trong lúc này sẽ mất toàn bộ dữ liệu của mảng.</details>
+a) Không. RAID 0 không có dự phòng — dữ liệu bị "xé" (stripe) rải đều qua TẤT CẢ đĩa, mỗi đĩa
+   chứa một phần không thể thiếu. Mất bất kỳ đĩa nào cũng mất toàn bộ dữ liệu của cả mảng
+b) Có, khôi phục được khoảng 75% dữ liệu tương ứng với 3/4 đĩa còn hoạt động
+c) Có, nhưng chỉ khi RAID 0 được tạo với tối thiểu 4 đĩa trở lên — ít đĩa hơn thì mất hết
+d) Không, nhưng dữ liệu có thể phục hồi phần nào nhờ parity dự phòng tích hợp sẵn trong
+   RAID 0
 
-3. Vì sao RAID 5/6 cần nhiều tính toán CPU hơn RAID 1 khi ghi dữ liệu mới?
-   <details><summary>Đáp án</summary>RAID 1 chỉ cần ghi (copy) dữ liệu giống hệt sang đĩa thứ
-   hai. RAID 5/6 phải TÍNH LẠI giá trị parity (thường qua XOR) dựa trên dữ liệu mới và dữ liệu
-   hiện có trên các đĩa khác mỗi lần ghi — một bước tính toán bổ sung mà RAID 1 không cần.
-   </details>
+**Đáp án: a** — Không. RAID 0 không có dự phòng — dữ liệu bị "xé" (stripe) rải đều qua TẤT CẢ
+đĩa, mỗi đĩa chứa một phần không thể thiếu. Mất bất kỳ đĩa nào cũng mất toàn bộ dữ liệu của cả
+mảng, không chỉ phần trên đĩa đó.
 
-4. Một server có RAID đã chạy degraded 3 tuần mà không ai phát hiện. Nguyên nhân gốc (root
-   cause) thật sự của rủi ro này là gì — bản thân việc đĩa hỏng, hay điều gì khác?
-   <details><summary>Đáp án</summary>Nguyên nhân gốc là THIẾU GIÁM SÁT CHỦ ĐỘNG, không phải bản
-   thân việc một đĩa hỏng (RAID được thiết kế để chịu được MỘT lỗi đĩa). Vấn đề thật là hệ
-   thống không có cách nào tự động phát hiện và cảnh báo khi RAID chuyển sang degraded, khiến
-   "cửa sổ rủi ro" (thời gian không còn dự phòng) kéo dài không cần thiết.</details>
+---
 
-5. Sau khi thay đĩa hỏng và `mdadm --add` đĩa mới, quá trình rebuild đang chạy. Trong lúc này,
-   mảng có còn bảo vệ được khỏi một lỗi đĩa khác không?
-   <details><summary>Đáp án</summary>Chưa — mảng vẫn ở trạng thái "recovering" (một dạng
-   degraded), chỉ được coi là an toàn trở lại SAU KHI rebuild hoàn tất 100% và trạng thái về
-   <code>clean</code>/<code>[U U]</code> đầy đủ. Một lỗi đĩa xảy ra TRONG lúc đang rebuild vẫn
-   có thể gây mất dữ liệu tuỳ mức RAID.</details>
+**Câu 2**: `/proc/mdstat` hiện `[4/3] [UUU_]` cho một mảng RAID 5. Mảng này có đang bảo vệ
+được dữ liệu khỏi MỘT lỗi đĩa tiếp theo không?
+
+a) Có, RAID 5 luôn chịu được tối đa 2 lỗi đĩa đồng thời bất kể trạng thái hiện tại
+b) Không. Mảng đang ở trạng thái degraded (1 trên 4 đĩa đã down) — RAID 5 chỉ chịu được 1
+   đĩa hỏng, đã dùng hết "ngân sách" chịu lỗi đó. Thêm một đĩa hỏng nữa sẽ mất toàn bộ dữ liệu
+c) Có, vì ký hiệu `[UUU_]` cho thấy 3 đĩa còn hoạt động vẫn đủ để tự tạo dự phòng mới ngay
+d) Không thể xác định chỉ từ `/proc/mdstat`, cần chạy thêm `mdadm --detail` để biết chắc
+
+**Đáp án: b** — Không. Mảng đang ở trạng thái degraded (1 trên 4 đĩa đã down) — RAID 5 chỉ
+chịu được 1 đĩa hỏng, đã dùng hết "ngân sách" chịu lỗi đó. Thêm một đĩa hỏng nữa trong lúc này
+sẽ mất toàn bộ dữ liệu của mảng.
+
+---
+
+**Câu 3**: Vì sao RAID 5/6 cần nhiều tính toán CPU hơn RAID 1 khi ghi dữ liệu mới?
+
+a) Vì RAID5/6 luôn mã hoá dữ liệu bằng AES trước khi ghi xuống đĩa, còn RAID 1 thì không
+b) Vì RAID 5/6 phải ghi dữ liệu 3 lần lên mỗi đĩa để đảm bảo tính nhất quán, RAID 1 chỉ ghi
+   1 lần
+c) RAID 1 chỉ cần ghi (copy) dữ liệu giống hệt sang đĩa thứ hai. RAID 5/6 phải TÍNH LẠI giá
+   trị parity (thường qua XOR) dựa trên dữ liệu mới và dữ liệu hiện có trên các đĩa khác mỗi
+   lần ghi
+d) Vì RAID 1 chạy hoàn toàn bằng phần cứng chuyên dụng, còn RAID 5/6 luôn chạy bằng software
+   bất kể cấu hình
+
+**Đáp án: c** — RAID 1 chỉ cần ghi (copy) dữ liệu giống hệt sang đĩa thứ hai. RAID 5/6 phải
+TÍNH LẠI giá trị parity (thường qua XOR) dựa trên dữ liệu mới và dữ liệu hiện có trên các đĩa
+khác mỗi lần ghi — một bước tính toán bổ sung mà RAID 1 không cần.
+
+---
+
+**Câu 4**: Một server có RAID đã chạy degraded 3 tuần mà không ai phát hiện. Nguyên nhân gốc
+(root cause) thật sự của rủi ro này là gì — bản thân việc đĩa hỏng, hay điều gì khác?
+
+a) Root cause là bản thân đĩa hỏng — RAID không nên để xảy ra bất kỳ lỗi đĩa nào
+b) Root cause là dùng sai mức RAID — nên chuyển sang RAID 0 để tránh hoàn toàn khả năng
+   degraded
+c) Root cause là ổ đĩa kém chất lượng — chỉ cần đổi sang đĩa SSD là vấn đề biến mất hoàn toàn
+d) Nguyên nhân gốc là THIẾU GIÁM SÁT CHỦ ĐỘNG, không phải bản thân việc một đĩa hỏng (RAID
+   được thiết kế để chịu được MỘT lỗi đĩa). Vấn đề thật là hệ thống không có cách nào tự động
+   phát hiện và cảnh báo khi RAID chuyển sang degraded
+
+**Đáp án: d** — Nguyên nhân gốc là THIẾU GIÁM SÁT CHỦ ĐỘNG, không phải bản thân việc một đĩa
+hỏng (RAID được thiết kế để chịu được MỘT lỗi đĩa). Vấn đề thật là hệ thống không có cách nào
+tự động phát hiện và cảnh báo khi RAID chuyển sang degraded, khiến "cửa sổ rủi ro" (thời gian
+không còn dự phòng) kéo dài không cần thiết.
+
+---
+
+**Câu 5**: Sau khi thay đĩa hỏng và `mdadm --add` đĩa mới, quá trình rebuild đang chạy. Trong
+lúc này, mảng có còn bảo vệ được khỏi một lỗi đĩa khác không?
+
+a) Chưa — mảng vẫn ở trạng thái "recovering" (một dạng degraded), chỉ được coi là an toàn
+   trở lại SAU KHI rebuild hoàn tất 100% và trạng thái về `clean`/`[U U]` đầy đủ
+b) Có, ngay khi `mdadm --add` chạy xong lệnh, mảng coi như đã an toàn hoàn toàn dù rebuild
+   chưa xong
+c) Có, vì rebuild chỉ ảnh hưởng hiệu năng đọc/ghi, không ảnh hưởng gì tới khả năng chịu lỗi
+d) Không thể biết được, cần chờ thông báo email riêng từ `mdadm` để xác nhận mảng đã an toàn
+
+**Đáp án: a** — Chưa — mảng vẫn ở trạng thái "recovering" (một dạng degraded), chỉ được coi
+là an toàn trở lại SAU KHI rebuild hoàn tất 100% và trạng thái về `clean`/`[U U]` đầy đủ. Một
+lỗi đĩa xảy ra TRONG lúc đang rebuild vẫn có thể gây mất dữ liệu tuỳ mức RAID.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

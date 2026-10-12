@@ -179,41 +179,90 @@ Một ứng dụng nội bộ ghi log vào `/var/log/myapp/app.log`, chạy dư�
 
 ## 7. Tự kiểm tra
 
-1. Một thư mục có quyền `r-x------` cho owner. User chính là owner của thư mục đó có `ls` được
-   danh sách file bên trong không? Có đọc được NỘI DUNG một file cụ thể bên trong (giả sử file
-   đó có quyền `rw-------` và cùng owner) không?
-   <details><summary>Đáp án</summary>Có thể <code>ls</code> (có <code>r</code> trên thư mục —
-   liệt kê được tên). Có đọc được nội dung file (có <code>x</code> trên thư mục để truy cập
-   được vào, và file đó có <code>r</code> cho owner) — cả hai hành động đều được phép với bộ
-   quyền này.</details>
+**Câu 1**: Một thư mục có quyền `r-x------` cho owner. User chính là owner của thư mục đó có
+`ls` được danh sách file bên trong không? Có đọc được NỘI DUNG một file cụ thể bên trong (giả
+sử file đó có quyền `rw-------` và cùng owner) không?
 
-2. `umask` đang là `0022`. File mới tạo sẽ có quyền gì? Thư mục mới tạo sẽ có quyền gì?
-   <details><summary>Đáp án</summary>File: <code>666 - 022 = 644</code> (<code>rw-r--r--</code>).
-   Thư mục: <code>777 - 022 = 755</code> (<code>rwxr-xr-x</code>).</details>
+a) Có thể `ls` (có `r` trên thư mục — liệt kê được tên). Có đọc được nội dung file (có `x`
+   trên thư mục để truy cập được vào, và file đó có `r` cho owner)
+b) Không `ls` được, vì thiếu quyền `w` trên thư mục để liệt kê nội dung
+c) Có `ls` được nhưng không đọc được nội dung file, vì thiếu `x` trên chính file đó
+d) Không `ls` được và cũng không đọc được gì, vì thư mục thiếu quyền `x`
 
-3. Vì sao backup hệ thống thường ưu tiên `/etc`, `/home`, `/var` mà không cần backup
-   `/usr`, `/bin`?
-   <details><summary>Đáp án</summary><code>/usr</code>/<code>/bin</code> chứa chương trình/thư
-   viện có thể TÁI TẠO LẠI hoàn toàn từ package manager (cài lại gói). <code>/etc</code>
-   (cấu hình riêng của máy), <code>/home</code> (dữ liệu người dùng), <code>/var</code> (log,
-   dữ liệu service) chứa thông tin KHÔNG tái tạo được từ bất kỳ đâu khác ngoài chính bản
-   backup.</details>
+**Đáp án: a** — Có thể `ls` (có `r` trên thư mục — liệt kê được tên). Có đọc được nội dung
+file (có `x` trên thư mục để truy cập được vào, và file đó có `r` cho owner) — cả hai hành
+động đều được phép với bộ quyền này.
 
-4. Một thư mục chia sẻ cho nhiều user có quyền `drwxrwxrwt`. Ký tự `t` cuối cùng có ý nghĩa gì,
-   và nó thay đổi hành vi xoá file như thế nào so với không có nó?
-   <details><summary>Đáp án</summary><code>t</code> là sticky bit. Không có nó, bất kỳ ai có
-   quyền <code>w</code> trên thư mục đều xoá được MỌI file bên trong, bất kể ai là owner của
-   file đó. Có sticky bit, chỉ owner của TỪNG FILE (hoặc root) mới xoá/rename được file đó, dù
-   thư mục vẫn cho phép mọi người viết file mới vào.</details>
+---
 
-5. Một service chạy dưới user `svc_app` báo lỗi "Permission denied" khi ghi vào một thư mục log
-   vừa được tạo bằng `mkdir -p` bởi một kỹ sư dùng user cá nhân của họ. Nguyên nhân khả năng
-   cao nhất là gì, và lệnh nào sửa đúng vấn đề đó?
-   <details><summary>Đáp án</summary>Thư mục được tạo với owner là user cá nhân của kỹ sư (vì
-   <code>mkdir</code> không tự biết service nào sẽ dùng thư mục), không phải
-   <code>svc_app</code> — service không có quyền viết. Sửa bằng
-   <code>chown svc_app:svc_app &lt;thư-mục&gt;</code> (và kiểm tra lại mode phù hợp nếu
-   cần).</details>
+**Câu 2**: `umask` đang là `0022`. File mới tạo sẽ có quyền gì? Thư mục mới tạo sẽ có quyền
+gì?
+
+a) File: `666`, thư mục: `777` — vì `umask` chỉ áp dụng khi chạy `chmod` tay, không áp dụng
+   tự động lúc tạo file/thư mục mới
+b) File: `666 - 022 = 644` (`rw-r--r--`). Thư mục: `777 - 022 = 755` (`rwxr-xr-x`)
+c) File: `755` (`rwxr-xr-x`), thư mục: `644` (`rw-r--r--`) — hai giá trị đảo ngược so với
+   quy tắc thông thường
+d) File: `622` (`rw--w--w-`), thư mục: `733` (`rwx-wx-wx`)
+
+**Đáp án: b** — File: `666 - 022 = 644` (`rw-r--r--`). Thư mục: `777 - 022 = 755`
+(`rwxr-xr-x`).
+
+---
+
+**Câu 3**: Vì sao backup hệ thống thường ưu tiên `/etc`, `/home`, `/var` mà không cần backup
+`/usr`, `/bin`?
+
+a) Vì `/usr` và `/bin` luôn có kích thước quá lớn, backup sẽ tốn quá nhiều thời gian và dung
+   lượng lưu trữ
+b) Vì `/usr` và `/bin` chỉ chứa file tạm, tự động bị xoá mỗi khi reboot nên backup vô nghĩa
+c) `/usr`/`/bin` chứa chương trình/thư viện có thể TÁI TẠO LẠI hoàn toàn từ package manager
+   (cài lại gói). `/etc`/`/home`/`/var` chứa thông tin KHÔNG tái tạo được từ bất kỳ đâu khác
+   ngoài chính bản backup
+d) Vì `/etc`, `/home`, `/var` được mount read-only trên hầu hết server, nên các thư mục còn
+   lại mới cần backup
+
+**Đáp án: c** — `/usr`/`/bin` chứa chương trình/thư viện có thể TÁI TẠO LẠI hoàn toàn từ
+package manager (cài lại gói). `/etc` (cấu hình riêng của máy), `/home` (dữ liệu người dùng),
+`/var` (log, dữ liệu service) chứa thông tin KHÔNG tái tạo được từ bất kỳ đâu khác ngoài chính
+bản backup.
+
+---
+
+**Câu 4**: Một thư mục chia sẻ cho nhiều user có quyền `drwxrwxrwt`. Ký tự `t` cuối cùng có ý
+nghĩa gì, và nó thay đổi hành vi xoá file như thế nào so với không có nó?
+
+a) `t` là setgid bit — khiến mọi file mới tạo trong thư mục tự động kế thừa group của thư mục
+   cha
+b) `t` là setuid bit — khiến mọi file thực thi trong thư mục chạy với quyền của owner thư mục
+c) `t` chỉ có ý nghĩa hiển thị cho người đọc, không ảnh hưởng gì tới hành vi xoá file thực tế
+d) `t` là sticky bit. Không có nó, bất kỳ ai có quyền `w` trên thư mục đều xoá được MỌI file
+   bên trong, bất kể owner. Có sticky bit, chỉ owner của TỪNG FILE (hoặc root) mới xoá/rename
+   được, dù thư mục vẫn cho phép mọi người viết file mới vào
+
+**Đáp án: d** — `t` là sticky bit. Không có nó, bất kỳ ai có quyền `w` trên thư mục đều xoá
+được MỌI file bên trong, bất kể ai là owner của file đó. Có sticky bit, chỉ owner của TỪNG
+FILE (hoặc root) mới xoá/rename được file đó, dù thư mục vẫn cho phép mọi người viết file mới
+vào.
+
+---
+
+**Câu 5**: Một service chạy dưới user `svc_app` báo lỗi "Permission denied" khi ghi vào một
+thư mục log vừa được tạo bằng `mkdir -p` bởi một kỹ sư dùng user cá nhân của họ. Nguyên nhân
+khả năng cao nhất là gì, và lệnh nào sửa đúng vấn đề đó?
+
+a) Thư mục được tạo với owner là user cá nhân của kỹ sư (vì `mkdir` không tự biết service nào
+   sẽ dùng thư mục), không phải `svc_app` — service không có quyền viết. Sửa bằng
+   `chown svc_app:svc_app <thư-mục>`
+b) Nguyên nhân là SELinux chặn mặc định mọi thư mục mới tạo — sửa bằng
+   `restorecon -R <thư-mục>`
+c) Nguyên nhân là thư mục thiếu quyền `x` cho group — sửa bằng `chmod g+x <thư-mục>`
+d) Nguyên nhân là `mkdir -p` luôn tạo thư mục với quyền `000` theo mặc định — cần `chmod 777`
+   ngay sau khi tạo
+
+**Đáp án: a** — Thư mục được tạo với owner là user cá nhân của kỹ sư (vì `mkdir` không tự
+biết service nào sẽ dùng thư mục), không phải `svc_app` — service không có quyền viết. Sửa
+bằng `chown svc_app:svc_app <thư-mục>` (và kiểm tra lại mode phù hợp nếu cần).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

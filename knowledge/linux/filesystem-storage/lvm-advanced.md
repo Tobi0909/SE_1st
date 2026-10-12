@@ -168,41 +168,91 @@ giữa chừng (nhanh hơn restore từ backup thông thường).
 
 ## 7. Tự kiểm tra
 
-1. Bạn cần thu nhỏ một LV chứa filesystem ext4 từ 500GB xuống 300GB. Thứ tự lệnh ĐÚNG là gì?
-   <details><summary>Đáp án</summary>Trước tiên <code>resize2fs</code> (hoặc
-   <code>lvreduce -r</code> nếu công cụ hỗ trợ tự làm đúng thứ tự) để THU NHỎ FILESYSTEM xuống
-   còn khoảng 300GB (hoặc nhỏ hơn một chút để an toàn) TRƯỚC, xác nhận thành công, SAU ĐÓ mới
-   <code>lvreduce</code> để thu nhỏ LV. Làm ngược lại (thu nhỏ LV trước) sẽ cắt mất dữ liệu ở
-   cuối LV trước khi filesystem kịp dồn dữ liệu.</details>
+**Câu 1**: Bạn cần thu nhỏ một LV chứa filesystem ext4 từ 500GB xuống 300GB. Thứ tự lệnh ĐÚNG
+là gì?
 
-2. Một LV dùng filesystem XFS. Có thể shrink LV đó an toàn bằng cách `xfs_growfs` theo chiều
-   ngược không?
-   <details><summary>Đáp án</summary>Không. XFS không hỗ trợ shrink filesystem dưới bất kỳ hình
-   thức nào (<code>xfs_growfs</code> chỉ mở rộng, không có thao tác ngược) — muốn "thu nhỏ" một
-   LV chứa XFS, cách duy nhất an toàn là tạo LV mới nhỏ hơn, copy dữ liệu sang, rồi xoá LV
-   cũ.</details>
+a) Trước tiên `lvreduce` xuống 300GB, sau đó mới `resize2fs` filesystem để khớp dung lượng
+   mới
+b) Không cần quan tâm thứ tự — ext4 tự động đồng bộ kích thước filesystem theo LV ngay khi LV
+   đổi kích thước
+c) Phải unmount, `dd` toàn bộ dữ liệu sang một LV mới nhỏ hơn, rồi xoá LV cũ — đây là cách
+   duy nhất an toàn với ext4
+d) Trước tiên `resize2fs` (hoặc `lvreduce -r` nếu công cụ hỗ trợ tự làm đúng thứ tự) để THU
+   NHỎ FILESYSTEM xuống còn khoảng 300GB TRƯỚC, xác nhận thành công, SAU ĐÓ mới `lvreduce` để
+   thu nhỏ LV
 
-3. Một snapshot được tạo với `--size 50m` nhưng LV gốc thay đổi rất nhiều trong thời gian giữ
-   snapshot (vượt xa 50MB dữ liệu gốc bị ghi đè). Điều gì xảy ra với snapshot, và LV GỐC có bị
-   ảnh hưởng không?
-   <details><summary>Đáp án</summary>Snapshot tự "invalidate" khi vùng COW đầy — không còn dùng
-   được để rollback. LV GỐC hoàn toàn không bị ảnh hưởng, vẫn hoạt động bình thường — chỉ chức
-   năng rollback của snapshot bị mất.</details>
+**Đáp án: d** — Trước tiên `resize2fs` (hoặc `lvreduce -r` nếu công cụ hỗ trợ tự làm đúng thứ
+tự) để THU NHỎ FILESYSTEM xuống còn khoảng 300GB (hoặc nhỏ hơn một chút để an toàn) TRƯỚC,
+xác nhận thành công, SAU ĐÓ mới `lvreduce` để thu nhỏ LV. Làm ngược lại (thu nhỏ LV trước) sẽ
+cắt mất dữ liệu ở cuối LV trước khi filesystem kịp dồn dữ liệu.
 
-4. Một thin pool có dung lượng vật lý 2TB, đã tạo 5 thin LV mỗi cái khai báo kích thước ảo 1TB
-   (tổng ảo 5TB). Điều này có hợp lệ không? Rủi ro chính cần giám sát là gì?
-   <details><summary>Đáp án</summary>Hợp lệ — đây chính là overcommit, một tính năng thiết kế
-   của thin provisioning, không phải lỗi. Rủi ro cần giám sát: TỔNG DỮ LIỆU THẬT ghi vào cả 5
-   LV cộng lại không được vượt quá 2TB dung lượng vật lý của pool — phải theo dõi
-   <code>Data%</code> của chính POOL (không phải từng LV riêng lẻ) để tránh hết dung lượng thật
-   bất ngờ.</details>
+---
 
-5. Vì sao snapshot LVM trước một migration rủi ro KHÔNG thể thay thế hoàn toàn cho backup định
-   kỳ off-host?
-   <details><summary>Đáp án</summary>Snapshot nằm CÙNG VG/đĩa vật lý với LV gốc — nếu toàn bộ
-   đĩa/VG gặp sự cố phần cứng (hỏng đĩa, mất server), cả LV gốc lẫn snapshot đều mất cùng lúc.
-   Backup off-host (nằm trên hạ tầng/vị trí vật lý khác) mới bảo vệ được khỏi loại sự cố
-   này.</details>
+**Câu 2**: Một LV dùng filesystem XFS. Có thể shrink LV đó an toàn bằng cách `xfs_growfs`
+theo chiều ngược không?
+
+a) Không. XFS không hỗ trợ shrink filesystem dưới bất kỳ hình thức nào (`xfs_growfs` chỉ mở
+   rộng, không có thao tác ngược) — muốn "thu nhỏ" một LV chứa XFS, cách duy nhất an toàn là
+   tạo LV mới nhỏ hơn, copy dữ liệu sang, rồi xoá LV cũ
+b) Có, chỉ cần chạy `xfs_growfs -D <size-nhỏ-hơn>` để thu nhỏ trực tiếp
+c) Có, nhưng filesystem phải được unmount trước khi chạy `xfs_growfs` theo chiều ngược
+d) Không, nhưng XFS hỗ trợ shrink qua một công cụ riêng là `xfs_shrink` đi kèm `xfsprogs`
+
+**Đáp án: a** — Không. XFS không hỗ trợ shrink filesystem dưới bất kỳ hình thức nào
+(`xfs_growfs` chỉ mở rộng, không có thao tác ngược) — muốn "thu nhỏ" một LV chứa XFS, cách
+duy nhất an toàn là tạo LV mới nhỏ hơn, copy dữ liệu sang, rồi xoá LV cũ.
+
+---
+
+**Câu 3**: Một snapshot được tạo với `--size 50m` nhưng LV gốc thay đổi rất nhiều trong thời
+gian giữ snapshot (vượt xa 50MB dữ liệu gốc bị ghi đè). Điều gì xảy ra với snapshot, và LV GỐC
+có bị ảnh hưởng không?
+
+a) Snapshot tự động mở rộng thêm dung lượng để chứa hết thay đổi, không bao giờ invalidate
+b) Snapshot tự "invalidate" khi vùng COW đầy — không còn dùng được để rollback. LV GỐC hoàn
+   toàn không bị ảnh hưởng, vẫn hoạt động bình thường
+c) Snapshot vẫn hoạt động bình thường, nhưng LV gốc bị chuyển sang chế độ chỉ đọc cho tới khi
+   snapshot bị xoá
+d) Cả snapshot và LV gốc đều bị hỏng ngay khi vùng COW đầy, cần restore từ backup
+
+**Đáp án: b** — Snapshot tự "invalidate" khi vùng COW đầy — không còn dùng được để rollback.
+LV GỐC hoàn toàn không bị ảnh hưởng, vẫn hoạt động bình thường — chỉ chức năng rollback của
+snapshot bị mất.
+
+---
+
+**Câu 4**: Một thin pool có dung lượng vật lý 2TB, đã tạo 5 thin LV mỗi cái khai báo kích
+thước ảo 1TB (tổng ảo 5TB). Điều này có hợp lệ không? Rủi ro chính cần giám sát là gì?
+
+a) Không hợp lệ — `lvcreate` sẽ từ chối tạo thin LV thứ 5 vì tổng kích thước ảo vượt quá
+   dung lượng pool
+b) Hợp lệ, nhưng rủi ro chính là mỗi thin LV riêng lẻ phải tự theo dõi `Data%` của chính nó,
+   không liên quan tới pool chung
+c) Hợp lệ — đây chính là overcommit, một tính năng thiết kế của thin provisioning, không phải
+   lỗi. Rủi ro cần giám sát: TỔNG DỮ LIỆU THẬT ghi vào cả 5 LV cộng lại không được vượt quá
+   2TB dung lượng vật lý của pool — phải theo dõi `Data%` của chính POOL
+d) Không hợp lệ trên các phiên bản LVM hiện tại — overcommit chỉ được hỗ trợ từ kernel 6.x
+   trở lên
+
+**Đáp án: c** — Hợp lệ — đây chính là overcommit, một tính năng thiết kế của thin
+provisioning, không phải lỗi. Rủi ro cần giám sát: TỔNG DỮ LIỆU THẬT ghi vào cả 5 LV cộng lại
+không được vượt quá 2TB dung lượng vật lý của pool — phải theo dõi `Data%` của chính POOL
+(không phải từng LV riêng lẻ) để tránh hết dung lượng thật bất ngờ.
+
+---
+
+**Câu 5**: Vì sao snapshot LVM trước một migration rủi ro KHÔNG thể thay thế hoàn toàn cho
+backup định kỳ off-host?
+
+a) Vì snapshot LVM chỉ lưu được tối đa 24 giờ trước khi tự xoá, không đủ thời gian an toàn
+b) Vì snapshot chiếm quá nhiều CPU khi tạo, làm migration chậm hơn hẳn so với backup off-host
+c) Vì snapshot chỉ backup được metadata của LV, không backup được dữ liệu thật bên trong
+d) Snapshot nằm CÙNG VG/đĩa vật lý với LV gốc — nếu toàn bộ đĩa/VG gặp sự cố phần cứng, cả LV
+   gốc lẫn snapshot đều mất cùng lúc. Backup off-host mới bảo vệ được khỏi loại sự cố này
+
+**Đáp án: d** — Snapshot nằm CÙNG VG/đĩa vật lý với LV gốc — nếu toàn bộ đĩa/VG gặp sự cố
+phần cứng (hỏng đĩa, mất server), cả LV gốc lẫn snapshot đều mất cùng lúc. Backup off-host
+(nằm trên hạ tầng/vị trí vật lý khác) mới bảo vệ được khỏi loại sự cố này.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

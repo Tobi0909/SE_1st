@@ -183,39 +183,90 @@ nhớ rõ mới dọn dẹp ổ đĩa tuần trước và `df -h` lúc đó còn
 
 ## 7. Tự kiểm tra
 
-1. `df -h` báo filesystem còn 20GB trống, nhưng ghi một file 1GB mới vẫn báo lỗi "No space left
-   on device". Giả thuyết hợp lý nhất cần kiểm tra ĐẦU TIÊN là gì?
-   <details><summary>Đáp án</summary>Hết INODE, không phải hết dung lượng byte — kiểm tra ngay
-   bằng <code>df -i</code>. Hai loại tài nguyên độc lập, "còn dư GB" không đảm bảo còn inode để
-   tạo file mới.</details>
+**Câu 1**: `df -h` báo filesystem còn 20GB trống, nhưng ghi một file 1GB mới vẫn báo lỗi "No
+space left on device". Giả thuyết hợp lý nhất cần kiểm tra ĐẦU TIÊN là gì?
 
-2. Bạn xoá một file log 5GB bằng `rm` để giải phóng dung lượng gấp, nhưng `df -h` vẫn báo dung
-   lượng y hệt trước khi xoá. Điều gì có khả năng đang xảy ra?
-   <details><summary>Đáp án</summary>Một process (thường chính service đang ghi vào file log
-   đó) vẫn giữ file descriptor mở tới file đã bị <code>rm</code> — kernel chưa giải phóng block
-   đĩa cho tới khi TẤT CẢ file descriptor trỏ tới file đó được đóng, dù tên file đã biến mất
-   khỏi hệ thống thư mục.</details>
+a) Giả thuyết đầu tiên là đĩa vật lý sắp hỏng, cần chạy `smartctl` kiểm tra ngay
+b) Hết INODE, không phải hết dung lượng byte — kiểm tra ngay bằng `df -i`. Hai loại tài
+   nguyên độc lập, "còn dư GB" không đảm bảo còn inode để tạo file mới
+c) Giả thuyết đầu tiên là filesystem đã bị mount lại ở chế độ read-only, kiểm tra bằng
+   `mount | grep ro`
+d) Giả thuyết đầu tiên là RAM đã đầy khiến kernel không cache được ghi file mới, cần kiểm tra
+   `free -h`
 
-3. Vì sao xoá MỘT file 10GB thường giải quyết vấn đề "hết dung lượng" hiệu quả hơn, nhưng KHÔNG
-   giải quyết được vấn đề "hết inode"?
-   <details><summary>Đáp án</summary>Mỗi file (bất kể kích thước) chỉ chiếm ĐÚNG MỘT inode. Xoá
-   một file 10GB giải phóng nhiều dung lượng byte nhưng cũng chỉ giải phóng MỘT inode — không
-   giúp ích nếu vấn đề thật là có hàng triệu file NHỎ chiếm hết số inode cho phép.</details>
+**Đáp án: b** — Hết INODE, không phải hết dung lượng byte — kiểm tra ngay bằng `df -i`. Hai
+loại tài nguyên độc lập, "còn dư GB" không đảm bảo còn inode để tạo file mới.
 
-4. Vì sao không nên chạy `fsck` trực tiếp trên root filesystem (`/`) đang mount và đang hoạt
-   động bình thường?
-   <details><summary>Đáp án</summary><code>fsck</code> cần toàn quyền sửa cấu trúc filesystem —
-   chạy trên filesystem đang mount và đang có ghi/đọc diễn ra có thể gây xung đột, làm hỏng
-   thêm thay vì sửa. Với root filesystem, cách an toàn là boot vào chế độ rescue/single-user
-   hoặc để fsck tự chạy ở lần boot tiếp theo trước khi root được mount đầy đủ.</details>
+---
 
-5. `lsof +L1` cho thấy một file đã xoá vẫn bị giữ bởi process PID 4521, chiếm 40GB. Hành động
-   NÀO giải phóng được dung lượng này một cách sạch sẽ nhất?
-   <details><summary>Đáp án</summary>Khiến process đó đóng file descriptor — cách sạch nhất là
-   restart đúng service/process đó (qua <code>systemctl restart</code> nếu được quản lý bằng
-   systemd), để nó tự dọn dẹp và (nếu cần) tự mở lại file mới. Không có cách nào "xoá lại" file
-   đã xoá hay trực tiếp ép giải phóng block mà không đóng file descriptor theo cách này hay cách
-   khác.</details>
+**Câu 2**: Bạn xoá một file log 5GB bằng `rm` để giải phóng dung lượng gấp, nhưng `df -h` vẫn
+báo dung lượng y hệt trước khi xoá. Điều gì có khả năng đang xảy ra?
+
+a) `rm` không thực sự xoá file ngay — cần chạy `sync` để kernel cập nhật lại số liệu `df -h`
+b) `df -h` có cơ chế cache riêng, cần đợi tối đa 5 phút để tự cập nhật theo dung lượng mới
+c) Một process (thường chính service đang ghi vào file log đó) vẫn giữ file descriptor mở
+   tới file đã bị `rm` — kernel chưa giải phóng block đĩa cho tới khi TẤT CẢ file descriptor
+   trỏ tới file đó được đóng
+d) `rm` chỉ xoá ngay với file nhỏ hơn 1GB — file lớn hơn cần dùng `shred` để xoá thật
+
+**Đáp án: c** — Một process (thường chính service đang ghi vào file log đó) vẫn giữ file
+descriptor mở tới file đã bị `rm` — kernel chưa giải phóng block đĩa cho tới khi TẤT CẢ file
+descriptor trỏ tới file đó được đóng, dù tên file đã biến mất khỏi hệ thống thư mục.
+
+---
+
+**Câu 3**: Vì sao xoá MỘT file 10GB thường giải quyết vấn đề "hết dung lượng" hiệu quả hơn,
+nhưng KHÔNG giải quyết được vấn đề "hết inode"?
+
+a) Vì file 10GB chiếm nhiều inode tương ứng với kích thước của nó, xoá nó giải phóng nhiều
+   inode nhưng vẫn không đủ
+b) Vì inode chỉ được giải phóng khi xoá ít nhất 100 file cùng lúc, xoá 1 file không đủ ngưỡng
+c) Vì file 10GB thường nằm trên một filesystem khác, không chia sẻ chung số inode với phần
+   còn lại
+d) Mỗi file (bất kể kích thước) chỉ chiếm ĐÚNG MỘT inode. Xoá một file 10GB giải phóng nhiều
+   dung lượng byte nhưng cũng chỉ giải phóng MỘT inode — không giúp ích nếu vấn đề thật là có
+   hàng triệu file NHỎ chiếm hết số inode cho phép
+
+**Đáp án: d** — Mỗi file (bất kể kích thước) chỉ chiếm ĐÚNG MỘT inode. Xoá một file 10GB giải
+phóng nhiều dung lượng byte nhưng cũng chỉ giải phóng MỘT inode — không giúp ích nếu vấn đề
+thật là có hàng triệu file NHỎ chiếm hết số inode cho phép.
+
+---
+
+**Câu 4**: Vì sao không nên chạy `fsck` trực tiếp trên root filesystem (`/`) đang mount và
+đang hoạt động bình thường?
+
+a) `fsck` cần toàn quyền sửa cấu trúc filesystem — chạy trên filesystem đang mount và đang có
+   ghi/đọc diễn ra có thể gây xung đột, làm hỏng thêm thay vì sửa. Với root filesystem, cách
+   an toàn là boot vào chế độ rescue/single-user hoặc để fsck tự chạy ở lần boot tiếp theo
+b) Vì `fsck` luôn xoá sạch toàn bộ dữ liệu trên filesystem trước khi kiểm tra lại từ đầu
+c) Vì `fsck` chỉ hoạt động đúng trên filesystem FAT32, không tương thích với ext4/XFS khi
+   đang mount
+d) Vì `fsck` yêu cầu kết nối mạng để tải bảng kiểm tra mới nhất, không thể chạy offline trên
+   root filesystem
+
+**Đáp án: a** — `fsck` cần toàn quyền sửa cấu trúc filesystem — chạy trên filesystem đang
+mount và đang có ghi/đọc diễn ra có thể gây xung đột, làm hỏng thêm thay vì sửa. Với root
+filesystem, cách an toàn là boot vào chế độ rescue/single-user hoặc để fsck tự chạy ở lần boot
+tiếp theo trước khi root được mount đầy đủ.
+
+---
+
+**Câu 5**: `lsof +L1` cho thấy một file đã xoá vẫn bị giữ bởi process PID 4521, chiếm 40GB.
+Hành động NÀO giải phóng được dung lượng này một cách sạch sẽ nhất?
+
+a) Chạy `rm` lại lần thứ hai trên đúng tên file cũ để buộc kernel giải phóng ngay
+b) Khiến process đó đóng file descriptor — cách sạch nhất là restart đúng service/process đó
+   (qua `systemctl restart` nếu được quản lý bằng systemd), để nó tự dọn dẹp và tự mở lại
+   file mới nếu cần
+c) Dùng lệnh `fstrim` trên filesystem đó để ép giải phóng block đang bị giữ bởi file
+   descriptor
+d) Unmount và remount lại filesystem đó ngay trong khi process 4521 vẫn đang chạy
+
+**Đáp án: b** — Khiến process đó đóng file descriptor — cách sạch nhất là restart đúng
+service/process đó (qua `systemctl restart` nếu được quản lý bằng systemd), để nó tự dọn dẹp
+và (nếu cần) tự mở lại file mới. Không có cách nào "xoá lại" file đã xoá hay trực tiếp ép giải
+phóng block mà không đóng file descriptor theo cách này hay cách khác.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

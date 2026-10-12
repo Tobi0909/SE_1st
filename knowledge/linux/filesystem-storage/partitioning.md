@@ -160,41 +160,86 @@ Server đã có sẵn 2 đĩa khác (`/dev/sda` chứa OS, `/dev/sdb` chứa dat
 
 ## 7. Tự kiểm tra
 
-1. Trong một session `fdisk`, bạn đã gõ `n` để tạo partition mới nhưng CHƯA gõ `w`. Gõ `q` lúc
-   này có ảnh hưởng gì tới đĩa thật không?
-   <details><summary>Đáp án</summary>Không ảnh hưởng gì — mọi thay đổi trong session
-   <code>fdisk</code> chỉ là "dự thảo" trong bộ nhớ cho tới khi gõ <code>w</code>.
-   <code>q</code> huỷ toàn bộ dự thảo, đĩa giữ nguyên như trước khi mở <code>fdisk</code>.
-   </details>
+**Câu 1**: Trong một session `fdisk`, bạn đã gõ `n` để tạo partition mới nhưng CHƯA gõ `w`.
+Gõ `q` lúc này có ảnh hưởng gì tới đĩa thật không?
 
-2. Một đĩa 6TB cần dùng hết dung lượng cho một partition duy nhất. Nên chọn MBR hay GPT? Vì
-   sao?
-   <details><summary>Đáp án</summary>GPT — MBR có giới hạn cứng 2TiB cho partition/dung lượng
-   đĩa dùng được theo kiểu địa chỉ sector truyền thống, không thể dùng hết 6TB nếu chọn
-   MBR.</details>
+a) Có ảnh hưởng — `n` đã ghi ngay bảng phân vùng xuống đĩa tại thời điểm gõ, `q` chỉ thoát
+   giao diện fdisk mà không huỷ gì
+b) Không ảnh hưởng gì — mọi thay đổi trong session `fdisk` chỉ là "dự thảo" trong bộ nhớ cho
+   tới khi gõ `w`. `q` huỷ toàn bộ dự thảo, đĩa giữ nguyên như trước khi mở `fdisk`
+c) Không ảnh hưởng, nhưng chỉ vì gõ `q` đủ nhanh trước khi `fdisk` kịp đồng bộ xuống đĩa
+d) Có ảnh hưởng một phần — bảng phân vùng gốc trên đĩa đã bị xoá ngay khi gõ `n`, dù phân
+   vùng mới chưa được tạo thật
 
-3. Sau khi tạo partition mới và `w` thành công, `lsblk` không thấy partition con mới xuất
-   hiện. Lệnh nào nên thử trước khi nghĩ tới việc reboot?
-   <details><summary>Đáp án</summary><code>partprobe &lt;tên đĩa&gt;</code> (hoặc
-   <code>partx -a &lt;tên đĩa&gt;</code>) — báo cho kernel đọc lại bảng phân vùng, thường giải
-   quyết được mà không cần reboot.</details>
+**Đáp án: b** — Không ảnh hưởng gì — mọi thay đổi trong session `fdisk` chỉ là "dự thảo"
+trong bộ nhớ cho tới khi gõ `w`. `q` huỷ toàn bộ dự thảo, đĩa giữ nguyên như trước khi mở
+`fdisk`.
 
-4. Bạn vừa `w` xong và phát hiện mình vừa xoá nhầm partition chứa dữ liệu quan trọng trên
-   `/dev/sdb` (nhầm với `/dev/sdc`, đĩa đáng lẽ cần xoá). Dữ liệu còn khả năng cứu được không?
-   Dựa vào đâu?
-   <details><summary>Đáp án</summary>Có khả năng (không chắc chắn) — xoá partition chỉ sửa
-   BẢNG PHÂN VÙNG, không trực tiếp xoá dữ liệu thật trên đĩa. Nếu chưa có gì ghi đè lên vùng đó
-   sau khi xoá, công cụ phục hồi (ví dụ <code>testdisk</code>) có thể tái tạo lại bảng phân
-   vùng/dữ liệu. Không nên trông chờ vào điều này — luôn xác nhận đúng đĩa TRƯỚC khi thao
-   tác.</details>
+---
 
-5. Vì sao nên dùng `lsblk -f` (xem FSTYPE, label) thay vì chỉ dựa vào tên `/dev/sdX` để xác
-   nhận đúng đĩa cần thao tác trên server nhiều đĩa?
-   <details><summary>Đáp án</summary>Tên <code>/dev/sdX</code> có thể đổi thứ tự giữa các lần
-   boot (phụ thuộc thứ tự kernel phát hiện thiết bị, đặc biệt với đĩa gắn ngoài/hot-plug) —
-   không đáng tin cậy để nhận diện đĩa một cách chắc chắn. FSTYPE/label/UUID gắn với chính
-   dữ liệu trên đĩa, không đổi theo thứ tự phát hiện, nên đáng tin cậy hơn để xác nhận "đây
-   đúng là đĩa tôi nghĩ".</details>
+**Câu 2**: Một đĩa 6TB cần dùng hết dung lượng cho một partition duy nhất. Nên chọn MBR hay
+GPT? Vì sao?
+
+a) MBR, vì MBR hỗ trợ dung lượng không giới hạn miễn là dùng đúng 1 partition duy nhất
+b) GPT, nhưng chỉ vì GPT luôn đọc/ghi nhanh hơn MBR, không liên quan tới giới hạn dung lượng
+c) GPT — MBR có giới hạn cứng 2TiB cho partition/dung lượng đĩa dùng được theo kiểu địa chỉ
+   sector truyền thống, không thể dùng hết 6TB nếu chọn MBR
+d) MBR, vì GPT chỉ tương thích với ổ SSD, không dùng được cho đĩa HDD 6TB
+
+**Đáp án: c** — GPT — MBR có giới hạn cứng 2TiB cho partition/dung lượng đĩa dùng được theo
+kiểu địa chỉ sector truyền thống, không thể dùng hết 6TB nếu chọn MBR.
+
+---
+
+**Câu 3**: Sau khi tạo partition mới và `w` thành công, `lsblk` không thấy partition con mới
+xuất hiện. Lệnh nào nên thử trước khi nghĩ tới việc reboot?
+
+a) `mount -a` — thử mount lại mọi filesystem khai báo trong `/etc/fstab`
+b) `udevadm trigger --reload` — chỉ reload rule udev, không liên quan tới bảng phân vùng
+c) `fdisk -l <tên đĩa>` lại một lần nữa để fdisk tự ghi lại bảng phân vùng
+d) `partprobe <tên đĩa>` (hoặc `partx -a <tên đĩa>`) — báo cho kernel đọc lại bảng phân vùng,
+   thường giải quyết được mà không cần reboot
+
+**Đáp án: d** — `partprobe <tên đĩa>` (hoặc `partx -a <tên đĩa>`) — báo cho kernel đọc lại
+bảng phân vùng, thường giải quyết được mà không cần reboot.
+
+---
+
+**Câu 4**: Bạn vừa `w` xong và phát hiện mình vừa xoá nhầm partition chứa dữ liệu quan trọng
+trên `/dev/sdb` (nhầm với `/dev/sdc`, đĩa đáng lẽ cần xoá). Dữ liệu còn khả năng cứu được
+không? Dựa vào đâu?
+
+a) Có khả năng (không chắc chắn) — xoá partition chỉ sửa BẢNG PHÂN VÙNG, không trực tiếp xoá
+   dữ liệu thật trên đĩa. Nếu chưa có gì ghi đè lên vùng đó, công cụ phục hồi (ví dụ
+   `testdisk`) có thể tái tạo lại
+b) Không, mất vĩnh viễn ngay khi `w` — xoá partition đồng nghĩa dữ liệu bị ghi đè bằng 0 ngay
+   lập tức
+c) Có, chắc chắn 100% khôi phục được miễn là chạy `testdisk` trong vòng 24 giờ
+d) Không có cách nào cứu được trừ khi có bản backup riêng — `testdisk` không giúp được gì
+   trong trường hợp này
+
+**Đáp án: a** — Có khả năng (không chắc chắn) — xoá partition chỉ sửa BẢNG PHÂN VÙNG, không
+trực tiếp xoá dữ liệu thật trên đĩa. Nếu chưa có gì ghi đè lên vùng đó sau khi xoá, công cụ
+phục hồi (ví dụ `testdisk`) có thể tái tạo lại bảng phân vùng/dữ liệu. Không nên trông chờ vào
+điều này — luôn xác nhận đúng đĩa TRƯỚC khi thao tác.
+
+---
+
+**Câu 5**: Vì sao nên dùng `lsblk -f` (xem FSTYPE, label) thay vì chỉ dựa vào tên `/dev/sdX`
+để xác nhận đúng đĩa cần thao tác trên server nhiều đĩa?
+
+a) Vì `/dev/sdX` chỉ dùng được để đặt tên đĩa SSD, không áp dụng cho đĩa HDD
+b) Tên `/dev/sdX` có thể đổi thứ tự giữa các lần boot (phụ thuộc thứ tự kernel phát hiện
+   thiết bị) — không đáng tin cậy để nhận diện đĩa chắc chắn. FSTYPE/label/UUID gắn với chính
+   dữ liệu trên đĩa, không đổi theo thứ tự phát hiện, đáng tin cậy hơn
+c) Vì `lsblk -f` hiển thị thêm thông tin nhiệt độ đĩa, giúp phát hiện đĩa sắp hỏng
+d) Vì tên `/dev/sdX` luôn cố định giữa các lần boot, nhưng `lsblk -f` giúp xác nhận thêm đĩa
+   còn hoạt động tốt hay không
+
+**Đáp án: b** — Tên `/dev/sdX` có thể đổi thứ tự giữa các lần boot (phụ thuộc thứ tự kernel
+phát hiện thiết bị, đặc biệt với đĩa gắn ngoài/hot-plug) — không đáng tin cậy để nhận diện đĩa
+một cách chắc chắn. FSTYPE/label/UUID gắn với chính dữ liệu trên đĩa, không đổi theo thứ tự
+phát hiện, nên đáng tin cậy hơn để xác nhận "đây đúng là đĩa tôi nghĩ".
 
 ## 8. Bài liên quan và nguồn tham khảo
 
