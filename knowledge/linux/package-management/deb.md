@@ -239,26 +239,56 @@ dpkg: error processing package tool-internal (--configure):
 
 ## 7. Tự kiểm tra
 
-1. Vì sao `dpkg -i file.deb` có thể báo lỗi thiếu dependency mà `apt install file.deb` (cùng
-   file) lại không?
-   <details><summary>Đáp án</summary><code>dpkg</code> hoạt động ở tầng thấp, chỉ đọc metadata
-   trong chính file <code>.deb</code> và kiểm tra máy đã có dependency chưa — không biết tải ở
-   đâu nếu thiếu. <code>apt</code> ở tầng cao hơn, biết repository, tự tra và tải dependency còn
-   thiếu khi phát hiện.</details>
+**Câu 1**: Vì sao `dpkg -i file.deb` có thể báo lỗi thiếu dependency mà `apt install
+file.deb` (cùng file) lại không?
 
-2. `apt update` vừa chạy xong. Hệ thống có được nâng cấp gì chưa? Vì sao?
-   <details><summary>Đáp án</summary>Chưa — <code>apt update</code> CHỈ tải lại danh sách gói/
-   version mới nhất có sẵn trên repo (metadata), không cài hay nâng cấp bất cứ gì. Cần chạy
-   thêm <code>apt upgrade</code> hoặc <code>apt install &lt;package&gt;</code> để thực sự thay
-   đổi.</details>
+a) `dpkg` hoạt động ở tầng thấp, chỉ đọc metadata trong chính file `.deb` và kiểm tra máy đã
+   có dependency chưa — không biết tải ở đâu nếu thiếu. `apt` ở tầng cao hơn, biết
+   repository, tự tra và tải dependency còn thiếu
+b) `dpkg -i` luôn báo lỗi dependency bất kể gì — đây là giới hạn cố định không thể tránh
+c) `apt install` thực ra gọi `dpkg -i` bên trong nhưng tự bỏ qua lỗi dependency mà không cài
+   gì thêm
+d) Cả hai đều không kiểm tra dependency — lỗi chỉ xuất hiện khi chạy chương trình sau khi
+   cài
 
-3. `dpkg --compare-versions "2.0.0" lt "10.0.0"` trả về exit code gì, và vì sao kết quả này
-   KHÔNG giống so sánh chuỗi ký tự thông thường?
-   <details><summary>Đáp án</summary>Exit code <code>0</code> (đúng — 2.0.0 nhỏ hơn 10.0.0).
-   So sánh CHUỖI ký tự thông thường có thể cho kết quả khác (ký tự <code>'2'</code> lớn hơn
-   <code>'1'</code> nên "2.0.0" > "10.0.0" nếu so từng ký tự) — <code>dpkg --compare-versions</code>
-   dùng thuật toán so sánh VERSION chuyên biệt của Debian, hiểu đúng ý nghĩa số học của các
-   thành phần version, không so chuỗi thô.</details>
+**Đáp án: a** — `dpkg` hoạt động ở tầng thấp, chỉ đọc metadata trong chính file `.deb` và
+kiểm tra máy đã có dependency chưa — không biết tải ở đâu nếu thiếu. `apt` ở tầng cao hơn,
+biết repository, tự tra và tải dependency còn thiếu khi phát hiện.
+
+---
+
+**Câu 2**: `apt update` vừa chạy xong. Hệ thống có được nâng cấp gì chưa? Vì sao?
+
+a) Có, `apt update` tự động nâng cấp mọi package có bản mới ngay khi chạy xong
+b) Chưa — `apt update` CHỈ tải lại danh sách gói/version mới nhất có sẵn trên repo
+   (metadata), không cài hay nâng cấp bất cứ gì. Cần chạy thêm `apt upgrade` hoặc
+   `apt install <package>` để thực sự thay đổi
+c) Có, nhưng chỉ nâng cấp các package bảo mật (security update), còn package thường thì chưa
+d) Không xác định được — phụ thuộc vào cấu hình `APT::Periodic` trong `/etc/apt/apt.conf.d/`
+
+**Đáp án: b** — Chưa — `apt update` CHỈ tải lại danh sách gói/version mới nhất có sẵn trên
+repo (metadata), không cài hay nâng cấp bất cứ gì. Cần chạy thêm `apt upgrade` hoặc
+`apt install <package>` để thực sự thay đổi.
+
+---
+
+**Câu 3**: `dpkg --compare-versions "2.0.0" lt "10.0.0"` trả về exit code gì, và vì sao kết
+quả này KHÔNG giống so sánh chuỗi ký tự thông thường?
+
+a) Exit code `1` (sai) — vì so chuỗi ký tự thông thường, "2" > "1" nên "2.0.0" lớn hơn
+   "10.0.0"
+b) Exit code `2` — vì tham số `lt` không hợp lệ với `dpkg --compare-versions`, cần dùng
+   `-lt` có dấu gạch
+c) Exit code `0` (đúng — 2.0.0 nhỏ hơn 10.0.0). So sánh CHUỖI ký tự thông thường có thể cho
+   kết quả khác — `dpkg --compare-versions` dùng thuật toán so sánh VERSION chuyên biệt của
+   Debian, hiểu đúng ý nghĩa số học của các thành phần version
+d) Exit code `0`, nhưng chỉ vì `dpkg --compare-versions` luôn trả `0` bất kể 2 version nào
+   được so sánh
+
+**Đáp án: c** — Exit code `0` (đúng — 2.0.0 nhỏ hơn 10.0.0). So sánh CHUỖI ký tự thông
+thường có thể cho kết quả khác (ký tự `'2'` lớn hơn `'1'` nên "2.0.0" > "10.0.0" nếu so từng
+ký tự) — `dpkg --compare-versions` dùng thuật toán so sánh VERSION chuyên biệt của Debian,
+hiểu đúng ý nghĩa số học của các thành phần version, không so chuỗi thô.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

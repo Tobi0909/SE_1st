@@ -211,25 +211,57 @@ Một SE quen thuộc với Ubuntu được giao quản lý thêm vài máy RHEL
 
 ## 7. Tự kiểm tra
 
-1. `apt update` và `dnf update` (không tham số) có hành vi GIỐNG NHAU không? Nếu khác, khác ở
-   điểm nào?
-   <details><summary>Đáp án</summary>KHÔNG giống — đây là cạm bẫy quan trọng nhất của module
-   này. <code>apt update</code> chỉ tải metadata, an toàn, không đổi gì trên máy. <code>dnf
-   update</code> (không tham số) THỰC SỰ nâng cấp mọi package có bản mới — tương đương <code>apt
-   upgrade</code>. Muốn chỉ kiểm tra trên RHEL phải dùng <code>dnf check-update</code>.</details>
+**Câu 1**: `apt update` và `dnf update` (không tham số) có hành vi GIỐNG NHAU không? Nếu
+khác, khác ở điểm nào?
 
-2. `rpm -ivh file.rpm` báo lỗi thiếu dependency. Lệnh nào nên dùng thay thế để tự động xử lý
-   dependency còn thiếu?
-   <details><summary>Đáp án</summary><code>dnf install ./file.rpm</code> — giống nguyên lý
-   <code>apt install ./file.deb</code> thay cho <code>dpkg -i</code> bên Debian: dùng công cụ
-   tầng CAO (biết repository) để xử lý file cụ thể, tự tải dependency còn thiếu.</details>
+a) Giống nhau hoàn toàn — cả hai chỉ tải metadata, không đổi gì trên máy
+b) Khác nhau, nhưng ngược lại — `apt update` mới là lệnh nâng cấp thật, `dnf update` chỉ tải
+   metadata
+c) Giống nhau, chỉ khác tên gọi giữa 2 hệ sinh thái package khác nhau
+d) KHÔNG giống — đây là cạm bẫy quan trọng nhất của module này. `apt update` chỉ tải
+   metadata, an toàn, không đổi gì trên máy. `dnf update` (không tham số) THỰC SỰ nâng cấp
+   mọi package có bản mới — tương đương `apt upgrade`. Muốn chỉ kiểm tra trên RHEL phải dùng
+   `dnf check-update`
 
-3. `dnf` có tính năng nào giúp HOÀN TÁC một lần nâng cấp gây lỗi mà `apt` không có cơ chế tương
-   đương tích hợp sẵn?
-   <details><summary>Đáp án</summary><code>dnf history</code> (xem lịch sử giao dịch) kèm
-   <code>dnf history undo &lt;ID&gt;</code> (rollback một giao dịch cụ thể theo ID) — <code>apt</code>
-   không có cơ chế rollback tích hợp tương đương, phải tự quản lý qua công cụ khác (snapshot
-   filesystem, giữ lại file <code>.deb</code> cũ...).</details>
+**Đáp án: d** — KHÔNG giống — đây là cạm bẫy quan trọng nhất của module này. `apt update`
+chỉ tải metadata, an toàn, không đổi gì trên máy. `dnf update` (không tham số) THỰC SỰ nâng
+cấp mọi package có bản mới — tương đương `apt upgrade`. Muốn chỉ kiểm tra trên RHEL phải
+dùng `dnf check-update`.
+
+---
+
+**Câu 2**: `rpm -ivh file.rpm` báo lỗi thiếu dependency. Lệnh nào nên dùng thay thế để tự
+động xử lý dependency còn thiếu?
+
+a) `dnf install ./file.rpm` — giống nguyên lý `apt install ./file.deb` thay cho `dpkg -i`
+   bên Debian: dùng công cụ tầng CAO (biết repository) để xử lý file cụ thể, tự tải
+   dependency còn thiếu
+b) `rpm -Uvh --force file.rpm` — thêm cờ `--force` sẽ tự tải dependency còn thiếu
+c) `yum localinstall --nodeps file.rpm` — cờ `--nodeps` giúp tự động cài đặt dependency còn
+   thiếu
+d) `rpm -ivh --resolve file.rpm` — tham số `--resolve` tự động tải dependency từ repo
+
+**Đáp án: a** — `dnf install ./file.rpm` — giống nguyên lý `apt install ./file.deb` thay cho
+`dpkg -i` bên Debian: dùng công cụ tầng CAO (biết repository) để xử lý file cụ thể, tự tải
+dependency còn thiếu.
+
+---
+
+**Câu 3**: `dnf` có tính năng nào giúp HOÀN TÁC một lần nâng cấp gây lỗi mà `apt` không có
+cơ chế tương đương tích hợp sẵn?
+
+a) `apt-get rollback <ID>` — `apt` thực ra có lệnh rollback tích hợp tương đương
+   `dnf history undo`
+b) `dnf history` (xem lịch sử giao dịch) kèm `dnf history undo <ID>` (rollback một giao
+   dịch cụ thể theo ID) — `apt` không có cơ chế rollback tích hợp tương đương, phải tự quản
+   lý qua công cụ khác
+c) `dnf cache clean` — lệnh này cho phép hoàn tác nâng cấp bằng cách xoá cache package cũ
+d) `dnf downgrade --all` — lệnh này tự động hoàn tác MỌI thay đổi của lần nâng cấp gần nhất
+   về đúng trạng thái cũ
+
+**Đáp án: b** — `dnf history` (xem lịch sử giao dịch) kèm `dnf history undo <ID>` (rollback
+một giao dịch cụ thể theo ID) — `apt` không có cơ chế rollback tích hợp tương đương, phải tự
+quản lý qua công cụ khác (snapshot filesystem, giữ lại file `.deb` cũ...).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
