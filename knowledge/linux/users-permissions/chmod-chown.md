@@ -175,33 +175,83 @@ nhưng liên tục gặp lỗi "Permission denied" khi người này cố xoá/s
 
 ## 7. Tự kiểm tra
 
-1. `chmod 640 file` và `chmod u=rw,g=r,o= file` có cho kết quả GIỐNG NHAU không?
-   <details><summary>Đáp án</summary>Có — cả hai đều ĐẶT TUYỆT ĐỐI thành
-   <code>rw-r-----</code>, chỉ khác cách viết (numeric vs symbolic với dấu <code>=</code>, đặt
-   tuyệt đối từng nhóm thay vì chỉ thêm/bớt bit).</details>
+**Câu 1**: `chmod 640 file` và `chmod u=rw,g=r,o= file` có cho kết quả GIỐNG NHAU không?
 
-2. Một file thực thi có owner là `root` và bit SUID được bật. User thường chạy file này. Quyền
-   HIỆU LỰC của process đang chạy là của ai?
-   <details><summary>Đáp án</summary>Của OWNER file (<code>root</code>), không phải của user
-   thường đang gọi nó — đây chính là tác dụng của SUID.</details>
+a) Không, numeric mode (`640`) chỉ ảnh hưởng tới owner, còn symbolic mode ảnh hưởng tới cả 3
+   nhóm owner/group/other
+b) Có — cả hai đều ĐẶT TUYỆT ĐỐI thành `rw-r-----`, chỉ khác cách viết (numeric vs symbolic
+   với dấu `=`, đặt tuyệt đối từng nhóm thay vì chỉ thêm/bớt bit)
+c) Không, `chmod 640` cộng thêm quyền vào mode hiện có của file, còn symbolic mode đặt tuyệt
+   đối từ đầu
+d) Có, nhưng chỉ đúng trên filesystem ext4 — các filesystem khác (XFS, Btrfs) xử lý hai cú
+   pháp này khác nhau
 
-3. Vì sao gắn SUID cho một shell script (`#!/bin/bash`) không có tác dụng nâng quyền như mong
-   đợi?
-   <details><summary>Đáp án</summary>Kernel Linux không áp dụng SUID cho file có shebang (script
-   văn bản), chỉ áp dụng cho BINARY thực thi thật, vì lý do bảo mật (tránh race condition khi
-   kernel đọc shebang). Muốn nâng quyền có kiểm soát cho một script, phải dùng cơ chế khác như
-   sudo rule cụ thể.</details>
+**Đáp án: b** — Có — cả hai đều ĐẶT TUYỆT ĐỐI thành `rw-r-----`, chỉ khác cách viết (numeric
+vs symbolic với dấu `=`, đặt tuyệt đối từng nhóm thay vì chỉ thêm/bớt bit).
 
-4. Một thư mục chia sẻ có SGID bật TỪ HÔM NAY. Các file ĐÃ TẠO TRƯỚC KHI bật SGID có tự động
-   đổi group theo thư mục không?
-   <details><summary>Đáp án</summary>Không. SGID chỉ ảnh hưởng tới file/thư mục TẠO MỚI sau khi
-   bật — file cũ giữ nguyên group như lúc tạo, cần <code>chgrp</code> tay (hoặc
-   <code>chgrp -R</code>) một lần để đồng bộ nếu cần.</details>
+---
 
-5. Lệnh nào đổi CẢ owner VÀ group của một file trong một lệnh duy nhất?
-   <details><summary>Đáp án</summary><code>chown newowner:newgroup file</code> (dùng dấu
-   <code>:</code> phân tách owner và group trong cùng lệnh <code>chown</code>, không cần gọi
-   riêng <code>chgrp</code>).</details>
+**Câu 2**: Một file thực thi có owner là `root` và bit SUID được bật. User thường chạy file
+này. Quyền HIỆU LỰC của process đang chạy là của ai?
+
+a) Của user thường đang gọi nó — SUID chỉ ảnh hưởng tới việc hiển thị owner trong `ls -l`,
+   không đổi quyền thực thi thật
+b) Của group của file, không phải owner — SUID gán quyền hiệu lực theo group sở hữu file
+c) Của OWNER file (`root`), không phải của user thường đang gọi nó — đây chính là tác dụng
+   của SUID
+d) Phụ thuộc vào `umask` của user đang gọi tại thời điểm chạy, không cố định theo owner hay
+   người gọi
+
+**Đáp án: c** — Của OWNER file (`root`), không phải của user thường đang gọi nó — đây chính
+là tác dụng của SUID.
+
+---
+
+**Câu 3**: Vì sao gắn SUID cho một shell script (`#!/bin/bash`) không có tác dụng nâng quyền
+như mong đợi?
+
+a) Vì script bash luôn yêu cầu nhập lại mật khẩu trước khi thực thi, điều này vô hiệu hoá
+   SUID
+b) Vì SUID chỉ hoạt động với file có đuôi `.sh` được đặt tên đúng chuẩn, không nhận diện qua
+   shebang
+c) Vì bash tự động bỏ SUID khi parse script, nhưng các shell khác như `dash` vẫn tôn trọng
+   SUID bình thường
+d) Kernel Linux không áp dụng SUID cho file có shebang (script văn bản), chỉ áp dụng cho
+   BINARY thực thi thật, vì lý do bảo mật (tránh race condition khi kernel đọc shebang)
+
+**Đáp án: d** — Kernel Linux không áp dụng SUID cho file có shebang (script văn bản), chỉ áp
+dụng cho BINARY thực thi thật, vì lý do bảo mật (tránh race condition khi kernel đọc shebang).
+Muốn nâng quyền có kiểm soát cho một script, phải dùng cơ chế khác như sudo rule cụ thể.
+
+---
+
+**Câu 4**: Một thư mục chia sẻ có SGID bật TỪ HÔM NAY. Các file ĐÃ TẠO TRƯỚC KHI bật SGID có
+tự động đổi group theo thư mục không?
+
+a) Không. SGID chỉ ảnh hưởng tới file/thư mục TẠO MỚI sau khi bật — file cũ giữ nguyên group
+   như lúc tạo, cần `chgrp` tay (hoặc `chgrp -R`) một lần để đồng bộ nếu cần
+b) Có, SGID áp dụng ngược cho mọi file đã có trong thư mục ngay khi bật
+c) Có, nhưng chỉ với file có owner là root — file của user thường thì không bị ảnh hưởng
+d) Không áp dụng cho bất kỳ file nào, kể cả file tạo mới sau khi bật — luôn phải `chgrp` tay
+   toàn bộ
+
+**Đáp án: a** — Không. SGID chỉ ảnh hưởng tới file/thư mục TẠO MỚI sau khi bật — file cũ giữ
+nguyên group như lúc tạo, cần `chgrp` tay (hoặc `chgrp -R`) một lần để đồng bộ nếu cần.
+
+---
+
+**Câu 5**: Lệnh nào đổi CẢ owner VÀ group của một file trong một lệnh duy nhất?
+
+a) `chmod newowner:newgroup file` — `chmod` cũng hỗ trợ đổi owner/group qua cú pháp tương tự
+   `chown`
+b) `chown newowner:newgroup file` (dùng dấu `:` phân tách owner và group trong cùng lệnh
+   `chown`, không cần gọi riêng `chgrp`)
+c) `chgrp newowner:newgroup file` — `chgrp` hỗ trợ đổi cả owner và group cùng lúc qua dấu `:`
+d) Không có lệnh nào làm được trong một lệnh duy nhất — luôn phải gọi `chown` rồi `chgrp`
+   riêng
+
+**Đáp án: b** — `chown newowner:newgroup file` (dùng dấu `:` phân tách owner và group trong
+cùng lệnh `chown`, không cần gọi riêng `chgrp`).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

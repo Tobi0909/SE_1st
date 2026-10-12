@@ -183,38 +183,87 @@ còn có quyền VIẾT, không muốn `audit` vô tình/bị lợi dụng để
 
 ## 7. Tự kiểm tra
 
-1. Một file có `mask::r--` và một ACL entry `user:bob:rwx`. Quyền HIỆU LỰC thật của `bob` trên
-   file này là gì?
-   <details><summary>Đáp án</summary><code>r--</code> (chỉ đọc) — quyền hiệu lực là GIAO của
-   entry và mask, dù entry khai báo <code>rwx</code>, mask chỉ cho phép tối đa
-   <code>r--</code>.</details>
+**Câu 1**: Một file có `mask::r--` và một ACL entry `user:bob:rwx`. Quyền HIỆU LỰC thật của
+`bob` trên file này là gì?
 
-2. Vì sao ACL, extended attribute, và file attribute (immutable...) được coi là BA cơ chế khác
-   nhau dù đều "thêm thông tin" vào file ngoài permission rwx cơ bản?
-   <details><summary>Đáp án</summary>ACL là MỞ RỘNG của permission truyền thống (vẫn là quyền
-   đọc/viết/thực thi, chỉ chi tiết hơn theo user/group cụ thể). Extended attribute là metadata
-   TÙY Ý, không nhất thiết liên quan quyền truy cập. File attribute (immutable, append-only...)
-   là CỜ ở TẦNG FILESYSTEM, hoạt động độc lập hoàn toàn với permission/owner/ACL.</details>
+a) `rwx` — mask chỉ ảnh hưởng tới group, không ảnh hưởng tới named user entry
+b) `---` (không có quyền gì) — `mask::r--` vô hiệu hoá hoàn toàn mọi ACL entry khác trên file
+c) `rw-` — mask lấy giao với quyền owner truyền thống của file, không phải với từng entry
+d) `r--` (chỉ đọc) — quyền hiệu lực là GIAO của entry và mask, dù entry khai báo `rwx`, mask
+   chỉ cho phép tối đa `r--`
 
-3. `chattr +i file.txt` báo lỗi "Operation not permitted" dù bạn chạy với `sudo`. Có phải lệnh
-   `sudo` không hoạt động đúng không?
-   <details><summary>Đáp án</summary>Không — nếu dùng đúng <code>sudo chattr +i file.txt</code>
-   (có <code>sudo</code>) thì sẽ thành công vì root/CAP_LINUX_IMMUTABLE có quyền set bit này.
-   Nếu lỗi xảy ra khi KHÔNG có <code>sudo</code> (như minh hoạ ở mục 4), đây là hành vi ĐÚNG
-   theo thiết kế, không phải lỗi.</details>
+**Đáp án: d** — `r--` (chỉ đọc) — quyền hiệu lực là GIAO của entry và mask, dù entry khai báo
+`rwx`, mask chỉ cho phép tối đa `r--`.
 
-4. Sau khi `rsync` một file có ACL mở rộng sang server khác (không dùng cờ đặc biệt), ACL trên
-   file đích có giữ nguyên không?
-   <details><summary>Đáp án</summary>Không, theo mặc định. Cần cờ <code>-A</code> (giữ ACL)
-   hoặc <code>-X</code> (giữ xattr) với <code>rsync</code> để chủ động yêu cầu giữ lại các
-   metadata mở rộng này — hành vi mặc định chỉ copy nội dung + permission cơ bản.</details>
+---
 
-5. Vì sao dùng ACL thay vì đổi group/permission chung khi cần cấp quyền ĐỌC cho một user cụ
-   thể mà không muốn ảnh hưởng tới quyền của cả group hiện tại?
-   <details><summary>Đáp án</summary>ACL cho phép cấp quyền CHÍNH XÁC cho MỘT user cụ thể mà
-   KHÔNG cần thay đổi group/permission chung của file — tránh vô tình cấp dư quyền (ví dụ cấp
-   cả quyền viết nếu group đó có <code>rw</code>) cho user chỉ cần đọc, giữ đúng nguyên tắc
-   least privilege.</details>
+**Câu 2**: Vì sao ACL, extended attribute, và file attribute (immutable...) được coi là BA cơ
+chế khác nhau dù đều "thêm thông tin" vào file ngoài permission rwx cơ bản?
+
+a) ACL là MỞ RỘNG của permission truyền thống (vẫn là quyền đọc/viết/thực thi, chi tiết hơn
+   theo user/group cụ thể). Extended attribute là metadata TÙY Ý, không nhất thiết liên quan
+   quyền truy cập. File attribute (immutable, append-only...) là CỜ ở TẦNG FILESYSTEM, hoạt
+   động độc lập hoàn toàn với permission/owner/ACL
+b) Vì mỗi cơ chế chỉ hoạt động trên 1 loại filesystem riêng (ACL cho ext4, xattr cho XFS,
+   file attribute cho Btrfs)
+c) Vì ACL và extended attribute thực chất là một cơ chế, chỉ file attribute mới thực sự khác
+   biệt
+d) Vì cả 3 đều lưu cấu hình trong `/etc/`, chỉ khác tên file cấu hình tương ứng
+
+**Đáp án: a** — ACL là MỞ RỘNG của permission truyền thống (vẫn là quyền đọc/viết/thực thi,
+chỉ chi tiết hơn theo user/group cụ thể). Extended attribute là metadata TÙY Ý, không nhất
+thiết liên quan quyền truy cập. File attribute (immutable, append-only...) là CỜ ở TẦNG
+FILESYSTEM, hoạt động độc lập hoàn toàn với permission/owner/ACL.
+
+---
+
+**Câu 3**: `chattr +i file.txt` báo lỗi "Operation not permitted" dù bạn chạy với `sudo`. Có
+phải lệnh `sudo` không hoạt động đúng không?
+
+a) Có, sudo lẽ ra phải cho qua mọi lệnh `chattr` bất kể trường hợp nào — đây là bug của sudo
+b) Không — nếu dùng đúng `sudo chattr +i file.txt` (có `sudo`) thì sẽ thành công vì
+   root/CAP_LINUX_IMMUTABLE có quyền set bit này. Nếu lỗi xảy ra khi KHÔNG có `sudo`, đây là
+   hành vi ĐÚNG theo thiết kế, không phải lỗi
+c) Không, nhưng vì `chattr +i` chỉ hoạt động đúng trên filesystem Btrfs, không hoạt động trên
+   ext4 dù có `sudo`
+d) Có, lỗi do thiếu `CAP_SYS_ADMIN` trong cấu hình `sudoers` mặc định, cần thêm thủ công
+
+**Đáp án: b** — Không — nếu dùng đúng `sudo chattr +i file.txt` (có `sudo`) thì sẽ thành công
+vì root/CAP_LINUX_IMMUTABLE có quyền set bit này. Nếu lỗi xảy ra khi KHÔNG có `sudo` (như
+minh hoạ ở mục 4), đây là hành vi ĐÚNG theo thiết kế, không phải lỗi.
+
+---
+
+**Câu 4**: Sau khi `rsync` một file có ACL mở rộng sang server khác (không dùng cờ đặc biệt),
+ACL trên file đích có giữ nguyên không?
+
+a) Có, `rsync` luôn giữ nguyên toàn bộ ACL/xattr theo mặc định, kể cả không truyền cờ gì
+b) Không, và không có cách nào để `rsync` giữ lại ACL dù dùng cờ nào
+c) Không, theo mặc định. Cần cờ `-A` (giữ ACL) hoặc `-X` (giữ xattr) với `rsync` để chủ động
+   yêu cầu giữ lại các metadata mở rộng này
+d) Có, nhưng chỉ khi file đích cùng user/group với file nguồn — khác thì ACL tự mất
+
+**Đáp án: c** — Không, theo mặc định. Cần cờ `-A` (giữ ACL) hoặc `-X` (giữ xattr) với `rsync`
+để chủ động yêu cầu giữ lại các metadata mở rộng này — hành vi mặc định chỉ copy nội dung +
+permission cơ bản.
+
+---
+
+**Câu 5**: Vì sao dùng ACL thay vì đổi group/permission chung khi cần cấp quyền ĐỌC cho một
+user cụ thể mà không muốn ảnh hưởng tới quyền của cả group hiện tại?
+
+a) Vì đổi group/permission chung yêu cầu reboot để áp dụng, còn ACL áp dụng ngay không cần
+   reboot
+b) Vì ACL nhanh hơn `chmod`/`chgrp` về mặt hiệu năng xử lý khi file rất lớn
+c) Vì group/permission chung chỉ hỗ trợ tối đa 1 user mỗi file, ACL hỗ trợ không giới hạn số
+   user
+d) ACL cho phép cấp quyền CHÍNH XÁC cho MỘT user cụ thể mà KHÔNG cần thay đổi group/permission
+   chung của file — tránh vô tình cấp dư quyền cho user chỉ cần đọc, giữ đúng nguyên tắc least
+   privilege
+
+**Đáp án: d** — ACL cho phép cấp quyền CHÍNH XÁC cho MỘT user cụ thể mà KHÔNG cần thay đổi
+group/permission chung của file — tránh vô tình cấp dư quyền (ví dụ cấp cả quyền viết nếu
+group đó có `rw`) cho user chỉ cần đọc, giữ đúng nguyên tắc least privilege.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

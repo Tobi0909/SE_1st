@@ -19,9 +19,10 @@ rải đều A/B/C/D trong mỗi module; nhiễu phải sai dứt khoát theo đ
 
 **Đã xong**: `linux.boot-systemd` (5 bài, 25 câu — commit `569f83b`),
 `linux.process-signals` (5 bài, 25 câu — commit `824a919`),
-`linux.filesystem-storage` (6 bài, 30 câu — xem commit theo sau trong git log).
+`linux.filesystem-storage` (6 bài, 30 câu — commit `869d48e`),
+`linux.users-permissions` (5 bài, 25 câu — xem commit theo sau trong git log).
 
-**Còn lại**: 94 bài, ~19 module. Chưa bài nào phải bỏ qua vì không nghĩ ra được lựa chọn nhiễu
+**Còn lại**: 89 bài, ~18 module. Chưa bài nào phải bỏ qua vì không nghĩ ra được lựa chọn nhiễu
 đáng tin cậy.
 
 ## Trạng thái tổng quan

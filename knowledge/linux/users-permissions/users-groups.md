@@ -165,39 +165,88 @@ group `appteam` mà trước đó họ ĐÃ được thêm vào bởi một đ�
 
 ## 7. Tự kiểm tra
 
-1. Vì sao mật khẩu hash không còn lưu trực tiếp trong `/etc/passwd` dù file này vẫn có một
-   trường ở vị trí đó (hiện là `x`)?
-   <details><summary>Đáp án</summary><code>/etc/passwd</code> cần đọc được bởi MỌI user (để các
-   lệnh như <code>ls -l</code>/<code>id</code> hoạt động), nên lưu hash mật khẩu trực tiếp ở
-   đây sẽ lộ cho mọi người đọc được (dễ brute-force offline). Hash thật được tách sang
-   <code>/etc/shadow</code>, chỉ root đọc được; trường <code>x</code> trong
-   <code>/etc/passwd</code> chỉ là placeholder báo "xem /etc/shadow".</details>
+**Câu 1**: Vì sao mật khẩu hash không còn lưu trực tiếp trong `/etc/passwd` dù file này vẫn
+có một trường ở vị trí đó (hiện là `x`)?
 
-2. Bạn chạy `usermod -G backup user1` cho một user đã thuộc sẵn `sudo` và `docker`. Sau lệnh
-   này, `id user1` sẽ hiện những group nào?
-   <details><summary>Đáp án</summary>CHỈ <code>backup</code> (và group chính của user1) — thiếu
-   <code>-a</code> khiến lệnh GHI ĐÈ toàn bộ group phụ, xoá mất <code>sudo</code> và
-   <code>docker</code> đã có trước đó.</details>
+a) `/etc/passwd` cần đọc được bởi MỌI user (để các lệnh như `ls -l`/`id` hoạt động), nên lưu
+   hash mật khẩu trực tiếp ở đây sẽ lộ cho mọi người đọc được. Hash thật được tách sang
+   `/etc/shadow`, chỉ root đọc được; trường `x` chỉ là placeholder báo "xem /etc/shadow"
+b) Vì `/etc/passwd` có giới hạn độ dài trường không đủ chứa hash dài, buộc phải tách sang
+   `/etc/shadow`
+c) Vì `/etc/shadow` được mã hoá bằng khoá riêng của root, còn `/etc/passwd` không hỗ trợ cơ
+   chế mã hoá đó
+d) Vì mỗi lần đổi mật khẩu, ghi lại toàn bộ `/etc/passwd` rất chậm — tách riêng `/etc/shadow`
+   giúp đổi mật khẩu nhanh hơn
 
-3. Sau khi thêm user vào group `docker` đúng cách (`usermod -aG`), user đó vẫn không chạy được
-   `docker` trong terminal ĐANG MỞ. Đây có phải lỗi của lệnh `usermod` không?
-   <details><summary>Đáp án</summary>Không. Lệnh đã đúng, chỉ là session/terminal đang mở đã
-   "chốt" danh sách group từ lúc đăng nhập, không tự đọc lại <code>/etc/group</code>. Cần đăng
-   nhập lại (terminal mới/SSH lại) hoặc dùng <code>newgrp docker</code> cho session hiện
-   tại.</details>
+**Đáp án: a** — `/etc/passwd` cần đọc được bởi MỌI user (để các lệnh như `ls -l`/`id` hoạt
+động), nên lưu hash mật khẩu trực tiếp ở đây sẽ lộ cho mọi người đọc được (dễ brute-force
+offline). Hash thật được tách sang `/etc/shadow`, chỉ root đọc được; trường `x` trong
+`/etc/passwd` chỉ là placeholder báo "xem /etc/shadow".
 
-4. Mỗi user có thể thuộc MẤY group chính (primary group) cùng lúc? Mấy group phụ?
-   <details><summary>Đáp án</summary>Đúng MỘT group chính (ghi trong <code>/etc/passwd</code>,
-   trường GID). Có thể thuộc NHIỀU group phụ (ghi trong <code>/etc/group</code>, không giới hạn
-   cố định ngoài giới hạn hệ thống rất lớn).</details>
+---
 
-5. Vì sao nên dùng `getent passwd <user>` thay vì `grep <user> /etc/passwd` để tra cứu thông
-   tin user trên một hệ thống lớn?
-   <details><summary>Đáp án</summary><code>getent</code> tra cứu qua đúng cơ chế NSS (Name
-   Service Switch) của hệ thống — hoạt động đúng cả khi thông tin user không chỉ nằm trong file
-   local mà còn ở LDAP/NIS/AD (cấu hình qua <code>/etc/nsswitch.conf</code>).
-   <code>grep</code> trực tiếp file CHỈ thấy được user cục bộ, bỏ lọt user quản lý qua hệ thống
-   tập trung.</details>
+**Câu 2**: Bạn chạy `usermod -G backup user1` cho một user đã thuộc sẵn `sudo` và `docker`.
+Sau lệnh này, `id user1` sẽ hiện những group nào?
+
+a) `sudo`, `docker`, `backup` — `usermod -G` luôn cộng thêm group mới vào danh sách hiện có
+b) CHỈ `backup` (và group chính của user1) — thiếu `-a` khiến lệnh GHI ĐÈ toàn bộ group phụ,
+   xoá mất `sudo` và `docker` đã có trước đó
+c) Chỉ `sudo` và `docker` — `usermod -G backup` không áp dụng gì vì group `backup` chưa tồn
+   tại từ trước
+d) Lệnh sẽ báo lỗi và không chạy được vì thiếu cờ `-a` bắt buộc khi dùng `-G`
+
+**Đáp án: b** — CHỈ `backup` (và group chính của user1) — thiếu `-a` khiến lệnh GHI ĐÈ toàn
+bộ group phụ, xoá mất `sudo` và `docker` đã có trước đó.
+
+---
+
+**Câu 3**: Sau khi thêm user vào group `docker` đúng cách (`usermod -aG`), user đó vẫn không
+chạy được `docker` trong terminal ĐANG MỞ. Đây có phải lỗi của lệnh `usermod` không?
+
+a) Có, `usermod -aG` chỉ hoạt động khi user đang offline — cần logout toàn hệ thống trước khi
+   chạy lệnh
+b) Không, nhưng vì `docker.service` cần được restart để nhận diện user mới thuộc group
+c) Không. Lệnh đã đúng, chỉ là session/terminal đang mở đã "chốt" danh sách group từ lúc
+   đăng nhập, không tự đọc lại `/etc/group`. Cần đăng nhập lại hoặc dùng `newgrp docker` cho
+   session hiện tại
+d) Có, đây là bug đã biết của `usermod -aG` — luôn cần chạy thêm `newgrp` ngay sau đó mới có
+   hiệu lực
+
+**Đáp án: c** — Không. Lệnh đã đúng, chỉ là session/terminal đang mở đã "chốt" danh sách group
+từ lúc đăng nhập, không tự đọc lại `/etc/group`. Cần đăng nhập lại (terminal mới/SSH lại) hoặc
+dùng `newgrp docker` cho session hiện tại.
+
+---
+
+**Câu 4**: Mỗi user có thể thuộc MẤY group chính (primary group) cùng lúc? Mấy group phụ?
+
+a) Tối đa 1 group chính và tối đa 16 group phụ, theo giới hạn cứng của kernel Linux hiện đại
+b) Có thể thuộc nhiều group chính cùng lúc, nhưng chỉ 1 group phụ duy nhất
+c) Không có khái niệm group chính trên Linux — chỉ Windows mới phân biệt group chính/phụ
+d) Đúng MỘT group chính (ghi trong `/etc/passwd`, trường GID). Có thể thuộc NHIỀU group phụ
+   (ghi trong `/etc/group`, không giới hạn cố định ngoài giới hạn hệ thống rất lớn)
+
+**Đáp án: d** — Đúng MỘT group chính (ghi trong `/etc/passwd`, trường GID). Có thể thuộc
+NHIỀU group phụ (ghi trong `/etc/group`, không giới hạn cố định ngoài giới hạn hệ thống rất
+lớn).
+
+---
+
+**Câu 5**: Vì sao nên dùng `getent passwd <user>` thay vì `grep <user> /etc/passwd` để tra
+cứu thông tin user trên một hệ thống lớn?
+
+a) `getent` tra cứu qua đúng cơ chế NSS (Name Service Switch) của hệ thống — hoạt động đúng
+   cả khi thông tin user không chỉ nằm trong file local mà còn ở LDAP/NIS/AD. `grep` trực
+   tiếp file CHỈ thấy được user cục bộ, bỏ lọt user quản lý qua hệ thống tập trung
+b) Vì `getent` luôn chạy nhanh hơn `grep` về mặt hiệu năng xử lý text
+c) Vì `grep` không hỗ trợ tìm kiếm chính xác theo tên user, dễ khớp nhầm chuỗi con
+d) Vì `/etc/passwd` trên hệ thống hiện đại không còn chứa thông tin user nào, mọi thứ đã
+   chuyển sang `getent`
+
+**Đáp án: a** — `getent` tra cứu qua đúng cơ chế NSS (Name Service Switch) của hệ thống —
+hoạt động đúng cả khi thông tin user không chỉ nằm trong file local mà còn ở LDAP/NIS/AD
+(cấu hình qua `/etc/nsswitch.conf`). `grep` trực tiếp file CHỈ thấy được user cục bộ, bỏ lọt
+user quản lý qua hệ thống tập trung.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

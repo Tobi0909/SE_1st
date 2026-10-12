@@ -192,40 +192,91 @@ permission `644` (đọc được cho mọi người) và owner đúng là user 
 
 ## 7. Tự kiểm tra
 
-1. `ls -l` cho thấy một file có quyền `777` (mọi người đọc/viết/thực thi), nhưng một service
-   vẫn báo "Permission denied" khi truy cập nó trên server RHEL. Giả thuyết cần kiểm tra ngay
-   là gì?
-   <details><summary>Đáp án</summary>SELinux đang ở chế độ <code>Enforcing</code> và chặn qua
-   lớp MAC (label/context), độc lập hoàn toàn với permission DAC đã mở hết. Kiểm tra bằng
-   <code>getenforce</code> rồi tìm log qua <code>ausearch -m avc</code>.</details>
+**Câu 1**: `ls -l` cho thấy một file có quyền `777` (mọi người đọc/viết/thực thi), nhưng một
+service vẫn báo "Permission denied" khi truy cập nó trên server RHEL. Giả thuyết cần kiểm tra
+ngay là gì?
 
-2. Phân biệt chế độ `permissive` (SELinux) / `complain` (AppArmor) với `disabled`/tắt hẳn — vì
-   sao nên ưu tiên cái trước khi debug?
-   <details><summary>Đáp án</summary><code>permissive</code>/<code>complain</code> vẫn GHI LOG
-   những gì SẼ bị chặn nhưng KHÔNG thực sự chặn — giữ được thông tin chẩn đoán và vẫn còn một
-   phần giám sát. <code>disabled</code>/tắt hẳn xoá bỏ HOÀN TOÀN lớp bảo vệ, không ghi log gì
-   nữa, và dễ bị quên bật lại, rủi ro bảo mật lâu dài.</details>
+a) SELinux đang ở chế độ `Enforcing` và chặn qua lớp MAC (label/context), độc lập hoàn toàn
+   với permission DAC đã mở hết. Kiểm tra bằng `getenforce` rồi tìm log qua `ausearch -m avc`
+b) Giả thuyết là file thực ra chưa được ghi đủ quyền thực thi `x` cho service user cụ thể
+c) Giả thuyết là NFS mount đang stale, cần remount lại filesystem chứa file đó
+d) Giả thuyết là service đang chạy trong container không chia sẻ namespace user với host
 
-3. Một file được `mv` (không phải `cp`) từ thư mục home sang `/var/www/html` trên hệ thống
-   SELinux. Context của file này sau khi `mv` là gì?
-   <details><summary>Đáp án</summary>Giữ NGUYÊN context cũ (gắn với thư mục home gốc), KHÔNG
-   tự đổi thành context mong đợi cho vị trí mới — vì <code>mv</code> trong cùng filesystem chỉ
-   đổi tên entry, không tạo inode mới để trigger relabel tự động.</details>
+**Đáp án: a** — SELinux đang ở chế độ `Enforcing` và chặn qua lớp MAC (label/context), độc
+lập hoàn toàn với permission DAC đã mở hết. Kiểm tra bằng `getenforce` rồi tìm log qua
+`ausearch -m avc`.
 
-4. Vì sao AppArmor được coi là dễ "lách" qua hard link/mount trick hơn SELinux, xét về mặt
-   kiến trúc?
-   <details><summary>Đáp án</summary>AppArmor xác định quyền DỰA THEO ĐƯỜNG DẪN (path-based) —
-   nếu một chương trình truy cập cùng dữ liệu qua một đường dẫn khác (hard link/bind mount)
-   không nằm trong phạm vi profile, kiểm soát có thể bị bỏ qua. SELinux gắn label THEO INODE
-   (label-based) — label đi theo chính file, không quan tâm truy cập qua đường dẫn nào, nên
-   không có đúng lỗ hổng kiểu này.</details>
+---
 
-5. Log lỗi của chính ứng dụng web server chỉ ghi "403 Forbidden" chung, không nói rõ nguyên
-   nhân. Nên tìm thông tin chi tiết về việc MAC có chặn hay không ở đâu?
-   <details><summary>Đáp án</summary>Trong log RIÊNG của hệ thống MAC, không phải log ứng dụng
-   — SELinux: <code>ausearch -m avc</code>/<code>dmesg | grep avc</code>; AppArmor:
-   <code>journalctl</code>/<code>dmesg</code> tìm <code>apparmor="DENIED"</code>. Ứng dụng
-   thường không "biết" nó bị MAC chặn, chỉ thấy syscall thất bại và báo lỗi chung.</details>
+**Câu 2**: Phân biệt chế độ `permissive` (SELinux) / `complain` (AppArmor) với
+`disabled`/tắt hẳn — vì sao nên ưu tiên cái trước khi debug?
+
+a) permissive/complain chặn ít nghiêm ngặt hơn nhưng vẫn chặn một phần truy cập, còn
+   disabled không chặn gì cả
+b) `permissive`/`complain` vẫn GHI LOG những gì SẼ bị chặn nhưng KHÔNG thực sự chặn — giữ
+   được thông tin chẩn đoán. `disabled`/tắt hẳn xoá bỏ HOÀN TOÀN lớp bảo vệ, không ghi log gì
+   nữa, và dễ bị quên bật lại
+c) Không có khác biệt thực tế — cả hai đều tắt hoàn toàn MAC, chỉ khác tên gọi giữa
+   SELinux/AppArmor
+d) `disabled` vẫn ghi log đầy đủ như `permissive`, chỉ khác là không chặn truy cập nào
+
+**Đáp án: b** — `permissive`/`complain` vẫn GHI LOG những gì SẼ bị chặn nhưng KHÔNG thực sự
+chặn — giữ được thông tin chẩn đoán và vẫn còn một phần giám sát. `disabled`/tắt hẳn xoá bỏ
+HOÀN TOÀN lớp bảo vệ, không ghi log gì nữa, và dễ bị quên bật lại, rủi ro bảo mật lâu dài.
+
+---
+
+**Câu 3**: Một file được `mv` (không phải `cp`) từ thư mục home sang `/var/www/html` trên hệ
+thống SELinux. Context của file này sau khi `mv` là gì?
+
+a) Tự động đổi thành context đúng cho `/var/www/html`, vì SELinux luôn relabel khi file đổi
+   vị trí
+b) Mất hoàn toàn context — file trở thành `unlabeled_t` cho tới khi chạy `restorecon`
+c) Giữ NGUYÊN context cũ (gắn với thư mục home gốc), KHÔNG tự đổi thành context mong đợi cho
+   vị trí mới — vì `mv` trong cùng filesystem chỉ đổi tên entry, không tạo inode mới để
+   trigger relabel tự động
+d) Tự động đổi context đúng, nhưng chỉ khi dùng `mv -Z` thay vì `mv` thường
+
+**Đáp án: c** — Giữ NGUYÊN context cũ (gắn với thư mục home gốc), KHÔNG tự đổi thành context
+mong đợi cho vị trí mới — vì `mv` trong cùng filesystem chỉ đổi tên entry, không tạo inode
+mới để trigger relabel tự động.
+
+---
+
+**Câu 4**: Vì sao AppArmor được coi là dễ "lách" qua hard link/mount trick hơn SELinux, xét
+về mặt kiến trúc?
+
+a) Vì AppArmor không hỗ trợ chế độ Enforcing, chỉ có complain, nên luôn dễ bị lách hơn
+b) Vì SELinux yêu cầu biên dịch lại kernel cho mỗi profile mới, còn AppArmor không cần,
+   khiến AppArmor lỏng hơn
+c) Vì AppArmor chỉ bảo vệ được file có đuôi `.conf`, còn SELinux bảo vệ mọi loại file
+d) AppArmor xác định quyền DỰA THEO ĐƯỜNG DẪN (path-based) — nếu một chương trình truy cập
+   cùng dữ liệu qua một đường dẫn khác (hard link/bind mount) không nằm trong phạm vi profile,
+   kiểm soát có thể bị bỏ qua. SELinux gắn label THEO INODE (label-based) — label đi theo
+   chính file, không quan tâm truy cập qua đường dẫn nào
+
+**Đáp án: d** — AppArmor xác định quyền DỰA THEO ĐƯỜNG DẪN (path-based) — nếu một chương
+trình truy cập cùng dữ liệu qua một đường dẫn khác (hard link/bind mount) không nằm trong
+phạm vi profile, kiểm soát có thể bị bỏ qua. SELinux gắn label THEO INODE (label-based) —
+label đi theo chính file, không quan tâm truy cập qua đường dẫn nào, nên không có đúng lỗ
+hổng kiểu này.
+
+---
+
+**Câu 5**: Log lỗi của chính ứng dụng web server chỉ ghi "403 Forbidden" chung, không nói rõ
+nguyên nhân. Nên tìm thông tin chi tiết về việc MAC có chặn hay không ở đâu?
+
+a) Trong log RIÊNG của hệ thống MAC, không phải log ứng dụng — SELinux: `ausearch -m
+   avc`/`dmesg | grep avc`; AppArmor: `journalctl`/`dmesg` tìm `apparmor="DENIED"`
+b) Trong chính log ứng dụng, chỉ cần tăng log level lên DEBUG là sẽ thấy chi tiết MAC
+c) Trong `/var/log/auth.log`, vì MAC được coi là một phần của hệ thống xác thực
+d) Không có cách nào xem chi tiết — chỉ có thể đoán qua việc thử tắt SELinux/AppArmor để so
+   sánh
+
+**Đáp án: a** — Trong log RIÊNG của hệ thống MAC, không phải log ứng dụng — SELinux:
+`ausearch -m avc`/`dmesg | grep avc`; AppArmor: `journalctl`/`dmesg` tìm
+`apparmor="DENIED"`. Ứng dụng thường không "biết" nó bị MAC chặn, chỉ thấy syscall thất bại
+và báo lỗi chung.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

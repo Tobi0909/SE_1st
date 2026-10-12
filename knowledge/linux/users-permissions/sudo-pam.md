@@ -172,41 +172,96 @@ yêu cầu thu hẹp quyền.
 
 ## 7. Tự kiểm tra
 
-1. Một dòng sudoers: `%ops ALL = (root) /usr/bin/systemctl *`. Ai được chạy lệnh gì, với quyền
-   của ai?
-   <details><summary>Đáp án</summary>Mọi user thuộc group <code>ops</code>
-   (<code>%ops</code>), trên mọi máy (<code>ALL</code>), được chạy bất kỳ lệnh con nào của
-   <code>/usr/bin/systemctl</code> (dấu <code>*</code>), với quyền của <code>root</code> (chỉ
-   định trong <code>(root)</code>).</details>
+**Câu 1**: Một dòng sudoers: `%ops ALL = (root) /usr/bin/systemctl *`. Ai được chạy lệnh gì,
+với quyền của ai?
 
-2. Vì sao nên dùng `visudo` thay vì `vi /etc/sudoers` trực tiếp, dù cả hai đều là "sửa file
-   text"?
-   <details><summary>Đáp án</summary><code>visudo</code> validate cú pháp TRƯỚC khi cho phép
-   lưu, và khoá file tránh xung đột sửa đồng thời. Sửa trực tiếp bằng editor thường không có
-   bước kiểm tra này — một lỗi cú pháp nhỏ khi lưu có thể làm hỏng <code>sudo</code> hoàn toàn
-   cho MỌI user, kể cả chính người sửa.</details>
+a) Chỉ user tên "ops" (không phải group) được chạy đúng lệnh `systemctl status`, với quyền
+   của chính họ
+b) Mọi user thuộc group `ops`, chỉ trên máy có tên "root", chạy được lệnh `systemctl` bất kỳ
+   với quyền hiện tại của họ
+c) Mọi user thuộc group `ops` (`%ops`), trên mọi máy (`ALL`), được chạy bất kỳ lệnh con nào
+   của `/usr/bin/systemctl` (dấu `*`), với quyền của `root` (chỉ định trong `(root)`)
+d) Mọi user, trên mọi máy, được chạy mọi lệnh hệ thống với quyền root — dòng sudoers này cấp
+   toàn quyền
 
-3. Phân biệt control flag `required` và `requisite` trong PAM — khác nhau ở điểm nào khi module
-   đó FAIL?
-   <details><summary>Đáp án</summary>Cả hai đều coi module đó là BẮT BUỘC phải thành công để cả
-   stack qua được. Khác biệt: <code>required</code> fail thì KHÔNG dừng ngay — vẫn chạy hết các
-   module khác trong stack trước khi báo lỗi cuối cùng. <code>requisite</code> fail thì DỪNG
-   NGAY, trả lỗi về ứng dụng ngay lập tức, không chạy module nào sau đó nữa.</details>
+**Đáp án: c** — Mọi user thuộc group `ops` (`%ops`), trên mọi máy (`ALL`), được chạy bất kỳ
+lệnh con nào của `/usr/bin/systemctl` (dấu `*`), với quyền của `root` (chỉ định trong
+`(root)`).
 
-4. Sau khi `sudo` một lệnh thành công, bạn chạy `sudo` lệnh thứ hai ngay sau đó và KHÔNG bị hỏi
-   lại mật khẩu. Đây có phải lỗ hổng bảo mật không?
-   <details><summary>Đáp án</summary>Không, đây là hành vi THIẾT KẾ của <code>sudo</code> —
-   cache xác thực trong một khoảng thời gian (mặc định 15 phút, cấu hình qua
-   <code>timestamp_timeout</code>). Đánh đổi tiện lợi lấy một khoảng rủi ro nhỏ nếu máy bị
-   chiếm quyền truy cập trong khoảng cache đó — có thể cấu hình ngắn hơn hoặc tắt hẳn nếu cần
-   an toàn cao hơn.</details>
+---
 
-5. Một user service cần tự động chạy MỘT lệnh cụ thể không cần mật khẩu trong pipeline CI/CD.
-   Phương án nào phù hợp hơn: thêm vào group `sudo`, hay viết một rule riêng trong sudoers?
-   <details><summary>Đáp án</summary>Viết rule riêng, hẹp phạm vi, CHỈ cho đúng lệnh cần (ví dụ
-   với <code>NOPASSWD</code> cho riêng lệnh đó). Thêm vào group <code>sudo</code> cấp toàn
-   quyền root cho MỌI lệnh — vi phạm nguyên tắc least privilege, rủi ro lớn hơn nhiều nếu tài
-   khoản service đó bị lộ.</details>
+**Câu 2**: Vì sao nên dùng `visudo` thay vì `vi /etc/sudoers` trực tiếp, dù cả hai đều là
+"sửa file text"?
+
+a) Vì `vi` không thể mở được file `/etc/sudoers` do quyền hệ thống đặc biệt, chỉ `visudo`
+   mới có quyền đó
+b) Vì `visudo` tự động backup file cũ ra `/etc/sudoers.bak` trước mỗi lần sửa, còn `vi`
+   không làm vậy
+c) Vì `visudo` mã hoá nội dung `sudoers` khi lưu để bảo vệ khỏi đọc trộm, còn `vi` lưu dạng
+   văn bản thường
+d) `visudo` validate cú pháp TRƯỚC khi cho phép lưu, và khoá file tránh xung đột sửa đồng
+   thời. Sửa trực tiếp bằng editor thường không có bước kiểm tra này — một lỗi cú pháp nhỏ có
+   thể làm hỏng `sudo` hoàn toàn cho MỌI user
+
+**Đáp án: d** — `visudo` validate cú pháp TRƯỚC khi cho phép lưu, và khoá file tránh xung đột
+sửa đồng thời. Sửa trực tiếp bằng editor thường không có bước kiểm tra này — một lỗi cú pháp
+nhỏ khi lưu có thể làm hỏng `sudo` hoàn toàn cho MỌI user, kể cả chính người sửa.
+
+---
+
+**Câu 3**: Phân biệt control flag `required` và `requisite` trong PAM — khác nhau ở điểm nào
+khi module đó FAIL?
+
+a) Cả hai đều coi module đó là BẮT BUỘC phải thành công để cả stack qua được. Khác biệt:
+   `required` fail thì KHÔNG dừng ngay — vẫn chạy hết các module khác trong stack trước khi
+   báo lỗi cuối cùng. `requisite` fail thì DỪNG NGAY, trả lỗi về ứng dụng ngay lập tức
+b) `required` fail dừng ngay lập tức; `requisite` fail thì vẫn chạy hết các module khác rồi
+   mới báo lỗi
+c) `required` là tuỳ chọn (có thể fail mà vẫn qua được stack); `requisite` mới là bắt buộc
+   phải thành công
+d) Không có khác biệt thực sự giữa hai flag này — chỉ là tên gọi khác nhau giữa các phiên
+   bản PAM
+
+**Đáp án: a** — Cả hai đều coi module đó là BẮT BUỘC phải thành công để cả stack qua được.
+Khác biệt: `required` fail thì KHÔNG dừng ngay — vẫn chạy hết các module khác trong stack
+trước khi báo lỗi cuối cùng. `requisite` fail thì DỪNG NGAY, trả lỗi về ứng dụng ngay lập
+tức, không chạy module nào sau đó nữa.
+
+---
+
+**Câu 4**: Sau khi `sudo` một lệnh thành công, bạn chạy `sudo` lệnh thứ hai ngay sau đó và
+KHÔNG bị hỏi lại mật khẩu. Đây có phải lỗ hổng bảo mật không?
+
+a) Có, đây là lỗ hổng nghiêm trọng cần báo cáo CVE ngay — mọi lệnh `sudo` phải hỏi lại mật
+   khẩu
+b) Không, đây là hành vi THIẾT KẾ của `sudo` — cache xác thực trong một khoảng thời gian
+   (mặc định 15 phút, cấu hình qua `timestamp_timeout`)
+c) Không, nhưng vì máy đang chạy trong mạng nội bộ nên `sudo` tự tắt yêu cầu xác thực lặp lại
+d) Có, lỗ hổng do thiếu patch bảo mật — cần cập nhật `sudo` lên bản mới nhất ngay
+
+**Đáp án: b** — Không, đây là hành vi THIẾT KẾ của `sudo` — cache xác thực trong một khoảng
+thời gian (mặc định 15 phút, cấu hình qua `timestamp_timeout`). Đánh đổi tiện lợi lấy một
+khoảng rủi ro nhỏ nếu máy bị chiếm quyền truy cập trong khoảng cache đó — có thể cấu hình ngắn
+hơn hoặc tắt hẳn nếu cần an toàn cao hơn.
+
+---
+
+**Câu 5**: Một user service cần tự động chạy MỘT lệnh cụ thể không cần mật khẩu trong
+pipeline CI/CD. Phương án nào phù hợp hơn: thêm vào group `sudo`, hay viết một rule riêng
+trong sudoers?
+
+a) Thêm vào group `sudo` — đơn giản hơn và đủ an toàn vì tài khoản service không có mật khẩu
+   đăng nhập trực tiếp
+b) Cả hai phương án tương đương về mức độ rủi ro — chọn phương án nào tiện hơn cho pipeline
+c) Viết rule riêng, hẹp phạm vi, CHỈ cho đúng lệnh cần (ví dụ với `NOPASSWD` cho riêng lệnh
+   đó). Thêm vào group `sudo` cấp toàn quyền root cho MỌI lệnh — vi phạm nguyên tắc least
+   privilege
+d) Viết rule riêng nhưng cho phép `NOPASSWD` với `ALL` lệnh, để tránh phải sửa lại `sudoers`
+   mỗi khi pipeline cần thêm lệnh mới
+
+**Đáp án: c** — Viết rule riêng, hẹp phạm vi, CHỈ cho đúng lệnh cần (ví dụ với `NOPASSWD` cho
+riêng lệnh đó). Thêm vào group `sudo` cấp toàn quyền root cho MỌI lệnh — vi phạm nguyên tắc
+least privilege, rủi ro lớn hơn nhiều nếu tài khoản service đó bị lộ.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
