@@ -186,26 +186,54 @@ Server báo ổ đĩa `/dev/sdb` bị "I/O error" đột ngột, ứng dụng g�
 
 ## 7. Tự kiểm tra
 
-1. Sau khi server kernel panic và reboot lại, làm thế nào để đọc kernel log từ LÚC TRƯỚC KHI
-   PANIC?
-   <details><summary>Đáp án</summary><code>journalctl -k -b -1</code> — đọc kernel log từ boot
-   trước (<code>-b -1</code>). Yêu cầu persistent journal phải được bật (kiểm tra bằng <code>ls
-   /var/log/journal/</code>). Ring buffer thông thường của <code>dmesg</code> mất khi reboot.
-   </details>
+**Câu 1**: Sau khi server kernel panic và reboot lại, làm thế nào để đọc kernel log từ LÚC
+TRƯỚC KHI PANIC?
 
-2. `journalctl -k` hiện rất nhiều dòng. Muốn chỉ xem các vấn đề nghiêm trọng (error trở lên), dùng
-   option nào?
-   <details><summary>Đáp án</summary><code>journalctl -k -p err</code> — lọc chỉ các thông điệp
-   từ mức <code>err</code> (3) trở lên (err, crit, alert, emerg). Có thể kết hợp thêm <code>-S
-   "2 hours ago"</code> để giới hạn thời gian.</details>
+a) `dmesg --since "-1 hour"` — `dmesg` vẫn giữ log qua reboot nếu dùng tham số `--since`
+   đúng cách
+b) `cat /var/log/kern.log.1` — file này luôn tồn tại sẵn trên mọi distro để lưu log trước
+   reboot
+c) `journalctl -k -b -1` — đọc kernel log từ boot trước (`-b -1`). Yêu cầu persistent
+   journal phải được bật. Ring buffer thông thường của `dmesg` mất khi reboot
+d) Không thể đọc được log trước panic dưới bất kỳ hình thức nào sau khi đã reboot
 
-3. Thấy nhiều dòng `ACPI Error` trong kernel log ngay từ lúc boot. Điều này có nghĩa là gì, cần
-   xử lý gấp không?
-   <details><summary>Đáp án</summary>Thường là lỗi BIOS firmware khai báo không đúng spec ACPI —
-   xuất hiện khi boot và KHÔNG lặp lại sau. Thường không ảnh hưởng hoạt động chính nhưng một số
-   tính năng ACPI đặc thù (sensor mainboard, một số power management) có thể không hoạt động đúng.
-   Kiểm tra: nếu lỗi CHỈ xuất hiện lúc boot và không lặp lại, không cần xử lý gấp; nếu lỗi lặp
-   liên tục, cần điều tra thêm (kiểm tra firmware update từ nhà sản xuất mainboard).</details>
+**Đáp án: c** — `journalctl -k -b -1` — đọc kernel log từ boot trước (`-b -1`). Yêu cầu
+persistent journal phải được bật (kiểm tra bằng `ls /var/log/journal/`). Ring buffer thông
+thường của `dmesg` mất khi reboot.
+
+---
+
+**Câu 2**: `journalctl -k` hiện rất nhiều dòng. Muốn chỉ xem các vấn đề nghiêm trọng (error
+trở lên), dùng option nào?
+
+a) `journalctl -k --level=error` — tham số `--level` dùng để lọc theo mức độ nghiêm trọng
+b) `journalctl -k | grep -i error` — đây là cách duy nhất để lọc theo mức độ, `journalctl`
+   không có tham số lọc riêng
+c) `journalctl -k --error-only` — cờ chuyên dụng chỉ hiện lỗi, không hiện cảnh báo hay info
+d) `journalctl -k -p err` — lọc chỉ các thông điệp từ mức `err` (3) trở lên (err, crit,
+   alert, emerg). Có thể kết hợp thêm `-S "2 hours ago"` để giới hạn thời gian
+
+**Đáp án: d** — `journalctl -k -p err` — lọc chỉ các thông điệp từ mức `err` (3) trở lên
+(err, crit, alert, emerg). Có thể kết hợp thêm `-S "2 hours ago"` để giới hạn thời gian.
+
+---
+
+**Câu 3**: Thấy nhiều dòng `ACPI Error` trong kernel log ngay từ lúc boot. Điều này có nghĩa
+là gì, cần xử lý gấp không?
+
+a) Thường là lỗi BIOS firmware khai báo không đúng spec ACPI — xuất hiện khi boot và KHÔNG
+   lặp lại sau. Thường không ảnh hưởng hoạt động chính; kiểm tra nếu lỗi CHỈ xuất hiện lúc
+   boot và không lặp lại thì không cần xử lý gấp, nếu lặp liên tục thì cần điều tra thêm
+b) Luôn là dấu hiệu RAM lỗi nghiêm trọng, cần thay RAM ngay trước khi tiếp tục sử dụng máy
+c) Luôn là lỗi kernel panic sắp xảy ra, cần backup dữ liệu và restart ngay lập tức
+d) Không có ý nghĩa gì — đây chỉ là noise log vô hại luôn xuất hiện trên mọi máy, không cần
+   quan tâm
+
+**Đáp án: a** — Thường là lỗi BIOS firmware khai báo không đúng spec ACPI — xuất hiện khi
+boot và KHÔNG lặp lại sau. Thường không ảnh hưởng hoạt động chính nhưng một số tính năng
+ACPI đặc thù (sensor mainboard, một số power management) có thể không hoạt động đúng. Kiểm
+tra: nếu lỗi CHỈ xuất hiện lúc boot và không lặp lại, không cần xử lý gấp; nếu lỗi lặp liên
+tục, cần điều tra thêm (kiểm tra firmware update từ nhà sản xuất mainboard).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

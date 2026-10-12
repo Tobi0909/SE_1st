@@ -181,22 +181,55 @@ cấu hình:
 
 ## 7. Tự kiểm tra
 
-1. `modprobe -r nf_tables` thất bại với "Module is in use". Bước đầu tiên để tìm nguyên nhân là gì?
-   <details><summary>Đáp án</summary>Chạy <code>lsmod | grep nf_tables</code> xem cột "Used by" —
-   liệt kê tên các module/thực thể đang giữ reference. Lần lượt unload chúng trước, rồi mới unload
-   <code>nf_tables</code>.</details>
+**Câu 1**: `modprobe -r nf_tables` thất bại với "Module is in use". Bước đầu tiên để tìm
+nguyên nhân là gì?
 
-2. Khác biệt chính giữa `modprobe` và `insmod` khi load module là gì?
-   <details><summary>Đáp án</summary><code>modprobe</code> đọc <code>modules.dep</code> và tự động
-   load tất cả dependency theo đúng thứ tự trước khi load module đích. <code>insmod</code> chỉ load
-   ĐÚNG file <code>.ko</code> được chỉ định, không biết dependency — nếu thiếu dependency thì
-   thất bại.</details>
+a) Chạy `lsmod | grep nf_tables` xem cột "Used by" — liệt kê tên các module/thực thể đang
+   giữ reference. Lần lượt unload chúng trước, rồi mới unload `nf_tables`
+b) Chạy `rmmod -f nf_tables` ngay để buộc unload, bỏ qua cảnh báo "in use"
+c) Reboot lại máy ngay — đây là cách duy nhất để unload module đang bị giữ reference
+d) Chạy `depmod -a` để cập nhật lại `modules.dep` rồi thử `modprobe -r` lại
 
-3. Module có `Used by = 0` trong `lsmod`. Điều này có đảm bảo module có thể unload ngay không?
-   <details><summary>Đáp án</summary>Thường là có — <code>Used by = 0</code> nghĩa là không có
-   thực thể nào đang giữ reference, <code>modprobe -r</code> thường thành công. Ngoại lệ: một số
-   module được đánh dấu "permanent" (ví dụ module cốt lõi không thể unload dù refcnt 0) hoặc đang
-   trong quá trình init/teardown (<code>initstate = going</code>).</details>
+**Đáp án: a** — Chạy `lsmod | grep nf_tables` xem cột "Used by" — liệt kê tên các
+module/thực thể đang giữ reference. Lần lượt unload chúng trước, rồi mới unload `nf_tables`.
+
+---
+
+**Câu 2**: Khác biệt chính giữa `modprobe` và `insmod` khi load module là gì?
+
+a) `modprobe` chỉ dùng để unload module, `insmod` chỉ dùng để load module — hai lệnh phục
+   vụ 2 chiều ngược nhau
+b) `modprobe` đọc `modules.dep` và tự động load tất cả dependency theo đúng thứ tự trước
+   khi load module đích. `insmod` chỉ load ĐÚNG file `.ko` được chỉ định, không biết
+   dependency
+c) Không có khác biệt thực chất — `modprobe` chỉ là alias (symlink) của `insmod` trên hầu
+   hết distro
+d) `insmod` đọc `modules.dep` để tự tải dependency, `modprobe` chỉ load đúng 1 file `.ko`
+   chỉ định
+
+**Đáp án: b** — `modprobe` đọc `modules.dep` và tự động load tất cả dependency theo đúng
+thứ tự trước khi load module đích. `insmod` chỉ load ĐÚNG file `.ko` được chỉ định, không
+biết dependency — nếu thiếu dependency thì thất bại.
+
+---
+
+**Câu 3**: Module có `Used by = 0` trong `lsmod`. Điều này có đảm bảo module có thể unload
+ngay không?
+
+a) Có, `Used by = 0` luôn đảm bảo 100% unload thành công trong mọi trường hợp, không có
+   ngoại lệ
+b) Không, `Used by = 0` không liên quan gì tới khả năng unload — phải luôn dùng `-f` để
+   chắc chắn
+c) Thường là có — `Used by = 0` nghĩa là không có thực thể nào đang giữ reference,
+   `modprobe -r` thường thành công. Ngoại lệ: một số module được đánh dấu "permanent" hoặc
+   đang trong quá trình init/teardown
+d) Có, nhưng chỉ đúng với module được load qua `insmod` — module load qua `modprobe` thì
+   luôn cần `-f`
+
+**Đáp án: c** — Thường là có — `Used by = 0` nghĩa là không có thực thể nào đang giữ
+reference, `modprobe -r` thường thành công. Ngoại lệ: một số module được đánh dấu
+"permanent" (ví dụ module cốt lõi không thể unload dù refcnt 0) hoặc đang trong quá trình
+init/teardown (`initstate = going`).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

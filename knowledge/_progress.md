@@ -21,10 +21,15 @@ rải đều A/B/C/D trong mỗi module; nhiễu phải sai dứt khoát theo đ
 `linux.process-signals` (5 bài, 25 câu — commit `824a919`),
 `linux.filesystem-storage` (6 bài, 30 câu — commit `869d48e`),
 `linux.users-permissions` (5 bài, 25 câu — commit `0e9cb31`),
-`linux.network-stack` (4 bài, 12 câu — xem commit theo sau trong git log),
-`linux.performance` (4 bài, 20 câu — xem commit theo sau trong git log).
+`linux.network-stack` (4 bài, 12 câu — commit `d85de4f`),
+`linux.performance` (4 bài, 20 câu — commit `ca51010`),
+`linux.shell-scripting` (4 bài, 13 câu — commit `6d7b6b9`),
+`linux.package-management` (2 bài, 6 câu — commit `61f0172`),
+`linux.kernel-troubleshooting` (4 bài, 12 câu — xem commit theo sau trong git log).
 
-**Còn lại**: 81 bài, ~16 module. Chưa bài nào phải bỏ qua vì không nghĩ ra được lựa chọn nhiễu
+Domain `linux` đã xong hoàn toàn (9/9 module). Tiếp theo: domain `networking`.
+
+**Còn lại**: 71 bài, ~15 module. Chưa bài nào phải bỏ qua vì không nghĩ ra được lựa chọn nhiễu
 đáng tin cậy.
 
 ## Trạng thái tổng quan

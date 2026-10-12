@@ -198,26 +198,57 @@ Chuỗi debug hoàn chỉnh — "Web application không trả về response, cli
 
 ## 7. Tự kiểm tra
 
-1. "Service không kết nối được từ client bên ngoài." Trước khi kiểm tra firewall, cần xác nhận điều
-   gì?
-   <details><summary>Đáp án</summary>Service có thực sự LISTEN trên port đó không, và LISTEN trên
-   interface nào — dùng <code>ss -tln | grep &lt;port&gt;</code>. Nếu không thấy dòng nào, service
-   chưa start hoặc LISTEN sai port. Nếu thấy <code>127.0.0.1:&lt;port&gt;</code> thay vì
-   <code>0.0.0.0:&lt;port&gt;</code>, service chỉ chấp nhận kết nối nội bộ — đây không phải vấn
-   đề firewall.</details>
+**Câu 1**: "Service không kết nối được từ client bên ngoài." Trước khi kiểm tra firewall,
+cần xác nhận điều gì?
 
-2. Một sự cố xảy ra và bạn cần hỏi "đã từng hoạt động chưa?" Trả lời "CÓ" dẫn hướng điều tra theo
-   chiều nào?
-   <details><summary>Đáp án</summary>Tìm điều gì ĐÃ THAY ĐỔI gần nhất — deploy mới, update package,
-   thay đổi cấu hình, thêm user, sửa firewall rule... Câu hỏi cốt lõi là "regression: thứ gì đó đã
-   hoạt động đúng và đã bị phá vỡ bởi thay đổi", không phải "tìm thứ còn thiếu".</details>
+a) Cần xác nhận DNS record của domain đã trỏ đúng IP server chưa
+b) Service có thực sự LISTEN trên port đó không, và LISTEN trên interface nào — dùng
+   `ss -tln | grep <port>`. Nếu không thấy dòng nào, service chưa start hoặc LISTEN sai
+   port. Nếu thấy `127.0.0.1:<port>` thay vì `0.0.0.0:<port>`, đây không phải vấn đề
+   firewall
+c) Cần xác nhận client có đúng cấu hình proxy không, vì có thể client định tuyến sai
+d) Cần xác nhận switch/router trung gian có bị lỗi phần cứng không
 
-3. Sau khi chạy đủ 4 bước của khung mà vẫn không rõ nguyên nhân, bước tiếp theo nên là gì?
-   <details><summary>Đáp án</summary>Cố gắng TÁI HIỆN vấn đề trong môi trường kiểm soát nhỏ hơn
-   (ví dụ test trên máy staging, hoặc tái hiện với request/command cụ thể) — tái hiện được nghĩa là
-   hiểu đủ về vấn đề để mô tả nó chính xác, và cho phép thay đổi một biến một lúc để loại trừ.
-   Nếu không tái hiện được, vấn đề có thể là race condition hoặc intermittent — bước tiếp là thêm
-   instrumentation (log chi tiết hơn, metric) rồi chờ xảy ra lần nữa.</details>
+**Đáp án: b** — Service có thực sự LISTEN trên port đó không, và LISTEN trên interface nào
+— dùng `ss -tln | grep <port>`. Nếu không thấy dòng nào, service chưa start hoặc LISTEN sai
+port. Nếu thấy `127.0.0.1:<port>` thay vì `0.0.0.0:<port>`, service chỉ chấp nhận kết nối
+nội bộ — đây không phải vấn đề firewall.
+
+---
+
+**Câu 2**: Một sự cố xảy ra và bạn cần hỏi "đã từng hoạt động chưa?" Trả lời "CÓ" dẫn hướng
+điều tra theo chiều nào?
+
+a) Dẫn hướng kiểm tra tài liệu thiết kế ban đầu xem hệ thống có được thiết kế đúng từ đầu
+   không
+b) Dẫn hướng kiểm tra log hệ thống trong 1 năm qua để tìm pattern lặp lại theo mùa
+c) Tìm điều gì ĐÃ THAY ĐỔI gần nhất — deploy mới, update package, thay đổi cấu hình, thêm
+   user, sửa firewall rule... Câu hỏi cốt lõi là "regression", không phải "tìm thứ còn
+   thiếu"
+d) Dẫn hướng liên hệ ngay với vendor phần cứng để kiểm tra bảo hành thiết bị
+
+**Đáp án: c** — Tìm điều gì ĐÃ THAY ĐỔI gần nhất — deploy mới, update package, thay đổi cấu
+hình, thêm user, sửa firewall rule... Câu hỏi cốt lõi là "regression: thứ gì đó đã hoạt động
+đúng và đã bị phá vỡ bởi thay đổi", không phải "tìm thứ còn thiếu".
+
+---
+
+**Câu 3**: Sau khi chạy đủ 4 bước của khung mà vẫn không rõ nguyên nhân, bước tiếp theo nên
+là gì?
+
+a) Đóng ticket sự cố là "không thể xác định nguyên nhân", chuyển sang vấn đề khác ưu tiên
+   hơn
+b) Thay toàn bộ phần cứng nghi ngờ ngay, kể cả chưa xác định được phần nào gây lỗi
+c) Khôi phục lại bản backup cũ nhất có thể, bỏ qua việc tìm nguyên nhân gốc
+d) Cố gắng TÁI HIỆN vấn đề trong môi trường kiểm soát nhỏ hơn — tái hiện được nghĩa là hiểu
+   đủ về vấn đề để mô tả nó chính xác, cho phép thay đổi một biến một lúc để loại trừ. Nếu
+   không tái hiện được, thêm instrumentation rồi chờ xảy ra lần nữa
+
+**Đáp án: d** — Cố gắng TÁI HIỆN vấn đề trong môi trường kiểm soát nhỏ hơn (ví dụ test trên
+máy staging, hoặc tái hiện với request/command cụ thể) — tái hiện được nghĩa là hiểu đủ về
+vấn đề để mô tả nó chính xác, và cho phép thay đổi một biến một lúc để loại trừ. Nếu không
+tái hiện được, vấn đề có thể là race condition hoặc intermittent — bước tiếp là thêm
+instrumentation (log chi tiết hơn, metric) rồi chờ xảy ra lần nữa.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
