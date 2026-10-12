@@ -175,17 +175,72 @@ Buổi sáng, 5 máy cuối cùng cắm vào không lấy được IP.
 
 ## 7. Tự kiểm tra
 
-1. Vì sao `DHCPDISCOVER` phải gửi broadcast, không thể unicast?
-   <details><summary>Đáp án</summary>Vì client chưa có IP và chưa biết IP của DHCP server — broadcast là cách duy nhất để "hỏi cả mạng" khi chưa biết địa chỉ ai.</details>
+**Câu 1**: Vì sao `DHCPDISCOVER` phải gửi broadcast, không thể unicast?
 
-2. Vì sao `DHCPREQUEST` (bước xác nhận offer) vẫn gửi broadcast dù client đã biết IP server đề xuất?
-   <details><summary>Đáp án</summary>Để MỌI DHCP server khác trong mạng (nếu có nhiều server) cũng biết IP đó đã được client chọn, tránh 2 server cùng cấp trùng 1 IP cho 2 client khác nhau.</details>
+a) Vì unicast yêu cầu client phải biết địa chỉ MAC đích trước, trong khi DHCP chỉ biết IP đích
+b) Vì chuẩn DHCP quy định mọi gói tin đều phải broadcast trong toàn bộ quy trình DORA
+c) Vì client chưa có IP và chưa biết IP của DHCP server — broadcast là cách duy nhất để "hỏi
+   cả mạng" khi chưa biết địa chỉ ai
+d) Vì router luôn chặn gói unicast từ địa chỉ IP 0.0.0.0, buộc client phải dùng broadcast
 
-3. DHCP relay làm gì, và vì sao cần nó khi server ở VLAN khác client?
-   <details><summary>Đáp án</summary>Relay nghe broadcast DHCP trên subnet client và chuyển tiếp dạng UNICAST sang DHCP server ở subnet/VLAN khác (kèm `giaddr`) — nếu không có relay, broadcast không vượt qua được router.</details>
+**Đáp án: c** — Vì client chưa có IP và chưa biết IP của DHCP server — broadcast là cách duy
+nhất để "hỏi cả mạng" khi chưa biết địa chỉ ai. Vấn đề cốt lõi là không biết địa chỉ SERVER
+(không chỉ MAC) — client cũng chưa biết IP đích (loại a); không phải mọi gói trong DORA đều
+buộc broadcast — DHCPREQUEST khi renew có thể unicast (loại d liên quan tới câu 4); router
+chặn một số traffic nhưng đây không phải lý do THIẾT KẾ của DHCPDISCOVER — lý do là client chưa
+biết địa chỉ ai để gửi unicast (loại d).
 
-4. Khi lease gần hết hạn, client renew bằng cách nào — chạy lại toàn bộ DORA hay chỉ 1 bước?
-   <details><summary>Đáp án</summary>Chỉ cần unicast REQUEST/ACK trực tiếp với server đã cấp (ở mốc T1, thường 50% lease time); chỉ quay lại DISCOVER broadcast đầy đủ nếu renew thất bại.</details>
+---
+
+**Câu 2**: Vì sao `DHCPREQUEST` (bước xác nhận offer) vẫn gửi broadcast dù client đã biết IP
+server đề xuất?
+
+a) Vì client chưa thực sự biết chắc IP server, cần hỏi lại toàn mạng để xác nhận
+b) Vì unicast tới server lúc này sẽ bị tường lửa mặc định chặn do chưa có lease hợp lệ
+c) Vì DHCPREQUEST luôn đi kèm DHCPDISCOVER trong cùng một gói broadcast duy nhất
+d) Để MỌI DHCP server khác trong mạng (nếu có nhiều server) cũng biết IP đó đã được client
+   chọn, tránh 2 server cùng cấp trùng 1 IP cho 2 client khác nhau
+
+**Đáp án: d** — Để MỌI DHCP server khác trong mạng (nếu có nhiều server) cũng biết IP đó đã
+được client chọn, tránh 2 server cùng cấp trùng 1 IP cho 2 client khác nhau. Client ĐÃ biết IP
+server từ OFFER, không cần hỏi lại để xác nhận (loại a); không có quy tắc tường lửa mặc định
+như vậy trong DHCP (loại b); DHCPREQUEST và DHCPDISCOVER là hai bước/loại gói riêng trong quy
+trình DORA, không gộp chung một gói (loại c).
+
+---
+
+**Câu 3**: DHCP relay làm gì, và vì sao cần nó khi server ở VLAN khác client?
+
+a) Relay nghe broadcast DHCP trên subnet client và chuyển tiếp dạng UNICAST sang DHCP server ở
+   subnet/VLAN khác (kèm `giaddr`) — nếu không có relay, broadcast không vượt qua được router
+b) Relay mã hoá gói DHCP trước khi gửi qua VLAN khác để đảm bảo bảo mật
+c) Relay tự cấp IP tạm thời cho client trong lúc chờ broadcast tới được server ở VLAN khác
+d) Relay chỉ cần thiết khi server và client cùng VLAN nhưng khác switch vật lý
+
+**Đáp án: a** — Relay nghe broadcast DHCP trên subnet client và chuyển tiếp dạng UNICAST sang
+DHCP server ở subnet/VLAN khác (kèm `giaddr`) — nếu không có relay, broadcast không vượt qua
+được router. Relay không làm nhiệm vụ mã hoá (loại b); relay không tự cấp IP, nó chỉ chuyển
+tiếp yêu cầu tới server thật (loại c); relay cần thiết chính xác khi server và client ở KHÁC
+VLAN/subnet, không phải khi cùng VLAN khác switch (cùng VLAN thì broadcast vẫn lan tới được qua
+switch — loại d).
+
+---
+
+**Câu 4**: Khi lease gần hết hạn, client renew bằng cách nào — chạy lại toàn bộ DORA hay chỉ 1
+bước?
+
+a) Luôn phải chạy lại toàn bộ DORA từ đầu, bất kể lease còn hạn bao lâu
+b) Chỉ cần unicast REQUEST/ACK trực tiếp với server đã cấp (ở mốc T1, thường 50% lease time);
+   chỉ quay lại DISCOVER broadcast đầy đủ nếu renew thất bại
+c) Client tự gia hạn lease nội bộ mà không cần liên hệ lại server nào cả
+d) Chỉ cần gửi lại chính xác gói DHCPDISCOVER ban đầu, server sẽ tự nhận ra và gia hạn
+
+**Đáp án: b** — Chỉ cần unicast REQUEST/ACK trực tiếp với server đã cấp (ở mốc T1, thường 50%
+lease time); chỉ quay lại DISCOVER broadcast đầy đủ nếu renew thất bại. Chạy lại toàn bộ DORA
+mỗi lần renew là không cần thiết và tốn thời gian hơn mức cần (loại a); client không thể tự gia
+hạn lease một mình — lease time do SERVER quyết định và phải được server xác nhận (loại c);
+gửi lại DHCPDISCOVER (thay vì REQUEST) là bước fallback khi renew thất bại, không phải bước
+renew thông thường (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -47,8 +47,15 @@ có câu nào phải bỏ qua.
 `bgp`. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz` → 12 câu mới (tổng 399
 câu), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
 
-**Còn lại trong `networking`**: 7 module (dns 2 bài, dhcp 1, nat-firewall 3, tls-pki 3, http-lb
-3, vpn 1, diagnostic-tools 3 = 16 bài).
+`networking.dns` (2 bài, 10 câu) và `networking.dhcp` (1 bài, 4 câu) — 2 commit riêng, xem git
+log. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz` → 14 câu mới (tổng 413
+câu), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+Đã làm 5 module trong lượt này (tcpip, switching, routing, dns, dhcp) — dừng theo quy tắc tối
+đa 5 module/lượt.
+
+**Còn lại trong `networking`**: 5 module (nat-firewall 3 bài, tls-pki 3, http-lb 3, vpn 1,
+diagnostic-tools 3 = 13 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
