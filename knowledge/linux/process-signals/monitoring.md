@@ -162,38 +162,82 @@ Team nhận báo cáo "server báo cáo chạy chậm" từ một dashboard giá
 
 ## 7. Tự kiểm tra
 
-1. Server A có 4 lõi, load average `3.8`. Server B có 32 lõi, load average `3.8`. Hai server
-   có đang "nặng" như nhau không?
-   <details><summary>Đáp án</summary>Không. Server A đang dùng gần hết (95%) khả năng xử lý
-   đồng thời của nó — khá nặng. Server B chỉ dùng khoảng 12% — rất nhẹ. Load average là số
-   tuyệt đối, phải chia theo số lõi (<code>nproc</code>) để so sánh đúng.</details>
+**Câu 1**: Server A có 4 lõi, load average `3.8`. Server B có 32 lõi, load average `3.8`. Hai
+server có đang "nặng" như nhau không?
 
-2. `top` cho thấy load average cao nhưng `%Cpu(s)` có `id` (idle) rất cao (>80%). Hướng điều
-   tra tiếp theo hợp lý nhất là gì?
-   <details><summary>Đáp án</summary>Điều tra I/O, không phải CPU — kiểm tra cột <code>wa</code>
-   trong <code>top</code>/<code>vmstat</code>, và tìm process ở trạng thái <code>D</code> bằng
-   <code>ps -eo pid,stat,comm</code> để xác định cái gì đang chờ I/O.</details>
+a) Không. Server A đang dùng gần hết (95%) khả năng xử lý đồng thời — khá nặng. Server B chỉ
+   dùng khoảng 12% — rất nhẹ. Load average là số tuyệt đối, phải chia theo số lõi (`nproc`)
+   để so sánh đúng
+b) Có, vì load average là chỉ số tuyệt đối, không phụ thuộc vào số lõi của máy
+c) Không, nhưng ngược lại — Server B đang nặng hơn Server A vì có tổng năng lực xử lý lớn hơn
+d) Có, vì hệ điều hành đã tự chuẩn hoá giá trị load average theo số lõi trước khi hiển thị
 
-3. `free -h` cho thấy `free` rất thấp nhưng `available` khá cao. Hệ thống có sắp hết RAM
-   không?
-   <details><summary>Đáp án</summary>Chưa chắc, và thường là KHÔNG. Phần chênh lệch giữa
-   <code>free</code> và <code>available</code> nằm ở <code>buff/cache</code> — RAM kernel đang
-   dùng để cache, có thể giải phóng ngay khi ứng dụng cần. <code>available</code> phản ánh đúng
-   lượng RAM thực sự còn dùng được.</details>
+**Đáp án: a** — Không. Server A đang dùng gần hết (95%) khả năng xử lý đồng thời của nó — khá
+nặng. Server B chỉ dùng khoảng 12% — rất nhẹ. Load average là số tuyệt đối, phải chia theo số
+lõi (`nproc`) để so sánh đúng.
 
-4. Một process hiện `%CPU = 180` trong `top`. Đây có phải lỗi hiển thị không?
-   <details><summary>Đáp án</summary>Không phải lỗi. <code>%CPU</code> tính theo MỘT lõi —
-   180% nghĩa là process đang dùng tương đương 1.8 lõi CPU (thường do chạy đa luồng/đa
-   process con cùng lúc), hoàn toàn hợp lệ trên máy có nhiều hơn 1 lõi.</details>
+---
 
-5. Bạn muốn viết một script tự động cảnh báo khi "load trung bình vượt một ngưỡng nguy hiểm"
-   và áp dụng cho nhiều server có số lõi khác nhau. Ngưỡng nên đặt theo giá trị tuyệt đối hay
-   theo tỷ lệ với `nproc`? Vì sao?
-   <details><summary>Đáp án</summary>Theo tỷ lệ với <code>nproc</code> (ví dụ cảnh báo khi
-   <code>load1 / nproc > 1.5</code>), vì một ngưỡng tuyệt đối chung sẽ sai lệch hoàn toàn giữa
-   server ít lõi (dễ báo động giả ở ngưỡng thấp không thực sự nguy hiểm) và server nhiều lõi
-   (bỏ lọt tình huống quá tải thật vì ngưỡng tuyệt đối quá cao so với năng lực xử lý thực
-   tế).</details>
+**Câu 2**: `top` cho thấy load average cao nhưng `%Cpu(s)` có `id` (idle) rất cao (>80%).
+Hướng điều tra tiếp theo hợp lý nhất là gì?
+
+a) Điều tra RAM — kiểm tra `free -h`, vì load cao luôn gắn với thiếu RAM
+b) Điều tra CPU scheduler — tăng giá trị `nice` cho toàn bộ process đang chạy
+c) Không cần điều tra thêm — `%Cpu` idle cao nghĩa là chỉ số load average lúc đó đang hiển
+   thị sai
+d) Điều tra I/O, không phải CPU — kiểm tra cột `wa` trong `top`/`vmstat`, và tìm process ở
+   trạng thái `D` bằng `ps -eo pid,stat,comm`
+
+**Đáp án: d** — Điều tra I/O, không phải CPU — kiểm tra cột `wa` trong `top`/`vmstat`, và tìm
+process ở trạng thái `D` bằng `ps -eo pid,stat,comm` để xác định cái gì đang chờ I/O.
+
+---
+
+**Câu 3**: `free -h` cho thấy `free` rất thấp nhưng `available` khá cao. Hệ thống có sắp hết
+RAM không?
+
+a) Có — `free` thấp luôn là dấu hiệu sắp hết RAM, bất kể `available` cao hay thấp
+b) Chưa chắc, và thường là KHÔNG. Phần chênh lệch giữa `free` và `available` nằm ở
+   `buff/cache` — RAM kernel đang dùng để cache, có thể giải phóng ngay khi ứng dụng cần
+c) Chưa chắc, nhưng vì `available` chỉ tính RAM vật lý còn `free` tính cả phần swap đang dùng
+d) Có, vì `buff/cache` chiếm dụng RAM cố định và không bao giờ được giải phóng cho ứng dụng
+
+**Đáp án: b** — Chưa chắc, và thường là KHÔNG. Phần chênh lệch giữa `free` và `available` nằm
+ở `buff/cache` — RAM kernel đang dùng để cache, có thể giải phóng ngay khi ứng dụng cần.
+`available` phản ánh đúng lượng RAM thực sự còn dùng được.
+
+---
+
+**Câu 4**: Một process hiện `%CPU = 180` trong `top`. Đây có phải lỗi hiển thị không?
+
+a) Có, lỗi hiển thị — `%CPU` không bao giờ được phép vượt quá 100% trên bất kỳ hệ thống nào
+b) Không phải lỗi. `%CPU` tính theo MỘT lõi — 180% nghĩa là process đang dùng tương đương 1.8
+   lõi CPU (thường do chạy đa luồng/đa process con cùng lúc), hợp lệ trên máy nhiều hơn 1 lõi
+c) Không phải lỗi, nhưng chỉ vì process đó đang chạy với quyền root nên `top` tính gấp đôi
+d) Có, lỗi do `top` tính nhầm `%CPU` và `%MEM` vào cùng một cột hiển thị
+
+**Đáp án: b** — Không phải lỗi. `%CPU` tính theo MỘT lõi — 180% nghĩa là process đang dùng
+tương đương 1.8 lõi CPU (thường do chạy đa luồng/đa process con cùng lúc), hoàn toàn hợp lệ
+trên máy có nhiều hơn 1 lõi.
+
+---
+
+**Câu 5**: Bạn muốn viết một script tự động cảnh báo khi "load trung bình vượt một ngưỡng
+nguy hiểm" và áp dụng cho nhiều server có số lõi khác nhau. Ngưỡng nên đặt theo giá trị tuyệt
+đối hay theo tỷ lệ với `nproc`? Vì sao?
+
+a) Theo giá trị tuyệt đối, vì load average đã được Linux tự chuẩn hoá sẵn giữa các máy khác
+   số lõi
+b) Không có quy tắc chung nào áp dụng được cho nhiều server khác số lõi, phải tự đặt riêng
+   từng máy theo cảm tính
+c) Theo giá trị tuyệt đối, miễn là đặt đủ cao để tránh báo động giả trên server nhiều lõi
+d) Theo tỷ lệ với `nproc` (ví dụ cảnh báo khi `load1 / nproc > 1.5`), vì một ngưỡng tuyệt đối
+   chung sẽ sai lệch hoàn toàn giữa server ít lõi và server nhiều lõi
+
+**Đáp án: d** — Theo tỷ lệ với `nproc` (ví dụ cảnh báo khi `load1 / nproc > 1.5`), vì một
+ngưỡng tuyệt đối chung sẽ sai lệch hoàn toàn giữa server ít lõi (dễ báo động giả ở ngưỡng thấp
+không thực sự nguy hiểm) và server nhiều lõi (bỏ lọt tình huống quá tải thật vì ngưỡng tuyệt
+đối quá cao so với năng lực xử lý thực tế).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

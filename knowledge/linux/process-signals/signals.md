@@ -157,38 +157,80 @@ file CSV output bị hỏng (dòng cuối cắt nửa chừng, không đọc đ�
 
 ## 7. Tự kiểm tra
 
-1. Một chương trình tự viết code bắt `SIGTERM` để in ra "Đang dọn dẹp..." rồi mới thoát. Nếu
-   gửi `SIGKILL` cho chương trình này, dòng "Đang dọn dẹp..." có được in ra không? Vì sao?
-   <details><summary>Đáp án</summary>Không. <code>SIGKILL</code> không thể bị bắt/chặn/bỏ qua
-   dưới bất kỳ hình thức nào — kernel kết thúc process trực tiếp, không bao giờ giao quyền
-   thực thi lại cho code của chương trình, nên handler bắt <code>SIGTERM</code> không bao giờ
-   có cơ hội chạy khi nhận <code>SIGKILL</code>.</details>
+**Câu 1**: Một chương trình tự viết code bắt `SIGTERM` để in ra "Đang dọn dẹp..." rồi mới
+thoát. Nếu gửi `SIGKILL` cho chương trình này, dòng "Đang dọn dẹp..." có được in ra không?
 
-2. Một process bị kết thúc, bạn thấy exit code là `137`. Process này bị tín hiệu nào kết thúc?
-   <details><summary>Đáp án</summary><code>137 = 128 + 9</code> → tín hiệu số 9, chính là
-   <code>SIGKILL</code>.</details>
+a) Có, vì handler bắt `SIGTERM` luôn chạy trước bất kỳ tín hiệu kết thúc nào khác
+b) Không, nhưng `SIGKILL` vẫn cho process vài giây để tự dọn dẹp trước khi kết thúc hẳn
+c) Không — `SIGKILL` không thể bị bắt/chặn/bỏ qua dưới bất kỳ hình thức nào, kernel kết thúc
+   process trực tiếp
+d) Có, nhưng chỉ khi chương trình đăng ký handler bằng `sigaction()` thay vì `signal()`
 
-3. Vì sao `systemctl stop` một service đôi khi mất tới gần 90 giây trước khi service biến mất
-   hẳn?
-   <details><summary>Đáp án</summary>systemd gửi <code>SIGTERM</code> trước, đợi theo
-   <code>TimeoutStopSec=</code> (mặc định 90 giây) để service tự thoát; nếu service không tự
-   thoát trong khoảng đó (ví dụ không xử lý SIGTERM, hoặc đang kẹt), systemd mới gửi tiếp
-   <code>SIGKILL</code> — khoảng chờ gần đủ 90 giây đó chính là thời gian chờ SIGTERM hết
-   hiệu lực trước khi buộc kill.</details>
+**Đáp án: c** — Không. `SIGKILL` không thể bị bắt/chặn/bỏ qua dưới bất kỳ hình thức nào —
+kernel kết thúc process trực tiếp, không bao giờ giao quyền thực thi lại cho code của chương
+trình, nên handler bắt `SIGTERM` không bao giờ có cơ hội chạy khi nhận `SIGKILL`.
 
-4. Bạn gửi `SIGHUP` cho một service X để "reload config" như vẫn làm với service Y trước đó,
-   nhưng X lại dừng hẳn. Đây có phải lỗi hệ thống không?
-   <details><summary>Đáp án</summary>Không phải lỗi hệ thống. Default action của
-   <code>SIGHUP</code> theo kernel là terminate — việc "SIGHUP = reload" chỉ đúng với những
-   chương trình TỰ CHỌN implement lại hành vi này (như service Y), không phải quy tắc chung.
-   Service X đơn giản là không tự định nghĩa lại, nên giữ hành vi terminate mặc định.</details>
+---
 
-5. Vì sao nên thử `kill <PID>` (không kèm số hiệu, mặc định gửi SIGTERM) trước khi dùng
-   `kill -9 <PID>` cho một service đang ghi dữ liệu xuống đĩa?
-   <details><summary>Đáp án</summary>Vì <code>SIGTERM</code> CÓ THỂ bị chương trình bắt để tự
-   flush buffer/đóng file/đóng kết nối database đúng cách trước khi thoát — cho cơ hội "graceful
-   shutdown" không làm hỏng dữ liệu đang xử lý. <code>SIGKILL</code> loại bỏ hoàn toàn cơ hội
-   này, kết thúc ngay giữa chừng bất kể process đang làm gì.</details>
+**Câu 2**: Một process bị kết thúc, bạn thấy exit code là `137`. Process này bị tín hiệu nào
+kết thúc?
+
+a) `SIGTERM` (128 + 15)
+b) `SIGHUP` (128 + 1)
+c) `SIGKILL` (128 + 9)
+d) `SIGSTOP` — vì đây chỉ là dừng tạm, không làm process exit thật
+
+**Đáp án: c** — `137 = 128 + 9` → tín hiệu số 9, chính là `SIGKILL`.
+
+---
+
+**Câu 3**: Vì sao `systemctl stop` một service đôi khi mất tới gần 90 giây trước khi service
+biến mất hẳn?
+
+a) systemd gửi `SIGTERM` trước, đợi theo `TimeoutStopSec=` (mặc định 90 giây) để service tự
+   thoát; nếu không tự thoát trong khoảng đó, systemd mới gửi tiếp `SIGKILL`
+b) systemd luôn chờ đúng 90 giây cho mọi service, bất kể service đã thoát hay chưa, trước khi
+   coi là dừng xong
+c) systemd gửi `SIGKILL` trước; nếu service không phản hồi mới gửi tiếp `SIGTERM` sau đó
+d) Service tự động thử restart 3 lần, mỗi lần cách nhau 30 giây, trước khi dừng hẳn
+
+**Đáp án: a** — systemd gửi `SIGTERM` trước, đợi theo `TimeoutStopSec=` (mặc định 90 giây) để
+service tự thoát; nếu service không tự thoát trong khoảng đó (ví dụ không xử lý SIGTERM, hoặc
+đang kẹt), systemd mới gửi tiếp `SIGKILL` — khoảng chờ gần đủ 90 giây đó chính là thời gian
+chờ SIGTERM hết hiệu lực trước khi buộc kill.
+
+---
+
+**Câu 4**: Bạn gửi `SIGHUP` cho một service X để "reload config" như vẫn làm với service Y
+trước đó, nhưng X lại dừng hẳn. Đây có phải lỗi hệ thống không?
+
+a) Có, đây là lỗi hệ thống — `SIGHUP` luôn phải được ánh xạ thành reload trên mọi service
+   hiện đại
+b) Không phải lỗi hệ thống — default action của `SIGHUP` là terminate; "SIGHUP = reload" chỉ
+   đúng với chương trình tự chọn implement lại hành vi này
+c) Có, lỗi do thiếu khai báo `ExecReload=` trong unit file của X
+d) Không, nhưng chỉ vì X là chương trình không chạy qua systemd nên không nhận đúng tín hiệu
+
+**Đáp án: b** — Không phải lỗi hệ thống. Default action của `SIGHUP` theo kernel là terminate
+— việc "SIGHUP = reload" chỉ đúng với những chương trình TỰ CHỌN implement lại hành vi này
+(như service Y), không phải quy tắc chung. Service X đơn giản là không tự định nghĩa lại, nên
+giữ hành vi terminate mặc định.
+
+---
+
+**Câu 5**: Vì sao nên thử `kill <PID>` (không kèm số hiệu, mặc định gửi SIGTERM) trước khi
+dùng `kill -9 <PID>` cho một service đang ghi dữ liệu xuống đĩa?
+
+a) Vì `kill` không kèm số hiệu thực chất gửi `SIGKILL` nhưng có độ trễ 5 giây, an toàn hơn
+b) Vì `kill -9` chỉ hoạt động với process có quyền root, còn `kill` thường thì không cần quyền
+c) Vì `SIGTERM` luôn làm process thoát nhanh hơn `SIGKILL` do ít bước xử lý hơn
+d) Vì `SIGTERM` CÓ THỂ bị chương trình bắt để tự flush buffer/đóng file/đóng kết nối database
+   đúng cách trước khi thoát; `SIGKILL` loại bỏ hoàn toàn cơ hội này
+
+**Đáp án: d** — Vì `SIGTERM` CÓ THỂ bị chương trình bắt để tự flush buffer/đóng file/đóng kết
+nối database đúng cách trước khi thoát — cho cơ hội "graceful shutdown" không làm hỏng dữ liệu
+đang xử lý. `SIGKILL` loại bỏ hoàn toàn cơ hội này, kết thúc ngay giữa chừng bất kể process
+đang làm gì.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

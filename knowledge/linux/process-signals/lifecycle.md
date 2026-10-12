@@ -199,45 +199,92 @@ health-check theo chu kỳ. Sau vài tuần, admin nhận cảnh báo "process t
 
 ## 7. Tự kiểm tra
 
-1. Một chương trình C gọi `fork()` rồi gọi `exec()` ngay trong process con. Process con TRƯỚC
-   khi gọi `exec()` có PID khác process cha không? Có cùng bộ nhớ với cha tại thời điểm đó
-   không?
-   <details><summary>Đáp án</summary>Có PID khác (mỗi process luôn có PID riêng ngay sau
-   <code>fork()</code>). Có cùng bộ nhớ tại thời điểm fork (bản sao gần như hoàn chỉnh) —
-   nhưng ngay khi <code>exec()</code> chạy, toàn bộ bộ nhớ đó bị thay thế hoàn toàn bằng
-   chương trình mới, không còn liên quan gì tới bộ nhớ cũ của cha.</details>
+**Câu 1**: Một chương trình C gọi `fork()` rồi gọi `exec()` ngay trong process con. Process con
+TRƯỚC khi gọi `exec()` có PID khác process cha không? Có cùng bộ nhớ với cha tại thời điểm đó
+không?
 
-2. Vì sao Unix tách `fork` và `exec` thành hai bước riêng thay vì gộp "tạo process mới chạy
-   chương trình X" thành một lệnh?
-   <details><summary>Đáp án</summary>Để process con có thể tự chỉnh sửa môi trường của chính
-   nó (redirect file descriptor, đổi user/group, đổi working directory...) NGAY SAU
-   <code>fork</code> nhưng TRƯỚC <code>exec</code>, mà không ảnh hưởng tới process cha. Đây là
-   nền tảng để shell triển khai redirect/pipe mà chương trình đích không cần biết gì về việc
-   đó.</details>
+a) PID giống cha cho tới khi `exec()` chạy xong, chỉ đổi PID sau đó
+b) Có PID khác ngay sau `fork()`; có cùng bộ nhớ tại thời điểm fork (bản sao gần như hoàn
+   chỉnh) nhưng bộ nhớ đó bị `exec()` thay thế hoàn toàn ngay sau đó
+c) Có PID khác, nhưng bộ nhớ hoàn toàn độc lập ngay từ lúc `fork()`, không chia sẻ gì với cha
+d) `fork()` chưa cấp PID mới — PID mới chỉ được cấp khi `exec()` chạy xong
 
-3. Một process ở trạng thái `D` (uninterruptible sleep) trong `ps` suốt 10 phút, không phản
-   hồi `kill -9`. Đây có phải zombie không? Nên nghi ngờ nguyên nhân gì?
-   <details><summary>Đáp án</summary>Không phải zombie — zombie (<code>Z</code>) là process ĐÃ
-   CHẾT, còn <code>D</code> là process còn SỐNG, đang kẹt trong một syscall I/O không thể bị
-   gián đoạn bởi tín hiệu (đây là lý do <code>kill -9</code> không có tác dụng). Nên nghi ngờ
-   I/O bên dưới bị treo — ví dụ disk lỗi, hoặc mount NFS/CIFS tới server đã mất kết nối.</details>
+**Đáp án: b** — Có PID khác (mỗi process luôn có PID riêng ngay sau `fork()`). Có cùng bộ nhớ
+tại thời điểm fork (bản sao gần như hoàn chỉnh) — nhưng ngay khi `exec()` chạy, toàn bộ bộ nhớ
+đó bị thay thế hoàn toàn bằng chương trình mới, không còn liên quan gì tới bộ nhớ cũ của cha.
 
-4. Một script khởi động một process nền (`&`) rồi chính script thoát ngay sau đó, không `wait`
-   cũng không `disown`. Process nền có bị dừng theo không? PPID của nó sau khi script thoát là
-   gì?
-   <details><summary>Đáp án</summary>Process nền KHÔNG tự bị dừng — nó tiếp tục chạy, được
-   "nhận nuôi" (re-parent) bởi init hoặc subreaper gần nhất (ví dụ
-   <code>systemd --user</code> trên một session desktop hiện đại), theo đúng cơ chế mô tả ở
-   <code>wait(2)</code>.</details>
+---
 
-5. Vì sao một chương trình tạo rất nhiều subprocess ngắn hạn mà không bao giờ gọi hàm tương
-   đương `wait()` có thể khiến CẢ SERVER không tạo được process mới nào, dù CPU/RAM còn dư rất
-   nhiều?
-   <details><summary>Đáp án</summary>Mỗi subprocess đã exit nhưng chưa được "wait" sẽ tồn đọng
-   dưới dạng zombie, chiếm một slot trong bảng process (process table) của kernel — bảng này có
-   giới hạn kích thước độc lập với CPU/RAM còn trống. Tích tụ đủ nhiều zombie sẽ làm đầy bảng
-   process, khiến <code>fork()</code> cho bất kỳ chương trình nào trên máy đều thất bại, dù tài nguyên
-   CPU/RAM vẫn còn dư.</details>
+**Câu 2**: Vì sao Unix tách `fork` và `exec` thành hai bước riêng thay vì gộp "tạo process mới
+chạy chương trình X" thành một lệnh?
+
+a) Vì kernel không đủ tài nguyên để tạo process mới và chạy chương trình trong một lệnh duy
+   nhất
+b) Vì `exec()` luôn chạy chậm hơn `fork()`, tách ra để tối ưu hiệu năng tổng thể
+c) Vì `fork()` và `exec()` theo thiết kế kernel bắt buộc phải được gọi từ hai process khác
+   nhau
+d) Để process con có thể tự chỉnh sửa môi trường của chính nó (redirect file descriptor, đổi
+   user/group, đổi working directory...) ngay sau `fork` nhưng trước `exec`, không ảnh hưởng
+   tới process cha
+
+**Đáp án: d** — Để process con có thể tự chỉnh sửa môi trường của chính nó (redirect file
+descriptor, đổi user/group, đổi working directory...) NGAY SAU `fork` nhưng TRƯỚC `exec`, mà
+không ảnh hưởng tới process cha. Đây là nền tảng để shell triển khai redirect/pipe mà chương
+trình đích không cần biết gì về việc đó.
+
+---
+
+**Câu 3**: Một process ở trạng thái `D` (uninterruptible sleep) trong `ps` suốt 10 phút, không
+phản hồi `kill -9`. Đây có phải zombie không? Nên nghi ngờ nguyên nhân gì?
+
+a) Không phải zombie — `D` là process còn SỐNG, đang kẹt trong một syscall I/O không thể bị
+   gián đoạn bởi tín hiệu; nên nghi ngờ I/O bên dưới bị treo (disk lỗi, mount NFS/CIFS mất kết nối)
+b) Đây chính là một dạng zombie đặc biệt, vẫn hiển thị `D` vì chưa được cha gọi `wait()`
+c) Có thể là zombie, vì zombie cũng có thể không phản hồi `kill -9` trong một số trường hợp
+d) Không phải zombie, nhưng nguyên nhân là deadlock trong code ứng dụng, không liên quan gì
+   tới I/O
+
+**Đáp án: a** — Không phải zombie — zombie (`Z`) là process ĐÃ CHẾT, còn `D` là process còn
+SỐNG, đang kẹt trong một syscall I/O không thể bị gián đoạn bởi tín hiệu (đây là lý do
+`kill -9` không có tác dụng). Nên nghi ngờ I/O bên dưới bị treo — ví dụ disk lỗi, hoặc mount
+NFS/CIFS tới server đã mất kết nối.
+
+---
+
+**Câu 4**: Một script khởi động một process nền (`&`) rồi chính script thoát ngay sau đó,
+không `wait` cũng không `disown`. Process nền có bị dừng theo không? PPID của nó sau khi
+script thoát là gì?
+
+a) Process nền bị dừng ngay khi script cha thoát, vì không có `disown`
+b) Process nền tiếp tục chạy, nhưng PPID vẫn giữ nguyên là PID của script đã thoát
+c) Process nền KHÔNG tự bị dừng — nó tiếp tục chạy, được "nhận nuôi" (re-parent) bởi init hoặc
+   subreaper gần nhất (ví dụ `systemd --user` trên session desktop hiện đại)
+d) Process nền tiếp tục chạy, PPID luôn chuyển thành `1` trên mọi hệ thống Linux, không có
+   ngoại lệ
+
+**Đáp án: c** — Process nền KHÔNG tự bị dừng — nó tiếp tục chạy, được "nhận nuôi" (re-parent)
+bởi init hoặc subreaper gần nhất (ví dụ `systemd --user` trên một session desktop hiện đại),
+theo đúng cơ chế mô tả ở `wait(2)`.
+
+---
+
+**Câu 5**: Vì sao một chương trình tạo rất nhiều subprocess ngắn hạn mà không bao giờ gọi hàm
+tương đương `wait()` có thể khiến CẢ SERVER không tạo được process mới nào, dù CPU/RAM còn dư
+rất nhiều?
+
+a) Vì mỗi subprocess chưa được wait vẫn tiêu tốn CPU nền để "chờ" cha, dần làm nghẽn scheduler
+b) Vì zombie process vẫn giữ nguyên toàn bộ vùng nhớ heap/stack cũ, gây cạn RAM dù hiển thị
+   còn dư
+c) Vì kernel tự giới hạn số process con tối đa cho mỗi process cha cụ thể, không liên quan
+   tới toàn hệ thống
+d) Mỗi subprocess đã exit nhưng chưa được "wait" sẽ tồn đọng dưới dạng zombie, chiếm một slot
+   trong bảng process (process table) của kernel — bảng này có giới hạn kích thước độc lập
+   với CPU/RAM còn trống
+
+**Đáp án: d** — Mỗi subprocess đã exit nhưng chưa được "wait" sẽ tồn đọng dưới dạng zombie,
+chiếm một slot trong bảng process (process table) của kernel — bảng này có giới hạn kích thước
+độc lập với CPU/RAM còn trống. Tích tụ đủ nhiều zombie sẽ làm đầy bảng process, khiến `fork()`
+cho bất kỳ chương trình nào trên máy đều thất bại, dù tài nguyên CPU/RAM vẫn còn dư.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

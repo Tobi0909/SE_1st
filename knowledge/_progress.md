@@ -3,6 +3,26 @@
 > Đọc file này đầu mỗi phiên làm việc để biết tiếp tục đúng chỗ. Cập nhật mỗi khi hoàn thành
 > một module (xem quy trình ở CLAUDE.md task spec "Xây dựng kho tri thức cho SE Dojo").
 
+## Chuyển đổi mục "Tự kiểm tra" sang MCQ (cho `kb:build-quiz`, phase "static content")
+
+Mục tiêu: mọi bài có mục "Tự kiểm tra" dạng MCQ (`**Câu N**:` + a-d + `**Đáp án: X**`) để
+`kb:build-quiz` parse được, không cần LLM lúc chạy. 36/146 bài đã có sẵn định dạng này từ lúc
+viết (chủ yếu domain `devops`/`security`/`virt-storage`/`data`/`sre`). 110 bài còn lại viết
+dạng tự luận (`<details>` hoặc `**N.** + đoạn văn) — đang chuyển dần, mỗi lượt tối đa 5 module,
+giữ nguyên câu hỏi/đáp án/giải thích gốc, chỉ thêm 3 lựa chọn nhiễu.
+
+**Quy tắc lựa chọn nhiễu**: quan niệm sai có thật (nhầm lệnh/khái niệm/cơ chế đảo ngược, giá
+trị mặc định phiên bản khác, bỏ sót bước) — không dùng "tất cả đáp án trên"/"không đáp án nào
+đúng"/lựa chọn vô lý nhìn là loại; văn phong/độ dài 4 lựa chọn tương đương; vị trí đáp án đúng
+rải đều A/B/C/D trong mỗi module; nhiễu phải sai dứt khoát theo đúng bài + `applies_to`, không
+đúng một phần hay đúng ở phiên bản khác.
+
+**Đã xong**: `linux.boot-systemd` (5 bài, 25 câu — commit `569f83b`),
+`linux.process-signals` (5 bài, 25 câu — xem commit theo sau trong git log).
+
+**Còn lại**: 100 bài (tính tới hết `linux.process-signals`), ~21 module. Chưa bài nào phải bỏ
+qua vì không nghĩ ra được lựa chọn nhiễu đáng tin cậy.
+
 ## Trạng thái tổng quan
 
 - Giai đoạn 0 (taxonomy): **xong, đã được chủ dự án duyệt** — `knowledge/_taxonomy.yaml`

@@ -161,39 +161,89 @@ mất, dữ liệu chỉ đồng bộ được một phần.
 
 ## 7. Tự kiểm tra
 
-1. Bạn chạy `./backup.sh &` qua SSH rồi đóng terminal ngay. Job có chắc chắn tiếp tục chạy
-   không? Vì sao?
-   <details><summary>Đáp án</summary>Không chắc chắn — rất có thể bị dừng. <code>&</code> chỉ
-   đưa job ra background, không chặn <code>SIGHUP</code>. Shell vẫn "quản lý" job này, và theo
-   tài liệu Bash, một interactive shell nhận SIGHUP sẽ tự forward lại cho toàn bộ job nó quản
-   lý trước khi thoát — kể cả job background.</details>
+**Câu 1**: Bạn chạy `./backup.sh &` qua SSH rồi đóng terminal ngay. Job có chắc chắn tiếp tục
+chạy không? Vì sao?
 
-2. Phân biệt: `nohup cmd &` và `cmd & ; disown` khác nhau ở điểm nào?
-   <details><summary>Đáp án</summary><code>nohup</code> tác động ở TẦNG PROCESS — chặn
-   <code>SIGHUP</code> ngay từ lúc khởi động process. <code>disown</code> tác động ở TẦNG SHELL
-   — chỉ gỡ job khỏi bảng theo dõi của shell hiện tại, không tự chặn SIGHUP ở tầng process
-   (dù trong thực tế với hầu hết cấu hình bash tương tác, kết quả cuối thường tương tự, nhưng
-   cơ chế bên dưới khác nhau).</details>
+a) Có, vì `&` tự động chặn `SIGHUP` cho mọi job chạy nền
+b) Không chắc chắn — rất có thể bị dừng. `&` chỉ đưa job ra background, không chặn `SIGHUP`;
+   shell vẫn "quản lý" job này và sẽ tự forward lại SIGHUP cho nó trước khi thoát
+c) Không chắc chắn, nhưng nguyên nhân là kernel tự kill mọi process con của session khi mất
+   kết nối SSH, không liên quan gì tới SIGHUP
+d) Có, chắc chắn chạy tiếp vì shell không có quyền gửi tín hiệu cho job nền của chính nó
 
-3. Bạn mở một session SSH mới và chạy `jobs -l`, không thấy job đã `nohup` + background từ một
-   session TRƯỚC đó, dù `ps aux` vẫn thấy process đang chạy. Đây có phải lỗi không?
-   <details><summary>Đáp án</summary>Không phải lỗi. Bảng job (<code>jobs</code>) thuộc về MỘT
-   shell instance cụ thể — mỗi session mới có bảng job riêng, rỗng từ đầu, không "nhìn thấy"
-   job của session khác dù process đó vẫn đang chạy thật trên hệ thống.</details>
+**Đáp án: b** — Không chắc chắn — rất có thể bị dừng. `&` chỉ đưa job ra background, không
+chặn `SIGHUP`. Shell vẫn "quản lý" job này, và theo tài liệu Bash, một interactive shell nhận
+SIGHUP sẽ tự forward lại cho toàn bộ job nó quản lý trước khi thoát — kể cả job background.
 
-4. Vì sao nên lưu lại `$!` ngay sau khi chạy một lệnh nền dài hạn?
-   <details><summary>Đáp án</summary><code>$!</code> là PID của job background vừa tạo — đây
-   là cách duy nhất để "tìm lại" chính xác process đó sau này (để kiểm tra tiến độ, gửi tín
-   hiệu, hay xác nhận nó còn sống), đặc biệt sau khi job đã bị <code>disown</code> hoặc sau khi
-   mở một session mới không còn thấy nó trong <code>jobs -l</code>.</details>
+---
 
-5. Vì sao `tmux`/`screen` được coi là giải pháp "mạnh hơn" `nohup` cho một tác vụ cần theo dõi
-   tương tác liên tục (không chỉ cần sống sót qua mất kết nối)?
-   <details><summary>Đáp án</summary><code>nohup</code> chỉ giúp process không bị
-   <code>SIGHUP</code> giết khi terminal đóng, output phải đọc qua file log sau đó.
-   <code>tmux</code>/<code>screen</code> tạo một session giả lập ĐỘC LẬP khỏi kết nối SSH hiện
-   tại — có thể "detach" rồi "attach" lại từ bất kỳ kết nối SSH nào sau đó và nhìn thấy TRỰC
-   TIẾP đúng màn hình terminal như lúc rời đi, không chỉ đọc log tĩnh.</details>
+**Câu 2**: Phân biệt: `nohup cmd &` và `cmd & ; disown` khác nhau ở điểm nào?
+
+a) Hai lệnh hoàn toàn tương đương về cơ chế, chỉ khác cú pháp
+b) `disown` tác động ở TẦNG PROCESS (chặn SIGHUP ngay từ lúc khởi động), còn `nohup` tác động
+   ở TẦNG SHELL (gỡ job khỏi bảng theo dõi)
+c) `nohup` chỉ hoạt động với lệnh chạy qua kết nối SSH, `disown` hoạt động với mọi loại session
+d) `nohup` tác động ở TẦNG PROCESS — chặn `SIGHUP` ngay từ lúc khởi động process. `disown` tác
+   động ở TẦNG SHELL — chỉ gỡ job khỏi bảng theo dõi của shell hiện tại, không tự chặn SIGHUP
+   ở tầng process
+
+**Đáp án: d** — `nohup` tác động ở TẦNG PROCESS — chặn `SIGHUP` ngay từ lúc khởi động process.
+`disown` tác động ở TẦNG SHELL — chỉ gỡ job khỏi bảng theo dõi của shell hiện tại, không tự
+chặn SIGHUP ở tầng process (dù trong thực tế với hầu hết cấu hình bash tương tác, kết quả cuối
+thường tương tự, nhưng cơ chế bên dưới khác nhau).
+
+---
+
+**Câu 3**: Bạn mở một session SSH mới và chạy `jobs -l`, không thấy job đã `nohup` + background
+từ một session TRƯỚC đó, dù `ps aux` vẫn thấy process đang chạy. Đây có phải lỗi không?
+
+a) Có, lỗi do quên export biến môi trường của job sang session mới
+b) Không phải lỗi. Bảng job (`jobs`) thuộc về MỘT shell instance cụ thể — mỗi session mới có
+   bảng job riêng, rỗng từ đầu, không "nhìn thấy" job của session khác dù process đó vẫn đang
+   chạy thật
+c) Không phải lỗi, vì `nohup` tự ẩn job khỏi `jobs -l` trên mọi session, kể cả session đã tạo
+   ra job đó
+d) Có, lỗi do process đã bị kernel tự chuyển sang chế độ daemon ẩn danh
+
+**Đáp án: b** — Không phải lỗi. Bảng job (`jobs`) thuộc về MỘT shell instance cụ thể — mỗi
+session mới có bảng job riêng, rỗng từ đầu, không "nhìn thấy" job của session khác dù process
+đó vẫn đang chạy thật trên hệ thống.
+
+---
+
+**Câu 4**: Vì sao nên lưu lại `$!` ngay sau khi chạy một lệnh nền dài hạn?
+
+a) `$!` là exit code của lệnh nền vừa chạy, dùng để biết lệnh có thành công hay không
+b) `$!` chỉ dùng được trong script, không hoạt động khi gõ trực tiếp vào shell tương tác
+c) `$!` là PID của job background vừa tạo — cách duy nhất để "tìm lại" chính xác process đó
+   sau này (kiểm tra tiến độ, gửi tín hiệu, xác nhận còn sống), đặc biệt sau khi job bị
+   `disown` hoặc mở session mới không còn thấy nó trong `jobs -l`
+d) `$!` là một biến môi trường cố định dùng để đặt `PATH` riêng cho job nền
+
+**Đáp án: c** — `$!` là PID của job background vừa tạo — đây là cách duy nhất để "tìm lại"
+chính xác process đó sau này (để kiểm tra tiến độ, gửi tín hiệu, hay xác nhận nó còn sống),
+đặc biệt sau khi job đã bị `disown` hoặc sau khi mở một session mới không còn thấy nó trong
+`jobs -l`.
+
+---
+
+**Câu 5**: Vì sao `tmux`/`screen` được coi là giải pháp "mạnh hơn" `nohup` cho một tác vụ cần
+theo dõi tương tác liên tục (không chỉ cần sống sót qua mất kết nối)?
+
+a) `nohup` và `tmux`/`screen` thực chất dùng chung một cơ chế kernel, chỉ khác giao diện
+   hiển thị
+b) `tmux`/`screen` mạnh hơn vì luôn chạy với quyền root, còn `nohup` chỉ chạy được với user
+   thường
+c) `nohup` thực ra mạnh hơn vì không cần cài thêm phần mềm, còn `tmux`/`screen` chỉ là tiện
+   ích phụ không cần thiết
+d) `nohup` chỉ giúp process không bị `SIGHUP` giết khi terminal đóng, output phải đọc qua file
+   log sau đó. `tmux`/`screen` tạo một session giả lập ĐỘC LẬP khỏi kết nối SSH — có thể
+   "detach" rồi "attach" lại và nhìn TRỰC TIẾP đúng màn hình terminal như lúc rời đi
+
+**Đáp án: d** — `nohup` chỉ giúp process không bị `SIGHUP` giết khi terminal đóng, output
+phải đọc qua file log sau đó. `tmux`/`screen` tạo một session giả lập ĐỘC LẬP khỏi kết nối SSH
+hiện tại — có thể "detach" rồi "attach" lại từ bất kỳ kết nối SSH nào sau đó và nhìn thấy TRỰC
+TIẾP đúng màn hình terminal như lúc rời đi, không chỉ đọc log tĩnh.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
