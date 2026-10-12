@@ -172,24 +172,48 @@ dù team khẳng định "service đang chạy":
 
 ## 7. Tự kiểm tra
 
-1. Vì sao nên dùng `ss -tn` thay vì `ss -t` khi cần kết quả nhanh?
-   <details><summary>Đáp án</summary><code>-n</code> bỏ qua việc resolve tên (reverse DNS) cho
-   từng socket — nếu không có <code>-n</code>, lệnh có thể chạy rất chậm khi DNS không phản hồi
-   nhanh, vì phải tra tên cho MỖI socket.</details>
+**Câu 1**: Vì sao nên dùng `ss -tn` thay vì `ss -t` khi cần kết quả nhanh?
 
-2. Bảng `ip route` có cả `192.168.24.0/23` và `default via ...`. Gói tin tới địa chỉ
-   `192.168.25.100` sẽ đi theo route nào? Vì sao?
-   <details><summary>Đáp án</summary><code>192.168.24.0/23</code> — route này CỤ THỂ HƠN
-   (prefix dài hơn, <code>/23</code> so với <code>/0</code> của default) và khớp địa chỉ đích,
-   nên thắng theo nguyên lý longest prefix match. <code>default</code> chỉ dùng khi KHÔNG route
-   nào khác khớp.</details>
+a) `-n` bỏ qua việc resolve tên (reverse DNS) cho từng socket — nếu không có `-n`, lệnh có
+   thể chạy rất chậm khi DNS không phản hồi nhanh, vì phải tra tên cho MỖI socket
+b) `-n` chỉ hiển thị thêm cột numeric PID, không ảnh hưởng gì tới tốc độ thực thi
+c) `-n` giới hạn số dòng kết quả hiển thị, giúp lệnh trả về nhanh hơn do ít dữ liệu hơn
+d) `-n` chuyển sang đọc từ cache cục bộ thay vì truy vấn trực tiếp kernel, nên luôn nhanh hơn
+   `-t`
 
-3. `ss -tln` cho thấy một service LISTEN trên `127.0.0.1:9090` thay vì `0.0.0.0:9090`. Điều này
-   ảnh hưởng gì tới khả năng kết nối từ máy khác trong mạng?
-   <details><summary>Đáp án</summary>Client từ máy KHÁC không thể kết nối — service chỉ bind
-   vào loopback (<code>127.0.0.1</code>), chỉ chấp nhận kết nối từ CHÍNH máy đó. Cần bind
-   <code>0.0.0.0</code> (hoặc IP cụ thể của interface mạng) để chấp nhận kết nối từ bên
-   ngoài.</details>
+**Đáp án: a** — `-n` bỏ qua việc resolve tên (reverse DNS) cho từng socket — nếu không có
+`-n`, lệnh có thể chạy rất chậm khi DNS không phản hồi nhanh, vì phải tra tên cho MỖI socket.
+
+---
+
+**Câu 2**: Bảng `ip route` có cả `192.168.24.0/23` và `default via ...`. Gói tin tới địa chỉ
+`192.168.25.100` sẽ đi theo route nào? Vì sao?
+
+a) `default via ...` — route default luôn được kernel ưu tiên xét trước các route cụ thể
+   khác
+b) `192.168.24.0/23` — route này CỤ THỂ HƠN (prefix dài hơn, `/23` so với `/0` của default)
+   và khớp địa chỉ đích, nên thắng theo nguyên lý longest prefix match
+c) Cả hai route cùng được dùng song song, kernel chia tải gói tin qua cả 2 đường
+d) Không route nào khớp, vì `192.168.25.100` không thuộc đúng dải `/23` đã khai báo
+
+**Đáp án: b** — `192.168.24.0/23` — route này CỤ THỂ HƠN (prefix dài hơn, `/23` so với `/0`
+của default) và khớp địa chỉ đích, nên thắng theo nguyên lý longest prefix match. `default`
+chỉ dùng khi KHÔNG route nào khác khớp.
+
+---
+
+**Câu 3**: `ss -tln` cho thấy một service LISTEN trên `127.0.0.1:9090` thay vì
+`0.0.0.0:9090`. Điều này ảnh hưởng gì tới khả năng kết nối từ máy khác trong mạng?
+
+a) Không ảnh hưởng gì — `127.0.0.1` tự động NAT ra toàn bộ interface mạng của máy
+b) Client máy khác vẫn kết nối được nhưng chỉ qua IPv6, không qua IPv4
+c) Client từ máy KHÁC không thể kết nối — service chỉ bind vào loopback (`127.0.0.1`), chỉ
+   chấp nhận kết nối từ CHÍNH máy đó
+d) Chỉ ảnh hưởng tới UDP — TCP từ máy khác vẫn kết nối bình thường qua `127.0.0.1`
+
+**Đáp án: c** — Client từ máy KHÁC không thể kết nối — service chỉ bind vào loopback
+(`127.0.0.1`), chỉ chấp nhận kết nối từ CHÍNH máy đó. Cần bind `0.0.0.0` (hoặc IP cụ thể của
+interface mạng) để chấp nhận kết nối từ bên ngoài.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

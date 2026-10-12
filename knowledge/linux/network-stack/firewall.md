@@ -206,23 +206,57 @@ từ load balancer vẫn báo "connection timeout":
 
 ## 7. Tự kiểm tra
 
-1. `ufw`/`firewalld` có "thay thế" `nftables` không, hay quan hệ giữa chúng là gì?
-   <details><summary>Đáp án</summary>Không thay thế — <code>ufw</code>/<code>firewalld</code>
-   là FRONTEND ở mức cao, tự SINH RA rule <code>nftables</code>/<code>iptables</code> thật bên
-   dưới. Kiểm tra <code>nft list ruleset</code> vẫn thấy rule thật dù chỉ dùng lệnh
-   <code>ufw</code>.</details>
+**Câu 1**: `ufw`/`firewalld` có "thay thế" `nftables` không, hay quan hệ giữa chúng là gì?
 
-2. Rule `FORWARD` cho phép traffic đi qua, nhưng NAT vẫn không hoạt động. Điều kiện tầng THẤP
-   HƠN nào cần kiểm tra?
-   <details><summary>Đáp án</summary><code>/proc/sys/net/ipv4/ip_forward</code> — nếu
-   <code>0</code>, kernel không chuyển tiếp packet giữa interface bất kể rule firewall cho phép
-   gì. Đây là điều kiện CẦN độc lập, ở tầng thấp hơn rule firewall.</details>
+a) Có, `ufw`/`firewalld` hoàn toàn thay thế `nftables`, chạy độc lập không sinh ra rule
+   `nftables` nào
+b) Không liên quan gì tới nhau — `ufw`/`firewalld` và `nftables` là 2 hệ thống tách biệt
+   chạy song song
+c) Không thay thế — `ufw`/`firewalld` là FRONTEND ở mức cao, tự SINH RA rule
+   `nftables`/`iptables` thật bên dưới. Kiểm tra `nft list ruleset` vẫn thấy rule thật dù chỉ
+   dùng lệnh `ufw`
+d) Có, nhưng chỉ trên các bản phân phối không dùng `nftables` — nếu có `nftables` thì
+   `ufw`/`firewalld` bị vô hiệu hoá
 
-3. Vì sao không nên sửa trực tiếp rule `nft`/`iptables` trên một máy đang dùng `ufw` quản lý?
-   <details><summary>Đáp án</summary>Vì <code>ufw</code> tự sinh lại TOÀN BỘ rule từ cấu hình
-   của chính nó mỗi khi <code>reload</code>/restart — thay đổi thủ công ở tầng
-   <code>nft</code>/<code>iptables</code> mà <code>ufw</code> không biết tới sẽ bị GHI ĐÈ mất ở
-   lần reload tiếp theo.</details>
+**Đáp án: c** — Không thay thế — `ufw`/`firewalld` là FRONTEND ở mức cao, tự SINH RA rule
+`nftables`/`iptables` thật bên dưới. Kiểm tra `nft list ruleset` vẫn thấy rule thật dù chỉ
+dùng lệnh `ufw`.
+
+---
+
+**Câu 2**: Rule `FORWARD` cho phép traffic đi qua, nhưng NAT vẫn không hoạt động. Điều kiện
+tầng THẤP HƠN nào cần kiểm tra?
+
+a) Kiểm tra lại thứ tự chain `PREROUTING`/`POSTROUTING` trong `nftables`, vì `FORWARD`
+   không liên quan tới NAT
+b) Kiểm tra DNS resolver trên máy, vì NAT cần phân giải tên miền trước khi forward
+c) Kiểm tra lại card mạng có hỗ trợ NAT offload bằng phần cứng không
+d) `/proc/sys/net/ipv4/ip_forward` — nếu `0`, kernel không chuyển tiếp packet giữa interface
+   bất kể rule firewall cho phép gì. Đây là điều kiện CẦN độc lập, ở tầng thấp hơn rule
+   firewall
+
+**Đáp án: d** — `/proc/sys/net/ipv4/ip_forward` — nếu `0`, kernel không chuyển tiếp packet
+giữa interface bất kể rule firewall cho phép gì. Đây là điều kiện CẦN độc lập, ở tầng thấp
+hơn rule firewall.
+
+---
+
+**Câu 3**: Vì sao không nên sửa trực tiếp rule `nft`/`iptables` trên một máy đang dùng `ufw`
+quản lý?
+
+a) Vì `ufw` tự sinh lại TOÀN BỘ rule từ cấu hình của chính nó mỗi khi `reload`/restart —
+   thay đổi thủ công ở tầng `nft`/`iptables` mà `ufw` không biết tới sẽ bị GHI ĐÈ mất ở lần
+   reload tiếp theo
+b) Vì sửa trực tiếp `nft`/`iptables` yêu cầu quyền cao hơn `ufw`, dễ gây lỗi cấp quyền hệ
+   thống
+c) Vì `nft` và `ufw` dùng 2 cú pháp hoàn toàn không tương thích, sửa tay sẽ làm hỏng toàn bộ
+   kernel netfilter
+d) Vì `ufw` chỉ đọc rule `nft` một lần lúc boot — sửa tay sau đó sẽ không được áp dụng cho
+   tới khi reboot
+
+**Đáp án: a** — Vì `ufw` tự sinh lại TOÀN BỘ rule từ cấu hình của chính nó mỗi khi
+`reload`/restart — thay đổi thủ công ở tầng `nft`/`iptables` mà `ufw` không biết tới sẽ bị
+GHI ĐÈ mất ở lần reload tiếp theo.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

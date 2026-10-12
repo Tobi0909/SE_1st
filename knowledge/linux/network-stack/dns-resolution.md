@@ -167,25 +167,55 @@ nhưng một nhân viên vẫn kết nối nhầm vào server CŨ dù đã chờ
 
 ## 7. Tự kiểm tra
 
-1. `/etc/resolv.conf` trên máy dùng `systemd-resolved` cho thấy `nameserver 127.0.0.53`. Đây có
-   phải DNS server thật đang dùng không? Nếu không, làm sao biết DNS server thật?
-   <details><summary>Đáp án</summary>Không — <code>127.0.0.53</code> là địa chỉ cố định của
-   STUB RESOLVER (chính <code>systemd-resolved</code> chạy trên máy đó), không phải DNS server
-   thật. Dùng <code>resolvectl status</code> hoặc <code>resolvectl dns</code> để xem DNS server
-   THẬT (ví dụ cấp qua DHCP).</details>
+**Câu 1**: `/etc/resolv.conf` trên máy dùng `systemd-resolved` cho thấy `nameserver
+127.0.0.53`. Đây có phải DNS server thật đang dùng không? Nếu không, làm sao biết DNS server
+thật?
 
-2. Thêm một dòng vào `/etc/hosts` để override tạm thời một tên miền. Dòng này có được ưu tiên
-   trước DNS không? Vì sao?
-   <details><summary>Đáp án</summary>Có — dòng <code>hosts: files mdns4_minimal ... dns</code>
-   trong <code>nsswitch.conf</code> đặt <code>files</code> (tức <code>/etc/hosts</code>) ĐỨNG
-   TRƯỚC <code>dns</code>, nên mọi chương trình dùng hàm resolve chuẩn của hệ thống sẽ thấy
-   <code>/etc/hosts</code> trước khi hỏi DNS.</details>
+a) Có, `127.0.0.53` là DNS server công khai của hệ thống dùng chung trên mọi máy Linux
+b) Không, đây là lỗi cấu hình phổ biến — cần sửa `resolv.conf` trỏ thẳng DNS thật như
+   `8.8.8.8`
+c) Có, nhưng chỉ là bản sao cache cục bộ của DNS thật, không cần phân biệt gì thêm
+d) Không — `127.0.0.53` là địa chỉ cố định của STUB RESOLVER (chính `systemd-resolved` chạy
+   trên máy đó), không phải DNS server thật. Dùng `resolvectl status`/`resolvectl dns` để
+   xem DNS server THẬT
 
-3. Sau khi sửa DNS record và đợi qua TTL, một máy client vẫn trả về IP cũ dù `dig` hỏi TRỰC TIẾP
-   DNS server cho kết quả đúng. Vấn đề nằm ở đâu, và cách xử lý?
-   <details><summary>Đáp án</summary>Cache cục bộ của <code>systemd-resolved</code> ngay TRÊN
-   máy client đó (một tầng cache THÊM so với DNS server) — chưa tự làm mới. Dùng
-   <code>resolvectl flush-caches</code> để xoá cache, resolve lại từ đầu.</details>
+**Đáp án: d** — Không — `127.0.0.53` là địa chỉ cố định của STUB RESOLVER (chính
+`systemd-resolved` chạy trên máy đó), không phải DNS server thật. Dùng `resolvectl status`
+hoặc `resolvectl dns` để xem DNS server THẬT (ví dụ cấp qua DHCP).
+
+---
+
+**Câu 2**: Thêm một dòng vào `/etc/hosts` để override tạm thời một tên miền. Dòng này có
+được ưu tiên trước DNS không? Vì sao?
+
+a) Có — dòng `hosts: files mdns4_minimal ... dns` trong `nsswitch.conf` đặt `files` (tức
+   `/etc/hosts`) ĐỨNG TRƯỚC `dns`, nên mọi chương trình dùng hàm resolve chuẩn của hệ thống
+   sẽ thấy `/etc/hosts` trước khi hỏi DNS
+b) Không, `/etc/hosts` chỉ được đọc khi DNS server không phản hồi được (cơ chế fallback)
+c) Có, nhưng chỉ với trình duyệt web — các chương trình dòng lệnh như `curl` vẫn luôn hỏi
+   DNS trước
+d) Không, `/etc/hosts` đã bị loại bỏ khỏi cơ chế resolve trên các distro hiện đại dùng
+   `systemd-resolved`
+
+**Đáp án: a** — Có — dòng `hosts: files mdns4_minimal ... dns` trong `nsswitch.conf` đặt
+`files` (tức `/etc/hosts`) ĐỨNG TRƯỚC `dns`, nên mọi chương trình dùng hàm resolve chuẩn của
+hệ thống sẽ thấy `/etc/hosts` trước khi hỏi DNS.
+
+---
+
+**Câu 3**: Sau khi sửa DNS record và đợi qua TTL, một máy client vẫn trả về IP cũ dù `dig`
+hỏi TRỰC TIẾP DNS server cho kết quả đúng. Vấn đề nằm ở đâu, và cách xử lý?
+
+a) Vấn đề ở chính DNS server — cần restart dịch vụ DNS server để áp dụng record mới
+b) Cache cục bộ của `systemd-resolved` ngay TRÊN máy client đó (một tầng cache THÊM so với
+   DNS server) — chưa tự làm mới. Dùng `resolvectl flush-caches` để xoá cache, resolve lại
+   từ đầu
+c) Vấn đề ở TTL quá ngắn — cần tăng TTL lên cao hơn để tránh client phải tra lại liên tục
+d) Vấn đề ở `/etc/hosts` có entry cũ ghi đè DNS — cần xoá dòng đó trong `/etc/hosts`
+
+**Đáp án: b** — Cache cục bộ của `systemd-resolved` ngay TRÊN máy client đó (một tầng cache
+THÊM so với DNS server) — chưa tự làm mới. Dùng `resolvectl flush-caches` để xoá cache,
+resolve lại từ đầu.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

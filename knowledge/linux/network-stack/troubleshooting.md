@@ -195,24 +195,52 @@ thường":
 
 ## 7. Tự kiểm tra
 
-1. Vì sao ping mặc định (không chỉ định size) có thể hoạt động bình thường dù đường truyền có
-   vấn đề MTU nghiêm trọng?
-   <details><summary>Đáp án</summary>Ping mặc định gửi packet rất NHỎ (thường 56 byte dữ liệu),
-   nhỏ hơn hầu hết MTU hiệu dụng trên thực tế — không đại diện cho packet LỚN mà ứng dụng thật
-   (tải file, video call...) thường gửi, nên không "chạm" được vào vấn đề MTU.</details>
+**Câu 1**: Vì sao ping mặc định (không chỉ định size) có thể hoạt động bình thường dù đường
+truyền có vấn đề MTU nghiêm trọng?
 
-2. Router trung gian có MTU thấp hơn packet đang gửi, packet có cờ DF (Don't Fragment). Router
-   sẽ làm gì?
-   <details><summary>Đáp án</summary>DROP packet và gửi ICMP "Fragment needed" báo lại bên
-   gửi — KHÔNG tự cắt nhỏ packet (vì DF yêu cầu không được cắt). Đây là cơ chế Path MTU
-   Discovery để bên gửi tự giảm kích thước packet sau đó.</details>
+a) Vì ping luôn tự động fragment packet theo MTU phát hiện được trên đường truyền
+b) Ping mặc định gửi packet rất NHỎ (thường 56 byte dữ liệu), nhỏ hơn hầu hết MTU hiệu dụng
+   trên thực tế — không đại diện cho packet LỚN mà ứng dụng thật thường gửi, nên không "chạm"
+   được vào vấn đề MTU
+c) Vì ping dùng UDP nên không bị ảnh hưởng bởi vấn đề MTU như TCP
+d) Vì MTU chỉ ảnh hưởng tới kết nối HTTPS, không ảnh hưởng tới ICMP ping
 
-3. Bonding mode `active-backup` có tăng băng thông không? Mode nào mới thực sự tăng băng thông,
-   và cần điều kiện gì ở phía switch?
-   <details><summary>Đáp án</summary><code>active-backup</code> KHÔNG tăng băng thông — chỉ dự
-   phòng (1 liên kết active, liên kết khác chờ failover). Mode <code>802.3ad</code> (LACP) mới
-   thực sự chia tải tăng băng thông, nhưng CẦN switch phía kia hỗ trợ và cấu hình LACP tương
-   ứng — không thể chỉ đổi mode một phía server.</details>
+**Đáp án: b** — Ping mặc định gửi packet rất NHỎ (thường 56 byte dữ liệu), nhỏ hơn hầu hết
+MTU hiệu dụng trên thực tế — không đại diện cho packet LỚN mà ứng dụng thật (tải file, video
+call...) thường gửi, nên không "chạm" được vào vấn đề MTU.
+
+---
+
+**Câu 2**: Router trung gian có MTU thấp hơn packet đang gửi, packet có cờ DF (Don't
+Fragment). Router sẽ làm gì?
+
+a) Router tự động cắt nhỏ packet thành nhiều phần nhỏ hơn rồi gửi tiếp, bỏ qua cờ DF
+b) Router vẫn chuyển tiếp packet nguyên vẹn, chấp nhận packet bị lỗi ở phía nhận
+c) DROP packet và gửi ICMP "Fragment needed" báo lại bên gửi — KHÔNG tự cắt nhỏ packet (vì
+   DF yêu cầu không được cắt). Đây là cơ chế Path MTU Discovery để bên gửi tự giảm kích
+   thước packet sau đó
+d) Router gửi lại packet cho bên gửi với cờ DF bị xoá, yêu cầu gửi lại không cần DF
+
+**Đáp án: c** — DROP packet và gửi ICMP "Fragment needed" báo lại bên gửi — KHÔNG tự cắt nhỏ
+packet (vì DF yêu cầu không được cắt). Đây là cơ chế Path MTU Discovery để bên gửi tự giảm
+kích thước packet sau đó.
+
+---
+
+**Câu 3**: Bonding mode `active-backup` có tăng băng thông không? Mode nào mới thực sự tăng
+băng thông, và cần điều kiện gì ở phía switch?
+
+a) Có, `active-backup` luôn gấp đôi băng thông ngay khi có 2 liên kết, không cần cấu hình
+   thêm
+b) Không, và không có mode bonding nào thực sự tăng được băng thông trên Linux
+c) Có, nhưng chỉ cần cấu hình phía server — switch không cần biết gì về bonding
+d) `active-backup` KHÔNG tăng băng thông — chỉ dự phòng. Mode `802.3ad` (LACP) mới thực sự
+   chia tải tăng băng thông, nhưng CẦN switch phía kia hỗ trợ và cấu hình LACP tương ứng
+
+**Đáp án: d** — `active-backup` KHÔNG tăng băng thông — chỉ dự phòng (1 liên kết active,
+liên kết khác chờ failover). Mode `802.3ad` (LACP) mới thực sự chia tải tăng băng thông,
+nhưng CẦN switch phía kia hỗ trợ và cấu hình LACP tương ứng — không thể chỉ đổi mode một phía
+server.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
