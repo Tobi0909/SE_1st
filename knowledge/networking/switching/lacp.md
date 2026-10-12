@@ -105,17 +105,69 @@ Server database mới nối 2×10G vào switch, nhưng backup chỉ đạt kho�
 
 ## 7. Tự kiểm tra
 
-1. Một kết nối TCP có thể dùng băng thông cộng của cả 2 link trong bundle không?
-   <details><summary>Đáp án</summary>Không. Hash gắn mỗi flow vào 1 link; chỉ tổng nhiều flow mới tận dụng cả 2.</details>
+**Câu 1**: Một kết nối TCP có thể dùng băng thông cộng của cả 2 link trong bundle không?
 
-2. LACP active/passive khác nhau thế nào, cặp nào không hình thành bundle?
-   <details><summary>Đáp án</summary>Active chủ động gửi LACPDU, passive chỉ trả lời. Cả hai passive thì không đầu nào bắt đầu → không có bundle.</details>
+a) Không. Hash gắn mỗi flow (kết nối) vào một link cố định; chỉ khi có nhiều flow khác nhau thì
+   tổng băng thông mới tận dụng được cả hai link
+b) Có, LACP tự động chia byte của một kết nối TCP ra đều hai link theo round-robin
+c) Có, nhưng chỉ nếu bật chế độ "active-active" trên cả hai switch đầu cuối
+d) Không, vì LACP giới hạn mỗi server chỉ được dùng 1 link bất kể cấu hình bundle
 
-3. Vì sao ưu tiên LACP hơn gộp tĩnh?
-   <details><summary>Đáp án</summary>LACP phát hiện cấu hình lệch và link hỏng; gộp tĩnh không thoả thuận nên dễ gây loop/blackhole.</details>
+**Đáp án: a** — Không. Hash gắn mỗi flow vào 1 link; chỉ tổng nhiều flow mới tận dụng cả 2.
+LACP không chia byte của một flow theo round-robin — làm vậy sẽ gây mất thứ tự gói tin (loại
+b); không có chế độ "active-active" nào thay đổi cơ chế hash theo flow (loại c); server vẫn
+dùng được cả hai link trong bundle, chỉ là MỘT flow không tự chia ra cả hai, không phải giới
+hạn 1 link cho cả server (loại d).
 
-4. LACP chuẩn có nối 1 server vào 2 switch độc lập được không?
-   <details><summary>Đáp án</summary>Không, trừ khi 2 switch tạo thành 1 hệ logic (MLAG/vPC/stack).</details>
+---
+
+**Câu 2**: LACP active/passive khác nhau thế nào, cặp nào không hình thành bundle?
+
+a) Active chỉ gửi dữ liệu thật, passive chỉ gửi gói điều khiển LACPDU; cả hai active thì không
+   hình thành bundle
+b) Active chủ động gửi LACPDU, passive chỉ trả lời khi được hỏi; cả hai đầu đều passive thì
+   không đầu nào bắt đầu — không hình thành bundle
+c) Active và passive chỉ khác ở tốc độ gửi LACPDU (nhanh/chậm); mọi cặp đều hình thành bundle
+   được
+d) Active luôn ưu tiên làm master của bundle, passive làm backup; cặp active-active không hình
+   thành bundle
+
+**Đáp án: b** — Active chủ động gửi LACPDU, passive chỉ trả lời. Cả hai passive thì không đầu
+nào bắt đầu → không có bundle. Active vẫn gửi cả dữ liệu thật và LACPDU, không phải chỉ một
+trong hai (loại a); đây không phải khác biệt về tốc độ, mà về việc có chủ động khởi xướng trao
+đổi LACPDU hay không (loại c); active-active hoàn toàn hình thành bundle bình thường — chính
+passive-passive mới là cặp KHÔNG hình thành bundle (loại d, đảo ngược kết luận).
+
+---
+
+**Câu 3**: Vì sao ưu tiên LACP hơn gộp tĩnh?
+
+a) Vì LACP cho tổng băng thông cao hơn gộp tĩnh với cùng số link vật lý
+b) Vì gộp tĩnh chỉ hoạt động được với cáp quang, không hỗ trợ cáp đồng
+c) LACP phát hiện cấu hình lệch và link hỏng qua trao đổi LACPDU liên tục; gộp tĩnh không có cơ
+   chế thoả thuận nên dễ gây loop hoặc blackhole khi cấu hình hai đầu không khớp
+d) Vì LACP không cần cấu hình gì ở cả hai đầu, tự động dò và gộp link
+
+**Đáp án: c** — LACP phát hiện cấu hình lệch và link hỏng; gộp tĩnh không thoả thuận nên dễ gây
+loop/blackhole. Với cùng số link vật lý, băng thông tối đa lý thuyết là như nhau, LACP không
+tự tăng băng thông (loại a); gộp tĩnh hoạt động được với cả cáp đồng và cáp quang (loại b);
+LACP vẫn cần cấu hình cả hai đầu (bật LACP, chọn active/passive), không phải "không cần cấu
+hình gì" (loại d).
+
+---
+
+**Câu 4**: LACP chuẩn có nối 1 server vào 2 switch độc lập được không?
+
+a) Có, LACP chuẩn hỗ trợ sẵn việc nối tới nhiều switch độc lập mà không cần cấu hình gì thêm
+b) Có, nhưng chỉ khi cả hai switch dùng chung VLAN quản trị
+c) Không, và tuyệt đối không có cách nào (kể cả MLAG/vPC) để làm điều này
+d) Không — LACP chuẩn chỉ hoạt động với một đối tác logic duy nhất; trừ khi hai switch độc lập
+   được ghép thành một hệ logic (MLAG/vPC/stack) để cùng đóng vai trò một đầu LACP
+
+**Đáp án: d** — Không, trừ khi 2 switch tạo thành 1 hệ logic (MLAG/vPC/stack). LACP chuẩn không
+hỗ trợ sẵn nối tới nhiều switch độc lập theo cách đó (loại a); VLAN quản trị chung không đủ để
+hai switch hoạt động như một đối tác LACP (loại b); MLAG/vPC chính là cách làm được điều này,
+không phải "tuyệt đối không có cách nào" (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

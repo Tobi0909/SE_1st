@@ -102,17 +102,63 @@ Sau khi thêm một switch cho phòng lab, toàn tầng mất mạng ngắt quã
 
 ## 7. Tự kiểm tra
 
-1. Vì sao mạng L2 có vòng gây broadcast storm?
-   <details><summary>Đáp án</summary>Ethernet không có TTL, broadcast bị flood và lặp mãi trong vòng, nhân lên.</details>
+**Câu 1**: Vì sao mạng L2 có vòng gây broadcast storm?
 
-2. Root bridge được chọn thế nào?
-   <details><summary>Đáp án</summary>Bridge ID nhỏ nhất = priority (mặc định 32768) rồi đến MAC nhỏ nhất.</details>
+a) Ethernet không có TTL, broadcast bị flood và lặp mãi trong vòng, nhân lên theo cấp số
+b) Vì STP mặc định bị tắt trên mọi switch nên vòng lặp luôn xảy ra ngay khi cắm cáp dự phòng
+c) Vì mỗi switch trong vòng tự tạo thêm broadcast mới để thông báo trạng thái liên kết
+d) Vì địa chỉ MAC bị trùng giữa các switch trong vòng dẫn đến xung đột gói tin liên tục
 
-3. Vì sao cắm máy vào có thể mất ~30 giây mới có mạng ở STP cổ điển, và giải pháp?
-   <details><summary>Đáp án</summary>Port đi qua Listening (15 s) + Learning (15 s). Dùng RSTP và PortFast/edge port.</details>
+**Đáp án: a** — Ethernet không có TTL, broadcast bị flood và lặp mãi trong vòng, nhân lên. STP
+thường được bật mặc định trên switch hiện đại, không phải nguyên nhân gốc của storm — vấn đề
+gốc là thiếu TTL ở Ethernet (loại b); switch không tự tạo thêm broadcast mới, chỉ flood lại
+broadcast gốc liên tục (loại c); broadcast storm không phải do trùng MAC, mà do thiếu cơ chế
+chặn vòng lặp (loại d).
 
-4. BPDU Guard bảo vệ điều gì?
-   <details><summary>Đáp án</summary>Port edge nhận BPDU sẽ bị err-disable, ngăn switch lạ chen vào topology.</details>
+---
+
+**Câu 2**: Root bridge được chọn thế nào?
+
+a) Switch có nhiều port nhất trong topology luôn được chọn làm root bridge
+b) Bridge ID nhỏ nhất (= priority, mặc định 32768) rồi đến MAC nhỏ nhất khi priority bằng nhau
+c) Switch được cấu hình đầu tiên (boot sớm nhất) luôn giữ vai trò root bridge cố định
+d) Switch có địa chỉ IP quản trị nhỏ nhất trong VLAN quản lý được chọn làm root bridge
+
+**Đáp án: b** — Bridge ID nhỏ nhất = priority (mặc định 32768) rồi đến MAC nhỏ nhất. Số port
+không phải tiêu chí chọn root bridge (loại a); thứ tự boot không quyết định — root bridge có
+thể đổi khi bridge khác có Bridge ID nhỏ hơn tham gia lại mạng (loại c); địa chỉ IP quản trị
+không liên quan tới thuật toán STP, STP hoạt động ở Layer 2 dựa trên Bridge ID (loại d).
+
+---
+
+**Câu 3**: Vì sao cắm máy vào có thể mất ~30 giây mới có mạng ở STP cổ điển, và giải pháp?
+
+a) Vì switch cần đợi DHCP cấp địa chỉ IP xong mới cho phép port chuyển sang forwarding
+b) Vì cáp mạng cần thời gian tự thương lượng tốc độ (auto-negotiation) kéo dài đúng 30 giây
+c) Port đi qua Listening (15 s) + Learning (15 s) trước khi forwarding; dùng RSTP và PortFast/
+   edge port để bỏ qua các bước chờ này cho port kết nối máy trạm
+d) Vì BPDU Guard luôn chặn port mới trong 30 giây đầu để kiểm tra switch lạ
+
+**Đáp án: c** — Port đi qua Listening (15 s) + Learning (15 s). Dùng RSTP và PortFast/edge
+port. Độ trễ này hoàn toàn thuộc cơ chế STP (Listening/Learning), không liên quan tới DHCP
+(loại a); auto-negotiation tốc độ cổng diễn ra trong vài giây, không phải nguyên nhân gây trễ
+30 giây (loại b); BPDU Guard là cơ chế bảo vệ khác, không phải lý do gây độ trễ 30 giây mặc
+định (loại d).
+
+---
+
+**Câu 4**: BPDU Guard bảo vệ điều gì?
+
+a) Bảo vệ switch khỏi bị quá tải CPU khi nhận quá nhiều broadcast storm
+b) Tự động hạ priority của switch lạ xuống mức thấp nhất để nó không thể làm root bridge
+c) Mã hoá nội dung BPDU để ngăn switch khác giả mạo thông tin topology
+d) Port edge (PortFast) nhận được BPDU sẽ bị err-disable ngay, ngăn một switch lạ (vô tình hoặc
+   cố ý) chen vào và làm sai lệch topology STP
+
+**Đáp án: d** — Port edge nhận BPDU sẽ bị err-disable, ngăn switch lạ chen vào topology. BPDU
+Guard không nhằm giảm tải CPU do storm — đó là vai trò của storm control (loại a); BPDU Guard
+err-disable port ngay, không hạ priority của switch lạ (loại b); BPDU Guard không mã hoá BPDU,
+chỉ phát hiện sự xuất hiện của BPDU trên port không nên nhận nó (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

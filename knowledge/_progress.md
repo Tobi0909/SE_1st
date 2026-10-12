@@ -37,8 +37,14 @@ scratchpad do server PGlite cũ từ phiên trước đã hỏng migration state
 `kb:build-quiz` → 368 câu MCQ (gồm 36 bài format-C cũ không đổi), idempotent (chạy lại = 0 câu
 mới), `kb:lint` pass. Không có câu nào phải bỏ qua.
 
-**Còn lại trong `networking`**: 9 module (switching 5 bài, routing 3, dns 2, dhcp 1,
-nat-firewall 3, tls-pki 3, http-lb 3, vpn 1, diagnostic-tools 3 = 24 bài).
+`networking.switching` (5 bài, 19 câu — xem commit theo sau trong git log): `basics`, `vlan`,
+`stp`, `lacp`, `vpc-advanced` (5 module gốc viết dạng tự luận ngắn `N. <details>`, không phải
+`<details>` dài như tcpip — vẫn chuyển sang MCQ theo đúng mẫu). Verify qua PGlite: `kb:import` →
+5 bài cập nhật, `kb:build-quiz` → 19 câu mới (tổng 387 câu), idempotent, `kb:lint` pass. Không
+có câu nào phải bỏ qua.
+
+**Còn lại trong `networking`**: 8 module (routing 3 bài, dns 2, dhcp 1, nat-firewall 3, tls-pki
+3, http-lb 3, vpn 1, diagnostic-tools 3 = 19 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

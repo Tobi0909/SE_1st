@@ -124,17 +124,61 @@ Team tạo VLAN 30 cho cụm máy ảo mới; VM trên host A ping được nhau
 
 ## 7. Tự kiểm tra
 
-1. Khác biệt giữa access port và trunk port?
-   <details><summary>Đáp án</summary>Access: 1 VLAN, frame không tag. Trunk: nhiều VLAN, frame gắn tag 802.1Q (trừ native VLAN).</details>
+**Câu 1**: Khác biệt giữa access port và trunk port?
 
-2. Dải VLAN ID dùng được là bao nhiêu và vì sao?
-   <details><summary>Đáp án</summary>1–4094 (VID 12 bit = 0–4095; 0 và 4095 dành riêng).</details>
+a) Access: 1 VLAN, frame không tag. Trunk: nhiều VLAN, frame gắn tag 802.1Q (trừ native VLAN)
+b) Access cho nhiều VLAN không tag, Trunk chỉ 1 VLAN có tag
+c) Access và Trunk giống nhau về chức năng, chỉ khác tên gọi theo hãng thiết bị
+d) Access tag mọi frame bằng 802.1Q, Trunk không cần tag vì switch tự nhận diện VLAN theo port
 
-3. Hai máy ở VLAN 10 và VLAN 20 trên cùng switch có ping được nhau không, cần gì?
-   <details><summary>Đáp án</summary>Không nếu chưa có L3: cần router/L3 switch (SVI/inter-VLAN routing).</details>
+**Đáp án: a** — Access: 1 VLAN, frame không tag. Trunk: nhiều VLAN, frame gắn tag 802.1Q (trừ
+native VLAN). Vai trò của access/trunk bị đảo ngược hoàn toàn (loại b); hai loại port có vai
+trò và cấu hình khác nhau rõ rệt, không phải chỉ khác tên gọi (loại c); việc tag thuộc về trunk
+(nhiều VLAN cần phân biệt), access không cần tag vì chỉ có 1 VLAN duy nhất (loại d).
 
-4. Tag 802.1Q chiếm bao nhiêu byte?
-   <details><summary>Đáp án</summary>4 byte (TPID 0x8100 + PCP/DEI + VID).</details>
+---
+
+**Câu 2**: Dải VLAN ID dùng được là bao nhiêu và vì sao?
+
+a) 0–4095, toàn bộ 4096 giá trị đều dùng được vì VID không có giá trị dự trữ nào
+b) 1–4094 (VID 12 bit = 0–4095; 0 và 4095 dành riêng, không gán cho VLAN thường)
+c) 1–1000, vì chuẩn 802.1Q giới hạn số VLAN tối đa theo thiết kế phần cứng phổ biến
+d) 1–4096, vì VID là trường 13 bit theo chuẩn 802.1Q
+
+**Đáp án: b** — 1–4094 (VID 12 bit = 0–4095; 0 và 4095 dành riêng). VID 0 và 4095 có ý nghĩa đặc
+biệt (không phải VLAN thường), không dùng được như hai đầu còn lại trong dải (loại a); giới hạn
+thực tế là do chính trường VID 12 bit quy định (0–4095), không phải một con số tuỳ ý 1000 do
+phần cứng (loại c); VID là trường 12 bit, không phải 13 bit (loại d).
+
+---
+
+**Câu 3**: Hai máy ở VLAN 10 và VLAN 20 trên cùng switch có ping được nhau không, cần gì?
+
+a) Có, vì cùng switch vật lý nên Layer 2 vẫn chuyển được bất kể VLAN khác nhau
+b) Có, nhưng chỉ khi cả hai VLAN cùng chung native VLAN trên trunk port
+c) Không nếu chưa có L3 — cần router hoặc L3 switch (SVI/inter-VLAN routing) để định tuyến giữa
+   hai VLAN
+d) Không, và không có cách nào để hai VLAN này giao tiếp được trừ khi gộp lại thành 1 VLAN
+
+**Đáp án: c** — Không nếu chưa có L3: cần router/L3 switch (SVI/inter-VLAN routing). VLAN khác
+nhau là hai broadcast domain riêng ở Layer 2, switch vật lý chung không đủ để chuyển trực tiếp
+giữa chúng (loại a); native VLAN chỉ liên quan tới frame không tag trên trunk, không giúp hai
+VLAN khác nhau giao tiếp (loại b); inter-VLAN routing (qua router/L3 switch) chính là cách giải
+quyết mà không cần gộp VLAN (loại d).
+
+---
+
+**Câu 4**: Tag 802.1Q chiếm bao nhiêu byte?
+
+a) 2 byte, chỉ chứa VID vì TPID được tính riêng ngoài tag
+b) 8 byte, vì tag còn chứa thêm checksum riêng cho VLAN
+c) 1 byte, vì VID chỉ cần 12 bit làm tròn lên byte gần nhất
+d) 4 byte (TPID 0x8100 + PCP/DEI + VID)
+
+**Đáp án: d** — 4 byte (TPID 0x8100 + PCP/DEI + VID). TPID là một phần của tag, không tính
+riêng ngoài 4 byte (loại a); 802.1Q không có trường checksum riêng cho VLAN (loại b); VID chỉ
+chiếm 12 bit trong tổng 4 byte, cùng với TPID (16 bit) và PCP/DEI (4 bit), không phải 1 byte độc
+lập (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

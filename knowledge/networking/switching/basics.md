@@ -110,17 +110,67 @@ Nhóm vừa cắm thêm 1 switch nhỏ vào phòng họp; 5 phút sau cả tần
 
 ## 7. Tự kiểm tra
 
-1. Switch học địa chỉ MAC dựa trên MAC nguồn hay MAC đích của frame?
-   <details><summary>Đáp án</summary>MAC NGUỒN (gắn với port vào). MAC đích chỉ dùng để tra bảng và quyết định chuyển ra đâu.</details>
+**Câu 1**: Switch học địa chỉ MAC dựa trên MAC nguồn hay MAC đích của frame?
 
-2. Frame gửi tới MAC đích chưa có trong MAC table thì switch làm gì?
-   <details><summary>Đáp án</summary>Flood: gửi ra mọi port khác (cùng broadcast domain/VLAN) trừ port vào, cho tới khi học được MAC đó.</details>
+a) MAC nguồn (gắn với port vào) — MAC đích chỉ dùng để tra bảng và quyết định chuyển ra đâu
+b) MAC đích, vì switch cần biết frame đi đâu để lưu vào bảng định tuyến
+c) Cả MAC nguồn và đích đều được học cùng lúc vào bảng, gắn chung với port vào
+d) Switch không học MAC nào cả, chỉ router mới học MAC qua ARP
 
-3. Một switch 24 port, chưa cấu hình VLAN, có bao nhiêu collision domain và broadcast domain?
-   <details><summary>Đáp án</summary>24 collision domain (mỗi port full-duplex 1 cái) và 1 broadcast domain.</details>
+**Đáp án: a** — MAC NGUỒN (gắn với port vào). MAC đích chỉ dùng để tra bảng và quyết định
+chuyển ra đâu. Switch không học theo MAC đích (loại b); chỉ MAC nguồn được ghi vào bảng, MAC
+đích chỉ dùng để tra cứu, không được học (loại c); switch (không phải chỉ router) chính là
+thiết bị học MAC để xây MAC table (loại d).
 
-4. Vì sao thêm switch không làm giảm lượng broadcast?
-   <details><summary>Đáp án</summary>Switch chuyển broadcast ra mọi port nên không chia broadcast domain; cần VLAN hoặc router (L3).</details>
+---
+
+**Câu 2**: Frame gửi tới MAC đích chưa có trong MAC table thì switch làm gì?
+
+a) Switch sẽ drop frame đó ngay vì không xác định được đích
+b) Flood: gửi ra mọi port khác (cùng broadcast domain/VLAN) trừ port vào, cho tới khi học được
+   MAC đó
+c) Switch gửi ngược lại đúng port vào để nguồn tự xử lý
+d) Switch gửi broadcast ARP request thay cho frame gốc để tìm MAC đích
+
+**Đáp án: b** — Flood: gửi ra mọi port khác (cùng broadcast domain/VLAN) trừ port vào, cho tới
+khi học được MAC đó. Switch không drop frame chưa biết đích (loại a); gửi ngược lại port vào là
+vô nghĩa, nguồn không cần nhận lại frame của chính nó (loại c); switch hoạt động ở Layer 2,
+không tự tạo ARP request thay cho frame gốc (loại d, đó là việc của tầng IP/ARP, khác cơ chế
+flood MAC).
+
+---
+
+**Câu 3**: Một switch 24 port, chưa cấu hình VLAN, có bao nhiêu collision domain và broadcast
+domain?
+
+a) 1 collision domain (toàn switch chia sẻ chung), 24 broadcast domain (mỗi port riêng)
+b) 24 collision domain, 24 broadcast domain (mỗi port đều riêng biệt hoàn toàn)
+c) 24 collision domain (mỗi port full-duplex 1 cái) và 1 broadcast domain
+d) 1 collision domain, 1 broadcast domain (switch không tách collision domain theo port)
+
+**Đáp án: c** — 24 collision domain (mỗi port full-duplex 1 cái) và 1 broadcast domain. Mỗi
+port switch là một collision domain riêng (không chia sẻ chung — loại a, d); broadcast domain
+chỉ bị chia khi có VLAN, chưa cấu hình VLAN thì toàn switch là 1 broadcast domain duy nhất
+(loại b, a).
+
+---
+
+**Câu 4**: Vì sao thêm switch không làm giảm lượng broadcast?
+
+a) Vì switch mới luôn đồng bộ bảng MAC với switch cũ qua STP, nên broadcast domain tự động hợp
+   nhất
+b) Vì thêm switch chỉ tăng số collision domain, không liên quan gì tới broadcast domain theo
+   định nghĩa
+c) Vì broadcast chỉ giảm khi tăng số lượng port trên switch, không liên quan tới số switch
+d) Switch chuyển broadcast ra mọi port nên không chia broadcast domain; cần VLAN hoặc router
+   (L3) để chia nhỏ
+
+**Đáp án: d** — Switch chuyển broadcast ra mọi port nên không chia broadcast domain; cần VLAN
+hoặc router (L3). STP chỉ chống loop, không liên quan tới việc hợp nhất broadcast domain theo
+cách đó (loại a); thêm switch có làm tăng collision domain, nhưng câu hỏi hỏi về LÝ DO broadcast
+domain không giảm, không phải phủ nhận liên quan — bản chất switch vẫn flood broadcast xuyên
+qua mọi switch nối tiếp (loại b); số port không quyết định việc chia broadcast domain, VLAN/
+router mới làm được điều đó (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
