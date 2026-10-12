@@ -183,46 +183,87 @@ lại, không ai đụng vào gì".
 
 ## 7. Tự kiểm tra
 
-1. Một `.service` có `Requires=network.target` nhưng KHÔNG có `After=network.target`. Điều gì
-   CÓ THỂ xảy ra lúc boot mà người viết unit file này không ngờ tới?
-   <details><summary>Đáp án</summary>Service này có thể khởi động TRƯỚC khi network thực sự
-   sẵn sàng, vì <code>Requires=</code> chỉ đảm bảo tồn tại/ràng buộc dừng cùng nhau, không đảm
-   bảo thứ tự khởi động. Nếu service cần network đã lên để hoạt động đúng, thiếu
-   <code>After=</code> có thể gây lỗi ngầm lúc boot (chạy trước, fail vì chưa có mạng) mà khó
-   tái hiện khi test thủ công lúc máy đã chạy ổn định (network lúc đó luôn sẵn sàng).</details>
+**Câu 1**: Một `.service` có `Requires=network.target` nhưng KHÔNG có `After=network.target`.
+Điều gì CÓ THỂ xảy ra lúc boot mà người viết unit file này không ngờ tới?
 
-2. Vì sao `systemctl stop foo.service` đôi khi không đủ để "tắt hẳn" một service, và cách kiểm
-   tra nhanh nhất để biết có cần dừng thêm gì không?
-   <details><summary>Đáp án</summary>Nếu service có <code>.socket</code> cùng tên đang active,
-   socket activation sẽ tự khởi động lại service khi có kết nối mới tới. Kiểm tra nhanh:
-   <code>systemctl status foo.socket</code> — nếu thấy <code>active (listening)</code>, cần
-   dừng luôn socket đó.</details>
+a) systemd sẽ tự thêm `After=` ngầm định nên không có gì bất thường xảy ra
+b) Service này có thể khởi động TRƯỚC khi network thực sự sẵn sàng, vì `Requires=` chỉ đảm
+   bảo tồn tại/ràng buộc dừng cùng nhau, không đảm bảo thứ tự khởi động
+c) Service này sẽ không bao giờ được khởi động vì thiếu điều kiện thứ tự
+d) `network.target` sẽ bị buộc phải khởi động trước toàn bộ hệ thống, kéo dài thời gian boot
 
-3. Máy mới cài, bạn cố tình KHÔNG đổi `Storage=` trong `journald.conf` (giữ mặc định `auto`).
-   Sau 3 ngày vận hành, log có được giữ qua reboot không? Giải thích dựa trên hành vi thật của
-   `auto`.
-   <details><summary>Đáp án</summary>Phụ thuộc việc thư mục <code>/var/log/journal</code> đã
-   tồn tại hay chưa tại lần journald khởi động đầu tiên — nếu một gói nào đó (hoặc chính
-   quá trình cài distro) đã tạo thư mục này, <code>auto</code> hành xử như
-   <code>persistent</code> (giữ log qua reboot); nếu chưa, nó hành xử như
-   <code>volatile</code> (mất log mỗi lần tắt máy) — KHÔNG có mốc thời gian "sau 3 ngày sẽ tự
-   đổi", hành vi chỉ phụ thuộc trạng thái thư mục tại thời điểm journald start.</details>
+**Đáp án: b** — Service này có thể khởi động TRƯỚC khi network thực sự sẵn sàng, vì
+`Requires=` chỉ đảm bảo tồn tại/ràng buộc dừng cùng nhau, không đảm bảo thứ tự khởi động. Nếu
+service cần network đã lên để hoạt động đúng, thiếu `After=` có thể gây lỗi ngầm lúc boot
+(chạy trước, fail vì chưa có mạng) mà khó tái hiện khi test thủ công lúc máy đã chạy ổn định
+(network lúc đó luôn sẵn sàng).
 
-4. `foo@.service` (có dấu `@`) khác `foo.service` (không có dấu `@`) ở điểm nào, và nó liên
-   quan gì tới `Accept=yes` trong `.socket`?
-   <details><summary>Đáp án</summary><code>foo@.service</code> là TEMPLATE unit — systemd có
-   thể tạo nhiều instance từ nó (<code>foo@1.service</code>, <code>foo@2.service</code>...).
-   Khi một <code>.socket</code> khai báo <code>Accept=yes</code>, mỗi kết nối mới cần MỘT
-   instance service riêng để xử lý, nên bắt buộc service tương ứng phải là dạng template
-   (<code>foo@.service</code>), không thể là unit tên cố định.</details>
+---
 
-5. Lệnh nào cho biết chuỗi phụ thuộc "găng" (critical path) thực sự ảnh hưởng tới thời gian
-   boot của một unit cụ thể, khác với việc chỉ xem `After=`/`Requires=` khai báo tĩnh trong
-   file?
-   <details><summary>Đáp án</summary><code>systemd-analyze critical-chain foo.service</code> —
-   cho thấy chuỗi phụ thuộc THỰC TẾ (đã tính toán, kèm thời gian) dẫn tới unit đó active, khác
-   với việc chỉ đọc <code>After=</code>/<code>Requires=</code> tĩnh trong file (chưa phản ánh
-   độ trễ thực tế hay toàn bộ chuỗi gián tiếp qua nhiều unit trung gian).</details>
+**Câu 2**: Vì sao `systemctl stop foo.service` đôi khi không đủ để "tắt hẳn" một service, và
+cách kiểm tra nhanh nhất để biết có cần dừng thêm gì không?
+
+a) Vì `stop` chỉ tạm dừng 5 giây rồi service tự khởi động lại theo mặc định của systemd
+b) Nếu service có `.socket` cùng tên đang active, socket activation sẽ tự khởi động lại
+   service khi có kết nối mới tới. Kiểm tra nhanh: `systemctl status foo.socket`
+c) Vì `stop` yêu cầu xác nhận hai lần, lần đầu chỉ là cảnh báo chứ chưa thực sự dừng
+d) Vì các instance template (`foo@N.service`) không bị ảnh hưởng bởi `stop foo.service`
+
+**Đáp án: b** — Nếu service có `.socket` cùng tên đang active, socket activation sẽ tự khởi
+động lại service khi có kết nối mới tới. Kiểm tra nhanh: `systemctl status foo.socket` — nếu
+thấy `active (listening)`, cần dừng luôn socket đó.
+
+---
+
+**Câu 3**: Máy mới cài, bạn cố tình KHÔNG đổi `Storage=` trong `journald.conf` (giữ mặc định
+`auto`). Sau 3 ngày vận hành, log có được giữ qua reboot không? Giải thích dựa trên hành vi
+thật của `auto`.
+
+a) Có, vì sau 3 ngày `auto` tự động chuyển sang hành xử như `persistent`
+b) Phụ thuộc việc thư mục `/var/log/journal` đã tồn tại hay chưa tại lần journald khởi động
+   đầu tiên — không có mốc thời gian "sau N ngày sẽ tự đổi"
+c) Không, `auto` luôn hành xử như `volatile` trừ khi người dùng đổi tay sang `persistent`
+d) Có, nhưng chỉ nếu máy không bị tắt nguồn đột ngột trong 3 ngày đó
+
+**Đáp án: b** — Phụ thuộc việc thư mục `/var/log/journal` đã tồn tại hay chưa tại lần journald
+khởi động đầu tiên — nếu một gói nào đó (hoặc chính quá trình cài distro) đã tạo thư mục này,
+`auto` hành xử như `persistent` (giữ log qua reboot); nếu chưa, nó hành xử như `volatile` (mất
+log mỗi lần tắt máy) — KHÔNG có mốc thời gian "sau 3 ngày sẽ tự đổi", hành vi chỉ phụ thuộc
+trạng thái thư mục tại thời điểm journald start.
+
+---
+
+**Câu 4**: `foo@.service` (có dấu `@`) khác `foo.service` (không có dấu `@`) ở điểm nào, và nó
+liên quan gì tới `Accept=yes` trong `.socket`?
+
+a) `foo@.service` chỉ là cách viết tắt cũ, hai dạng này hoàn toàn tương đương về hành vi
+b) `foo@.service` là TEMPLATE unit, tạo nhiều instance (`foo@1.service`...). Khi `.socket`
+   khai báo `Accept=yes`, mỗi kết nối mới cần MỘT instance riêng, nên service phải là template
+c) `foo@.service` dùng cho `.timer`, còn `foo.service` dùng cho `.socket` — hai dạng tách biệt
+   theo loại unit đi kèm
+d) `Accept=yes` chỉ tương thích với `foo.service` thường, `foo@.service` luôn cần `Accept=no`
+
+**Đáp án: b** — `foo@.service` là TEMPLATE unit — systemd có thể tạo nhiều instance từ nó
+(`foo@1.service`, `foo@2.service`...). Khi một `.socket` khai báo `Accept=yes`, mỗi kết nối
+mới cần MỘT instance service riêng để xử lý, nên bắt buộc service tương ứng phải là dạng
+template (`foo@.service`), không thể là unit tên cố định.
+
+---
+
+**Câu 5**: Lệnh nào cho biết chuỗi phụ thuộc "găng" (critical path) thực sự ảnh hưởng tới thời
+gian boot của một unit cụ thể, khác với việc chỉ xem `After=`/`Requires=` khai báo tĩnh trong
+file?
+
+a) `systemctl list-dependencies foo.service` — vì lệnh này đã bao gồm cả thời gian khởi động
+b) `systemd-analyze critical-chain foo.service` — cho thấy chuỗi phụ thuộc THỰC TẾ (đã tính
+   toán, kèm thời gian) dẫn tới unit đó active
+c) `journalctl -b -u foo.service` — vì log boot luôn ghi kèm thời gian từng bước phụ thuộc
+d) `systemctl cat foo.service` — vì file unit gốc là nguồn chính xác nhất về phụ thuộc
+
+**Đáp án: b** — `systemd-analyze critical-chain foo.service` — cho thấy chuỗi phụ thuộc THỰC
+TẾ (đã tính toán, kèm thời gian) dẫn tới unit đó active, khác với việc chỉ đọc
+`After=`/`Requires=` tĩnh trong file (chưa phản ánh độ trễ thực tế hay toàn bộ chuỗi gián tiếp
+qua nhiều unit trung gian).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

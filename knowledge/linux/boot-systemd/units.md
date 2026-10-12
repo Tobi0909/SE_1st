@@ -203,40 +203,83 @@ không ai sửa gì". Phân tích:
 
 ## 7. Tự kiểm tra
 
-1. Một service có `Wants=foo.service` (không phải `Requires=`). `foo.service` khởi động thất
-   bại. Service gốc có bị coi là fail theo không?
-   <details><summary>Đáp án</summary>Không. <code>Wants=</code> là phụ thuộc lỏng — systemd vẫn
-   cố khởi động cả hai cùng nhau nhưng nếu <code>foo.service</code> fail, service gốc vẫn tiếp
-   tục khởi động bình thường. Chỉ <code>Requires=</code> mới kéo theo fail.</details>
+**Câu 1**: Một service có `Wants=foo.service` (không phải `Requires=`). `foo.service` khởi
+động thất bại. Service gốc có bị coi là fail theo không?
 
-2. Bạn chạy `systemctl enable myapp.service` và thấy output
-   "Created symlink /etc/systemd/system/multi-user.target.wants/myapp.service → ...". Điều gì
-   SẼ và SẼ KHÔNG xảy ra ngay sau lệnh này?
-   <details><summary>Đáp án</summary>SẼ: lần boot tiếp theo, khi <code>multi-user.target</code>
-   kích hoạt, <code>myapp.service</code> sẽ tự được khởi động theo. SẼ KHÔNG: service KHÔNG
-   chạy ngay tại thời điểm chạy lệnh <code>enable</code> — cần thêm <code>systemctl start</code>
-   (hoặc dùng <code>enable --now</code> ngay từ đầu) nếu muốn chạy ngay.</details>
+a) Có, vì mọi phụ thuộc khai báo trong `[Unit]` đều kéo theo fail nếu unit kia fail
+b) Không. `Wants=` là phụ thuộc lỏng — nếu `foo.service` fail, service gốc vẫn tiếp tục khởi
+   động bình thường; chỉ `Requires=` mới kéo theo fail
+c) Có, nhưng chỉ khi `foo.service` được khai báo trước trong `After=`
+d) Không, nhưng service gốc sẽ tự chuyển sang trạng thái `inactive` thay vì `active`
 
-3. Vì sao nên dùng `systemctl edit foo.service` thay vì sửa trực tiếp file trong
-   `/lib/systemd/system/foo.service`?
-   <details><summary>Đáp án</summary>Vì file trong <code>/lib/systemd/system/</code> thuộc gói
-   phần mềm, sẽ bị ghi đè mất chỉnh sửa ở lần update gói kế tiếp. <code>systemctl edit</code>
-   tạo file drop-in riêng trong <code>/etc/systemd/system/foo.service.d/</code>, độc lập với
-   file gốc, systemd tự gộp (merge) hai file này khi đọc unit.</details>
+**Đáp án: b** — Không. `Wants=` là phụ thuộc lỏng — systemd vẫn cố khởi động cả hai cùng nhau
+nhưng nếu `foo.service` fail, service gốc vẫn tiếp tục khởi động bình thường. Chỉ `Requires=`
+mới kéo theo fail.
 
-4. `.target` có `[Service]` section không? Tại sao?
-   <details><summary>Đáp án</summary>Không. <code>.target</code> không tự chạy process nào —
-   nó chỉ là điểm hội tụ để các unit khác (thường là <code>.service</code>) khai báo
-   <code>WantedBy=</code> trỏ vào, nên không cần (và không có) phần <code>[Service]</code> để
-   mô tả cách chạy một tiến trình.</details>
+---
 
-5. Lệnh `systemctl show <unit> -p After` trả về nhiều unit hơn những gì bạn thấy khai báo
-   trong file gốc của chính unit đó. Đây có phải lỗi không?
-   <details><summary>Đáp án</summary>Không. systemd tự thêm một số ràng buộc ngầm định (implicit
-   dependencies) cho hầu hết loại unit — ví dụ hầu hết service tự có thêm
-   <code>After=basic.target</code> — để tác giả unit file không phải khai báo lại ở mọi nơi.
-   <code>systemctl show</code> trả về giá trị ĐÃ GỘP (effective), không phải nguyên văn file.
-   </details>
+**Câu 2**: Bạn chạy `systemctl enable myapp.service` và thấy output "Created symlink
+/etc/systemd/system/multi-user.target.wants/myapp.service → ...". Điều gì SẼ và SẼ KHÔNG xảy
+ra ngay sau lệnh này?
+
+a) SẼ: service chạy ngay lập tức. SẼ KHÔNG: service tự chạy lại ở các lần boot sau
+b) SẼ: lần boot tiếp theo `myapp.service` sẽ tự được khởi động theo. SẼ KHÔNG: service KHÔNG
+   chạy ngay tại thời điểm chạy lệnh `enable` — cần thêm `systemctl start` (hoặc dùng
+   `enable --now` từ đầu)
+c) SẼ: file gốc của `myapp.service` bị copy sang `/etc/systemd/system/`. SẼ KHÔNG: service
+   được đăng ký tự chạy ở lần boot sau
+d) SẼ và SẼ KHÔNG đều không áp dụng — output này chỉ là log mang tính thông báo, không có tác
+   dụng thực tế nào
+
+**Đáp án: b** — SẼ: lần boot tiếp theo, khi `multi-user.target` kích hoạt, `myapp.service` sẽ
+tự được khởi động theo. SẼ KHÔNG: service KHÔNG chạy ngay tại thời điểm chạy lệnh `enable` —
+cần thêm `systemctl start` (hoặc dùng `enable --now` ngay từ đầu) nếu muốn chạy ngay.
+
+---
+
+**Câu 3**: Vì sao nên dùng `systemctl edit foo.service` thay vì sửa trực tiếp file trong
+`/lib/systemd/system/foo.service`?
+
+a) Vì `systemctl edit` cho phép sửa trực tiếp trên service đang chạy mà không cần restart
+b) Vì file trong `/lib/systemd/system/` thuộc gói phần mềm, sẽ bị ghi đè mất chỉnh sửa ở lần
+   update gói kế tiếp — `systemctl edit` tạo file drop-in riêng, độc lập với file gốc
+c) Vì sửa file trong `/lib/systemd/system/` yêu cầu quyền root cao hơn `systemctl edit`
+d) Vì `systemctl edit` tự động kiểm tra lỗi cú pháp trước khi lưu, còn sửa file tay thì không
+
+**Đáp án: b** — Vì file trong `/lib/systemd/system/` thuộc gói phần mềm, sẽ bị ghi đè mất
+chỉnh sửa ở lần update gói kế tiếp. `systemctl edit` tạo file drop-in riêng trong
+`/etc/systemd/system/foo.service.d/`, độc lập với file gốc, systemd tự gộp (merge) hai file
+này khi đọc unit.
+
+---
+
+**Câu 4**: `.target` có `[Service]` section không? Tại sao?
+
+a) Có, nhưng chỉ dùng để khai báo timeout cho toàn bộ unit trong nhóm
+b) Không. `.target` không tự chạy process nào — nó chỉ là điểm hội tụ để các unit khác khai
+   báo `WantedBy=` trỏ vào, nên không cần phần `[Service]`
+c) Có, vì mọi unit trong systemd đều bắt buộc có đủ 3 section `[Unit]`/`[Service]`/`[Install]`
+d) Không, nhưng lý do là vì `.target` được systemd xử lý như một alias của `.socket`
+
+**Đáp án: b** — Không. `.target` không tự chạy process nào — nó chỉ là điểm hội tụ để các unit
+khác (thường là `.service`) khai báo `WantedBy=` trỏ vào, nên không cần (và không có) phần
+`[Service]` để mô tả cách chạy một tiến trình.
+
+---
+
+**Câu 5**: Lệnh `systemctl show <unit> -p After` trả về nhiều unit hơn những gì bạn thấy khai
+báo trong file gốc của chính unit đó. Đây có phải lỗi không?
+
+a) Có, đây là dấu hiệu file unit bị một gói khác ghi đè một phần
+b) Không. systemd tự thêm một số ràng buộc ngầm định (implicit dependencies) cho hầu hết loại
+   unit; `systemctl show` trả về giá trị ĐÃ GỘP (effective), không phải nguyên văn file
+c) Có, trừ khi unit đó được tạo bằng `systemctl edit` thì mới là bình thường
+d) Không, nhưng chỉ đúng với riêng `.socket` và `.timer`, không áp dụng cho `.service`
+
+**Đáp án: b** — Không. systemd tự thêm một số ràng buộc ngầm định (implicit dependencies) cho
+hầu hết loại unit — ví dụ hầu hết service tự có thêm `After=basic.target` — để tác giả unit
+file không phải khai báo lại ở mọi nơi. `systemctl show` trả về giá trị ĐÃ GỘP (effective),
+không phải nguyên văn file.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

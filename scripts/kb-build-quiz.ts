@@ -91,10 +91,18 @@ function parseBlock(block: string, index: number): ParsedQuestion | null {
   if (!stemMatch) return null;
   const stem = stemMatch[1].replace(/\s*\n\s*/g, " ").trim();
 
+  // Option có thể wrap xuống nhiều dòng (dòng tiếp theo không có tiền tố "a)"-"d)" được nối
+  // vào option đang mở, cách nhau 1 khoảng trắng) — không chỉ 1 dòng/option.
   const options: ParsedOption[] = [];
-  for (const line of paragraphs[1].split("\n")) {
-    const m = /^([a-dA-D])\)\s*(.+?)\s*$/.exec(line.trim());
-    if (m) options.push({ letter: m[1].toLowerCase(), text: m[2] });
+  for (const rawLine of paragraphs[1].split("\n")) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const m = /^([a-dA-D])\)\s*(.+)$/.exec(line);
+    if (m) {
+      options.push({ letter: m[1].toLowerCase(), text: m[2].trim() });
+    } else if (options.length > 0) {
+      options[options.length - 1].text += ` ${line}`;
+    }
   }
   if (options.length < 2) return null;
 

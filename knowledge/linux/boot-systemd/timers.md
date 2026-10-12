@@ -186,42 +186,84 @@ sang server mới) dù trước đó chạy ổn định nhiều tháng.
 
 ## 7. Tự kiểm tra
 
-1. Một job cần chạy đúng 30 phút sau mỗi lần nó chạy xong (không phải "đúng giờ cố định" mà là
-   "cách đều kể từ lần trước"). `OnCalendar=` hay `OnUnitActiveSec=` phù hợp hơn?
-   <details><summary>Đáp án</summary><code>OnUnitActiveSec=30min</code> — tính từ lần unit này
-   ACTIVE gần nhất, phù hợp đúng yêu cầu "cách đều kể từ lần trước", khác với
-   <code>OnCalendar=</code> vốn gắn với mốc giờ thực cố định.</details>
+**Câu 1**: Một job cần chạy đúng 30 phút sau mỗi lần nó chạy xong (không phải "đúng giờ cố
+định" mà là "cách đều kể từ lần trước"). `OnCalendar=` hay `OnUnitActiveSec=` phù hợp hơn?
 
-2. Máy chủ backup tắt đúng lúc 2h sáng (giờ job backup theo lịch) do mất điện, phục hồi lúc
-   8h sáng. Với `Persistent=true`, điều gì xảy ra? Nếu KHÔNG có `Persistent=true`?
-   <details><summary>Đáp án</summary>Có <code>Persistent=true</code>: job backup bị bỏ lỡ sẽ tự
-   chạy ngay sau khi máy khởi động lại lúc 8h (bù lại lần bị lỡ). Không có: job đó bị bỏ qua
-   hoàn toàn cho tới lần kích hoạt theo lịch tiếp theo (2h sáng ngày kế) — mất một kỳ backup mà
-   không có cảnh báo gì riêng.</details>
+a) `OnCalendar=*:0/30` — vì cú pháp này cho phép chạy mỗi 30 phút
+b) `OnUnitActiveSec=30min` — tính từ lần unit này ACTIVE gần nhất, phù hợp đúng yêu cầu "cách
+   đều kể từ lần trước", khác với `OnCalendar=` vốn gắn với mốc giờ thực cố định
+c) `OnBootSec=30min` — vì chỉ thị này tính khoảng cách giữa các lần chạy liên tiếp
+d) Cả hai đều cho kết quả giống nhau, không có khác biệt thực tế
 
-3. `logrotate.timer` trên máy thật có `AccuracySec=1h`. Nếu 50 server trong hệ thống đều cùng
-   cấu hình này và cùng đặt `OnCalendar=daily`, chúng có chắc chắn chạy đúng cùng một giây
-   không? Vì sao điều đó lại là chủ ý thiết kế?
-   <details><summary>Đáp án</summary>Không chắc — mỗi máy có thể lệch tới 1 giờ so với giờ lý
-   thuyết do <code>AccuracySec=</code>. Đây là chủ ý: tránh toàn bộ các timer dồn vào đúng một
-   thời điểm gây giật tải CPU/I/O đồng loạt, đánh đổi độ chính xác tuyệt đối để lấy tải được rải
-   đều.</details>
+**Đáp án: b** — `OnUnitActiveSec=30min` — tính từ lần unit này ACTIVE gần nhất, phù hợp đúng
+yêu cầu "cách đều kể từ lần trước", khác với `OnCalendar=` vốn gắn với mốc giờ thực cố định.
 
-4. Bạn sửa `OnCalendar=` trong file `foo.timer` từ `daily` thành `*-*-* 03:00:00`, chạy
-   `systemctl daemon-reload`, nhưng `list-timers` vẫn hiện giờ kích hoạt kế tiếp theo lịch cũ.
-   Bước tiếp theo?
-   <details><summary>Đáp án</summary><code>systemctl restart foo.timer</code> — timer instance
-   đang chạy đã tính "lần kích hoạt kế tiếp" dựa theo lịch tại thời điểm nó start; chỉ
-   <code>daemon-reload</code> nạp lại định nghĩa file, chưa buộc timer tính lại ngay, cần
-   restart để áp dụng lịch mới.</details>
+---
 
-5. Vì sao `systemctl list-timers` hữu ích hơn việc liệt kê từng crontab của từng user khi cần
-   kiểm toán toàn bộ job lập lịch trên một server?
-   <details><summary>Đáp án</summary><code>list-timers</code> cho một bảng tổng hợp MỌI timer
-   hệ thống (không phân biệt user nào tạo), sắp theo thời điểm chạy kế tiếp, kèm lịch sử lần
-   chạy gần nhất — một lệnh, một cái nhìn toàn cảnh. Với cron, mỗi user có crontab riêng
-   (<code>crontab -l</code> chỉ xem được của user hiện tại hoặc cần quyền root để xem của
-   người khác), không có lệnh tổng hợp tương đương.</details>
+**Câu 2**: Máy chủ backup tắt đúng lúc 2h sáng (giờ job backup theo lịch) do mất điện, phục
+hồi lúc 8h sáng. Với `Persistent=true`, điều gì xảy ra? Nếu KHÔNG có `Persistent=true`?
+
+a) Có `Persistent=true`: job backup bị bỏ lỡ sẽ tự chạy ngay sau khi máy khởi động lại lúc 8h.
+   Không có: job đó bị bỏ qua hoàn toàn cho tới lần kích hoạt theo lịch tiếp theo (2h sáng ngày
+   kế)
+b) Cả hai trường hợp đều giống nhau — `Persistent=` chỉ ảnh hưởng tới log, không ảnh hưởng tới
+   việc job có chạy hay không
+c) Có `Persistent=true`: job chạy lại liên tục mỗi 5 phút cho tới khi thành công. Không có:
+   job dừng vĩnh viễn, cần người vận hành tự kích hoạt lại timer
+d) Có `Persistent=true`: hệ thống gửi cảnh báo nhưng không tự chạy lại job. Không có: job tự
+   chạy lại ngay khi máy khởi động
+
+**Đáp án: a** — Có `Persistent=true`: job backup bị bỏ lỡ sẽ tự chạy ngay sau khi máy khởi
+động lại lúc 8h (bù lại lần bị lỡ). Không có: job đó bị bỏ qua hoàn toàn cho tới lần kích hoạt
+theo lịch tiếp theo (2h sáng ngày kế) — mất một kỳ backup mà không có cảnh báo gì riêng.
+
+---
+
+**Câu 3**: `logrotate.timer` trên máy thật có `AccuracySec=1h`. Nếu 50 server trong hệ thống
+đều cùng cấu hình này và cùng đặt `OnCalendar=daily`, chúng có chắc chắn chạy đúng cùng một
+giây không? Vì sao điều đó lại là chủ ý thiết kế?
+
+a) Chắc chắn — `AccuracySec=` chỉ là giới hạn log, không ảnh hưởng thời điểm chạy thật
+b) Không chắc — mỗi máy có thể lệch tới 1 giờ so với giờ lý thuyết do `AccuracySec=`; đây là
+   chủ ý để tránh toàn bộ timer dồn vào đúng một thời điểm gây giật tải CPU/I/O đồng loạt
+c) Chắc chắn, vì tất cả server dùng chung một đồng hồ NTP nên luôn đồng bộ tuyệt đối
+d) Không chắc, nhưng chỉ vì lỗi làm tròn số của hệ điều hành, không phải chủ ý thiết kế
+
+**Đáp án: b** — Không chắc — mỗi máy có thể lệch tới 1 giờ so với giờ lý thuyết do
+`AccuracySec=`. Đây là chủ ý: tránh toàn bộ các timer dồn vào đúng một thời điểm gây giật tải
+CPU/I/O đồng loạt, đánh đổi độ chính xác tuyệt đối để lấy tải được rải đều.
+
+---
+
+**Câu 4**: Bạn sửa `OnCalendar=` trong file `foo.timer` từ `daily` thành `*-*-* 03:00:00`,
+chạy `systemctl daemon-reload`, nhưng `list-timers` vẫn hiện giờ kích hoạt kế tiếp theo lịch
+cũ. Bước tiếp theo?
+
+a) `systemctl restart foo.timer` — timer instance đang chạy đã tính "lần kích hoạt kế tiếp"
+   theo lịch tại thời điểm nó start, cần restart để áp dụng lịch mới
+b) Chờ tới lần kích hoạt kế tiếp, lịch mới sẽ tự được áp dụng sau đó
+c) `systemctl daemon-reexec` — lệnh này buộc toàn bộ timer tính lại lịch ngay
+d) Không có cách nào áp dụng lịch mới mà không reboot cả máy
+
+**Đáp án: a** — `systemctl restart foo.timer` — timer instance đang chạy đã tính "lần kích
+hoạt kế tiếp" dựa theo lịch tại thời điểm nó start; chỉ `daemon-reload` nạp lại định nghĩa
+file, chưa buộc timer tính lại ngay, cần restart để áp dụng lịch mới.
+
+---
+
+**Câu 5**: Vì sao `systemctl list-timers` hữu ích hơn việc liệt kê từng crontab của từng user
+khi cần kiểm toán toàn bộ job lập lịch trên một server?
+
+a) Vì cron không có khả năng lập lịch chính xác bằng systemd timer
+b) `list-timers` cho một bảng tổng hợp MỌI timer hệ thống, sắp theo thời điểm chạy kế tiếp,
+   kèm lịch sử lần chạy gần nhất; với cron, mỗi user có crontab riêng, không có lệnh tổng hợp
+c) Vì `crontab -l` đã bị loại bỏ khỏi các distro hiện đại dùng systemd
+d) Vì `list-timers` tự động sửa các lỗi cú pháp trong file cấu hình, còn crontab thì không
+
+**Đáp án: b** — `list-timers` cho một bảng tổng hợp MỌI timer hệ thống (không phân biệt user
+nào tạo), sắp theo thời điểm chạy kế tiếp, kèm lịch sử lần chạy gần nhất — một lệnh, một cái
+nhìn toàn cảnh. Với cron, mỗi user có crontab riêng (`crontab -l` chỉ xem được của user hiện
+tại hoặc cần quyền root để xem của người khác), không có lệnh tổng hợp tương đương.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

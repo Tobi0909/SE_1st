@@ -194,52 +194,93 @@ lý:
 
 ## 7. Tự kiểm tra
 
-1. Bạn chạy `systemctl reload nginx.service` và nhận lỗi "Job type reload is not applicable".
-   Bước tiếp theo hợp lý là gì, và vì sao `restart` không "nguy hiểm ngang" `reload` trong mọi
-   trường hợp?
-   <details><summary>Đáp án</summary>Dùng <code>systemctl restart nginx.service</code> thay thế
-   (nginx thường hỗ trợ reload thật qua <code>ExecReload=</code>, nhưng nếu lỗi này xảy ra tức
-   bản cấu hình/unit cụ thể không khai báo nó). Khác biệt quan trọng: <code>reload</code> không
-   tắt process (không mất kết nối đang xử lý), còn <code>restart</code> tắt hẳn rồi chạy lại —
-   có một khoảng downtime và có thể làm rớt kết nối đang mở, nên với service chịu tải cao cần
-   cân nhắc thời điểm restart.</details>
+**Câu 1**: Bạn chạy `systemctl reload nginx.service` và nhận lỗi "Job type reload is not
+applicable". Bước tiếp theo hợp lý là gì, và vì sao `restart` không "nguy hiểm ngang" `reload`
+trong mọi trường hợp?
 
-2. `systemctl status foo.service` trả về exit code `3`. Đây có phải lỗi của lệnh `systemctl`
-   không?
-   <details><summary>Đáp án</summary>Không. Exit code của <code>status</code> phản ánh TRẠNG
-   THÁI của unit (3 nghĩa là KHÔNG active — dùng chung cho cả inactive và failed, không có mã
-   riêng để phân biệt hai trạng thái này), không phải lỗi thực thi lệnh. Muốn biết lệnh
-   <code>systemctl</code> bản thân có lỗi hay không, cần nhìn vào output lỗi (stderr), không chỉ
-   dựa vào exit code của status.</details>
+a) Dùng `systemctl kill` rồi `start` lại — đây là cách duy nhất khi `reload` báo lỗi này
+b) Dùng `systemctl restart nginx.service` thay thế; khác biệt quan trọng là `reload` không tắt
+   process (không mất kết nối đang xử lý) còn `restart` tắt hẳn rồi chạy lại, có downtime
+c) Lỗi này nghĩa là nginx đã bị gỡ cài đặt, cần cài lại trước khi thao tác tiếp
+d) Dùng `systemctl daemon-reexec` thay thế — lệnh này an toàn hơn cả `reload` và `restart`
 
-3. Sau khi `systemctl enable foo.service`, bạn `reboot` server nhưng `foo.service` KHÔNG tự
-   chạy. Hai khả năng hợp lý nhất cần kiểm tra trước là gì?
-   <details><summary>Đáp án</summary>(1) File service không có dòng
-   <code>WantedBy=</code> đúng target thực sự được kích hoạt lúc boot (ví dụ file khai báo
-   <code>WantedBy=multi-user.target</code> nhưng máy này boot tới <code>graphical.target</code>
-   — về lý thuyết <code>graphical.target</code> kéo theo <code>multi-user.target</code> nên
-   trường hợp này thường không phải nguyên nhân, nhưng cần xác nhận); (2) service tự fail ngay
-   khi khởi động (ví dụ do thiếu tài nguyên lúc boot sớm) rồi dừng ở trạng thái failed mà không
-   ai để ý — kiểm tra bằng <code>systemctl status foo.service</code> và
-   <code>journalctl -b -u foo.service</code> (log của lần boot hiện tại).</details>
+**Đáp án: b** — Dùng `systemctl restart nginx.service` thay thế (nginx thường hỗ trợ reload
+thật qua `ExecReload=`, nhưng nếu lỗi này xảy ra tức bản cấu hình/unit cụ thể không khai báo
+nó). Khác biệt quan trọng: `reload` không tắt process (không mất kết nối đang xử lý), còn
+`restart` tắt hẳn rồi chạy lại — có một khoảng downtime và có thể làm rớt kết nối đang mở, nên
+với service chịu tải cao cần cân nhắc thời điểm restart.
 
-4. Phân biệt `systemctl disable foo.service` và `systemctl mask foo.service` — khi nào chọn
-   cái thứ hai?
-   <details><summary>Đáp án</summary><code>disable</code> chỉ xoá symlink trong
-   <code>*.target.wants/</code> — service vẫn start được bằng tay hoặc bị kéo dậy qua
-   <code>Requires=</code> từ unit khác. <code>mask</code> trỏ unit đó sang
-   <code>/dev/null</code>, không ai khởi động được nó dưới bất kỳ hình thức nào cho tới khi
-   <code>unmask</code>. Chọn <code>mask</code> khi cần đảm bảo tuyệt đối một service không được
-   chạy (ví dụ đã thay thế hẳn bằng service khác và không muốn rủi ro bị dependency kéo dậy
-   nhầm).</details>
+---
 
-5. Vì sao nên dùng `systemctl is-active foo.service` (kiểm tra exit code) trong script tự
-   động, thay vì `systemctl status foo.service | grep "running"`?
-   <details><summary>Đáp án</summary><code>is-active</code> trả về đúng một từ chuẩn hoá
-   (active/inactive/failed/...) và exit code tương ứng, ổn định để script dựa vào. Parse chuỗi
-   output của <code>status</code> (vốn là output cho người đọc, có thể đổi định dạng giữa các
-   phiên bản systemd, chứa nhiều ngôn ngữ khác nhau tuỳ locale) dễ gãy và không đáng tin cho
-   logic tự động.</details>
+**Câu 2**: `systemctl status foo.service` trả về exit code `3`. Đây có phải lỗi của lệnh
+`systemctl` không?
+
+a) Có, exit code khác 0 luôn nghĩa là lệnh thực thi thất bại
+b) Không. Exit code của `status` phản ánh TRẠNG THÁI của unit (3 nghĩa là KHÔNG active), không
+   phải lỗi thực thi lệnh
+c) Có, nhưng chỉ khi chạy bằng user thường, không phải root
+d) Không, nhưng chỉ đúng khi dùng `systemctl --user`, còn hệ thống thì exit code 3 là lỗi thật
+
+**Đáp án: b** — Không. Exit code của `status` phản ánh TRẠNG THÁI của unit (3 nghĩa là KHÔNG
+active — dùng chung cho cả inactive và failed, không có mã riêng để phân biệt hai trạng thái
+này), không phải lỗi thực thi lệnh. Muốn biết lệnh `systemctl` bản thân có lỗi hay không, cần
+nhìn vào output lỗi (stderr), không chỉ dựa vào exit code của status.
+
+---
+
+**Câu 3**: Sau khi `systemctl enable foo.service`, bạn `reboot` server nhưng `foo.service`
+KHÔNG tự chạy. Hai khả năng hợp lý nhất cần kiểm tra trước là gì?
+
+a) (1) Service đã bị `mask` trước đó mà không ai nhớ; (2) ổ đĩa chứa unit file bị hỏng
+b) (1) File service không có `WantedBy=` đúng target thực sự được kích hoạt lúc boot; (2)
+   service tự fail ngay khi khởi động rồi dừng ở trạng thái failed mà không ai để ý
+c) (1) Thiếu `systemctl daemon-reload` sau lần `enable`; (2) tên service bị gõ sai hoa/thường
+d) (1) `systemctl enable` chỉ hoạt động với unit scope `--user`; (2) server chưa được reboot
+   đủ số lần cần thiết để áp dụng
+
+**Đáp án: b** — (1) File service không có dòng `WantedBy=` đúng target thực sự được kích hoạt
+lúc boot (ví dụ file khai báo `WantedBy=multi-user.target` nhưng máy này boot tới
+`graphical.target` — về lý thuyết `graphical.target` kéo theo `multi-user.target` nên trường
+hợp này thường không phải nguyên nhân, nhưng cần xác nhận); (2) service tự fail ngay khi khởi
+động (ví dụ do thiếu tài nguyên lúc boot sớm) rồi dừng ở trạng thái failed mà không ai để ý —
+kiểm tra bằng `systemctl status foo.service` và `journalctl -b -u foo.service` (log của lần
+boot hiện tại).
+
+---
+
+**Câu 4**: Phân biệt `systemctl disable foo.service` và `systemctl mask foo.service` — khi nào
+chọn cái thứ hai?
+
+a) `disable` và `mask` giống nhau, chỉ khác tên lệnh
+b) `disable` chỉ xoá symlink trong `*.target.wants/` — service vẫn start được bằng tay hoặc bị
+   kéo dậy qua `Requires=`. `mask` trỏ unit sang `/dev/null`, không ai khởi động được nó cho
+   tới khi `unmask`. Chọn `mask` khi cần đảm bảo tuyệt đối service không được chạy
+c) `mask` chỉ tạm dừng service trong phiên hiện tại, tự hết hiệu lực sau reboot, còn `disable`
+   là vĩnh viễn
+d) `disable` dùng cho `.service`, `mask` dùng cho `.timer` — hai lệnh áp dụng cho loại unit
+   khác nhau
+
+**Đáp án: b** — `disable` chỉ xoá symlink trong `*.target.wants/` — service vẫn có thể bị
+`start` tay hoặc được một unit khác kéo dậy qua `Requires=`. `mask` đi xa hơn: trỏ unit đó sang
+`/dev/null`, không ai khởi động được nó dưới bất kỳ hình thức nào cho tới khi `unmask`. Chọn
+`mask` khi cần đảm bảo tuyệt đối một service không được chạy (ví dụ đã thay thế hẳn bằng
+service khác và không muốn rủi ro bị dependency kéo dậy nhầm).
+
+---
+
+**Câu 5**: Vì sao nên dùng `systemctl is-active foo.service` (kiểm tra exit code) trong script
+tự động, thay vì `systemctl status foo.service | grep "running"`?
+
+a) Vì `is-active` chạy nhanh hơn `status` về mặt hiệu năng, không liên quan tới độ tin cậy
+b) Vì `is-active` trả về đúng một từ chuẩn hoá và exit code tương ứng, ổn định để script dựa
+   vào; parse chuỗi output của `status` (cho người đọc, có thể đổi định dạng/ngôn ngữ) dễ gãy
+c) Vì `grep` không hoạt động được trên output của `systemctl status`
+d) Vì `is-active` là lệnh duy nhất hoạt động đúng khi chạy trong một script không tương tác
+
+**Đáp án: b** — `is-active` trả về đúng một từ chuẩn hoá (active/inactive/failed/...) và exit
+code tương ứng, ổn định để script dựa vào. Parse chuỗi output của `status` (vốn là output cho
+người đọc, có thể đổi định dạng giữa các phiên bản systemd, chứa nhiều ngôn ngữ khác nhau tuỳ
+locale) dễ gãy và không đáng tin cho logic tự động.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

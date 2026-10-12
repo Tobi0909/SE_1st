@@ -199,44 +199,85 @@ và không tiến thêm dù đã chờ thêm vài phút. Quy trình chẩn đoá
 
 ## 7. Tự kiểm tra
 
-1. Máy của bạn boot bằng UEFI, bạn vừa thay ổ cứng chứa root filesystem bằng một ổ mới và
-   restore dữ liệu từ backup, nhưng không update lại GRUB. Khả năng cao nhất xảy ra ở lần boot
-   kế tiếp là gì, và tại sao?
-   <details><summary>Đáp án</summary>Khả năng cao là kernel panic "Unable to mount root fs" hoặc
-   GRUB không tìm thấy kernel, vì entry UEFI trong NVRAM và/hoặc UUID root ghi trong
-   `grub.cfg`/kernel command line vẫn trỏ tới ổ cũ (hoặc UUID cũ nếu ổ mới được format lại với
-   UUID khác) — thiết bị vật lý thay đổi nhưng cấu hình bootloader không tự cập nhật theo.
-   </details>
+**Câu 1**: Máy của bạn boot bằng UEFI, bạn vừa thay ổ cứng chứa root filesystem bằng một ổ mới
+và restore dữ liệu từ backup, nhưng không update lại GRUB. Khả năng cao nhất xảy ra ở lần boot
+kế tiếp là gì?
 
-2. Vì sao kernel cần một initramfs trung gian thay vì mount trực tiếp root filesystem thật
-   ngay khi GRUB nạp xong kernel?
-   <details><summary>Đáp án</summary>Vì lúc đó kernel chưa load driver/module nào cho thiết bị
-   storage cụ thể (NVMe, RAID, LVM, mã hoá...) — initramfs là filesystem tạm trong RAM chứa sẵn
-   đúng driver/script cần thiết để kernel "nhìn thấy" và mount được root thật, trước khi
-   switch-root sang đó.</details>
+a) Máy boot bình thường vì UEFI tự dò ổ mới và tự cập nhật lại cấu hình boot
+b) Kernel panic "Unable to mount root fs" hoặc GRUB không tìm thấy kernel, vì UUID/NVRAM vẫn
+   trỏ ổ cũ
+c) Máy tự boot vào initramfs và chờ người dùng nhập UUID mới qua bàn phím
+d) Dữ liệu restore bị mất vì ổ mới chưa được định dạng đúng filesystem
 
-3. Bạn thấy log boot của server A và server B (cùng hardware, cùng OS) in ra các dòng unit
-   khởi động theo thứ tự khác nhau giữa hai lần reboot của CÙNG MỘT server A. Đây có phải dấu
-   hiệu lỗi cấu hình không?
-   <details><summary>Đáp án</summary>Không nhất thiết. systemd khởi động unit song song tối đa,
-   chỉ đảm bảo thứ tự ràng buộc bởi `After=`/`Before=`, không đảm bảo thứ tự tuyệt đối giữa các
-   unit không phụ thuộc trực tiếp — thứ tự log khác nhau giữa các lần boot vẫn hoàn toàn bình
-   thường.</details>
+**Đáp án: b** — Khả năng cao là kernel panic "Unable to mount root fs" hoặc GRUB không tìm
+thấy kernel, vì entry UEFI trong NVRAM và/hoặc UUID root ghi trong `grub.cfg`/kernel command
+line vẫn trỏ tới ổ cũ (hoặc UUID cũ nếu ổ mới được format lại với UUID khác) — thiết bị vật lý
+thay đổi nhưng cấu hình bootloader không tự cập nhật theo.
 
-4. Lệnh nào cho biết chính xác những unit nào chiếm nhiều thời gian nhất trong lần boot gần
-   nhất, và dùng khi nào thì hợp lý hơn so với đọc `journalctl -b` theo thứ tự thời gian?
-   <details><summary>Đáp án</summary><code>systemd-analyze blame</code> (và
-   <code>systemd-analyze critical-chain</code> để thấy chuỗi phụ thuộc găng). Hợp lý hơn khi
-   mục tiêu là tìm unit LÀM CHẬM boot (cần xếp hạng theo thời gian), còn đọc
-   <code>journalctl -b</code> theo thời gian phù hợp hơn khi cần tái hiện đúng trình tự sự kiện
-   để tìm lỗi logic (unit nào fail trước, unit nào phụ thuộc bị ảnh hưởng theo).</details>
+---
 
-5. Một dòng NFS mount trong `/etc/fstab` không có tuỳ chọn `nofail`. Server backup đích đang
-   offline. Điều gì xảy ra với quá trình boot, và cách phòng tránh cho lần sau?
-   <details><summary>Đáp án</summary>Boot bị chặn (hoặc kéo dài rồi rơi vào emergency shell) vì
-   systemd coi mount đó là điều kiện cần cho `local-fs.target`. Phòng tránh: luôn thêm
-   <code>nofail</code> (và cân nhắc <code>x-systemd.device-timeout=</code>) cho mọi mount tới
-   hệ thống ở xa, trừ khi có lý do rõ ràng muốn chặn boot khi thiếu nó.</details>
+**Câu 2**: Vì sao kernel cần một initramfs trung gian thay vì mount trực tiếp root filesystem
+thật ngay khi GRUB nạp xong kernel?
+
+a) Vì kernel chưa có driver/module cho thiết bị storage cụ thể (NVMe/RAID/LVM/mã hoá...) tại
+   thời điểm đó — initramfs chứa sẵn driver cần thiết để mount được root thật
+b) Vì root filesystem luôn được mã hoá và bắt buộc cần initramfs để giải mã trước khi mount
+c) Vì GRUB không có khả năng đọc trực tiếp bất kỳ loại filesystem nào
+d) Vì initramfs là bước bắt buộc để kiểm tra chữ ký số của kernel trước khi chạy
+
+**Đáp án: a** — Vì lúc đó kernel chưa load driver/module nào cho thiết bị storage cụ thể
+(NVMe, RAID, LVM, mã hoá...) — initramfs là filesystem tạm trong RAM chứa sẵn đúng driver/
+script cần thiết để kernel "nhìn thấy" và mount được root thật, trước khi switch-root sang đó.
+
+---
+
+**Câu 3**: Log boot của server A và server B (cùng hardware, cùng OS) in ra các dòng unit khởi
+động theo thứ tự khác nhau giữa hai lần reboot của CÙNG MỘT server A. Đây có phải dấu hiệu lỗi
+cấu hình không?
+
+a) Có, đây luôn là dấu hiệu một unit bị lỗi cấu hình, cần sửa ngay
+b) Không — systemd khởi động unit song song tối đa, chỉ đảm bảo thứ tự ràng buộc bởi
+   After=/Before=, không đảm bảo thứ tự tuyệt đối giữa unit không phụ thuộc trực tiếp
+c) Có, vì systemd luôn khởi động unit theo đúng một thứ tự cố định ở mọi lần boot
+d) Không, nhưng chỉ vì ổ SSD có độ trễ đọc file ngẫu nhiên giữa các lần boot
+
+**Đáp án: b** — Không nhất thiết. systemd khởi động unit song song tối đa, chỉ đảm bảo thứ tự
+ràng buộc bởi `After=`/`Before=`, không đảm bảo thứ tự tuyệt đối giữa các unit không phụ thuộc
+trực tiếp — thứ tự log khác nhau giữa các lần boot vẫn hoàn toàn bình thường.
+
+---
+
+**Câu 4**: Lệnh nào cho biết chính xác những unit nào chiếm nhiều thời gian nhất trong lần boot
+gần nhất, và dùng khi nào thì hợp lý hơn so với đọc `journalctl -b` theo thứ tự thời gian?
+
+a) `journalctl -b --reverse` — vì nó hiển thị log theo thứ tự mới nhất lên trước
+b) `systemctl list-dependencies` — vì nó liệt kê toàn bộ cây phụ thuộc của một unit
+c) `systemd-analyze blame` (và `systemd-analyze critical-chain` để thấy chuỗi phụ thuộc găng) —
+   hợp lý hơn khi cần xếp hạng unit theo thời gian chiếm dụng, còn `journalctl -b` phù hợp hơn
+   khi cần tái hiện đúng trình tự sự kiện để tìm lỗi logic
+d) `dmesg | grep boot` — vì đây là nguồn log boot duy nhất đáng tin cậy
+
+**Đáp án: c** — `systemd-analyze blame` (và `systemd-analyze critical-chain` để thấy chuỗi phụ
+thuộc găng). Hợp lý hơn khi mục tiêu là tìm unit LÀM CHẬM boot (cần xếp hạng theo thời gian),
+còn đọc `journalctl -b` theo thời gian phù hợp hơn khi cần tái hiện đúng trình tự sự kiện để
+tìm lỗi logic (unit nào fail trước, unit nào phụ thuộc bị ảnh hưởng theo).
+
+---
+
+**Câu 5**: Một dòng NFS mount trong `/etc/fstab` không có tuỳ chọn `nofail`. Server backup đích
+đang offline. Điều gì xảy ra với quá trình boot?
+
+a) Boot vẫn tiếp tục bình thường, mount đó chỉ bị bỏ qua và ghi log cảnh báo
+b) Boot bị chặn (hoặc kéo dài rồi rơi vào emergency shell) vì systemd coi mount đó là điều kiện
+   cần cho `local-fs.target`; phòng tránh bằng thêm `nofail`/`x-systemd.device-timeout=`
+c) Hệ thống tự động mount lại bằng NFS version cũ hơn để tương thích
+d) Chỉ riêng service nào dùng trực tiếp thư mục đó bị treo, boot và service khác không bị
+   ảnh hưởng gì
+
+**Đáp án: b** — Boot bị chặn (hoặc kéo dài rồi rơi vào emergency shell) vì systemd coi mount đó
+là điều kiện cần cho `local-fs.target`. Phòng tránh: luôn thêm `nofail` (và cân nhắc
+`x-systemd.device-timeout=`) cho mọi mount tới hệ thống ở xa, trừ khi có lý do rõ ràng muốn
+chặn boot khi thiếu nó.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
