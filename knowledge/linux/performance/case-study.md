@@ -185,40 +185,94 @@ nguyên nhân từ ĐẦU tới CUỐI bằng các công cụ đã học trong c
 
 ## 7. Tự kiểm tra
 
-1. Vì sao `strace -c` phù hợp hơn đọc từng dòng `strace` thông thường khi chỉ cần biết "syscall
-   nào chiếm nhiều thời gian nhất"?
-   <details><summary>Đáp án</summary><code>-c</code> (summary/count mode) tự TỔNG HỢP số lần
-   gọi và thời gian cho MỖI loại syscall thành một bảng xếp hạng, không cần tự đọc và tính
-   từng dòng log chi tiết — nhanh hơn nhiều cho mục đích "tìm syscall nào ngốn thời gian
-   nhất".</details>
+**Câu 1**: Vì sao `strace -c` phù hợp hơn đọc từng dòng `strace` thông thường khi chỉ cần
+biết "syscall nào chiếm nhiều thời gian nhất"?
 
-2. `strace -p <pid>` báo lỗi "Operation not permitted" dù chạy đúng user sở hữu process đó,
-   không dùng sudo. Đây có chắc là lỗi quyền file thông thường không?
-   <details><summary>Đáp án</summary>Không chắc — rất có thể là Yama LSM
-   (<code>ptrace_scope</code>) chặn, một chính sách bảo mật RIÊNG của kernel về việc ptrace
-   process khác, KHÁC với permission file thông thường. Cần kiểm tra
-   <code>/proc/sys/kernel/yama/ptrace_scope</code> để xác nhận.</details>
+a) Vì `strace -c` chạy nhanh hơn do bỏ qua một số syscall ít quan trọng
+b) Vì `strace` thông thường (không `-c`) không hiển thị được thời gian từng syscall, chỉ
+   `-c` mới có
+c) Vì `-c` chỉ hoạt động khi attach vào process đang chạy (`-p`), không hoạt động khi chạy
+   lệnh mới
+d) `-c` (summary/count mode) tự TỔNG HỢP số lần gọi và thời gian cho MỖI loại syscall thành
+   một bảng xếp hạng, không cần tự đọc và tính từng dòng log chi tiết
 
-3. Vì sao `lsof -p <pid>` thường chạy được dù `strace -p` CÙNG pid đó bị chặn bởi
-   `ptrace_scope`?
-   <details><summary>Đáp án</summary><code>lsof</code> chỉ đọc METADATA (danh sách file/
-   socket đang mở) của process, không "nhìn vào" bộ nhớ hay can thiệp syscall như
-   <code>strace</code> (dùng ptrace) — mức độ "nhìn sâu" khác nhau dẫn tới yêu cầu quyền khác
-   nhau, Yama chỉ giới hạn ptrace, không giới hạn đọc metadata thông thường.</details>
+**Đáp án: d** — `-c` (summary/count mode) tự TỔNG HỢP số lần gọi và thời gian cho MỖI loại
+syscall thành một bảng xếp hạng, không cần tự đọc và tính từng dòng log chi tiết — nhanh hơn
+nhiều cho mục đích "tìm syscall nào ngốn thời gian nhất".
 
-4. Vì sao KHÔNG nên `strace -p` trực tiếp một process production cực kỳ nhạy về độ trễ mà
-   không cân nhắc?
-   <details><summary>Đáp án</summary><code>strace -p</code> làm CHẬM đáng kể process đang
-   trace (mỗi syscall phải dừng để kernel thông báo cho tracer) — với hệ thống nhạy thời gian,
-   chi phí này có thể gây ảnh hưởng nghiêm trọng hơn chính vấn đề đang điều tra. Nên ưu tiên
-   test trên bản sao, hoặc dùng công cụ ít tác động hơn.</details>
+---
 
-5. Trong tình huống thực tế mục 6, vì sao team KIỂM TRA CPU/RAM/I/O TRƯỚC khi dùng
-   `strace`/`lsof`, thay vì dùng `strace`/`lsof` ngay từ đầu?
-   <details><summary>Đáp án</summary>Để LOẠI TRỪ các nguyên nhân hạ tầng ĐƠN GIẢN HƠN (CPU/
-   RAM/I/O) trước khi đi vào chẩn đoán CHI TIẾT HƠN (syscall/connection cụ thể) — tránh bỏ sót
-   nguyên nhân dễ phát hiện bằng công cụ tổng quát, và tránh lãng phí thời gian phân tích chi
-   tiết khi vấn đề thực ra nằm ở tầng hạ tầng cơ bản.</details>
+**Câu 2**: `strace -p <pid>` báo lỗi "Operation not permitted" dù chạy đúng user sở hữu
+process đó, không dùng sudo. Đây có chắc là lỗi quyền file thông thường không?
+
+a) Không chắc — rất có thể là Yama LSM (`ptrace_scope`) chặn, một chính sách bảo mật RIÊNG
+   của kernel về việc ptrace process khác, KHÁC với permission file thông thường. Cần kiểm
+   tra `/proc/sys/kernel/yama/ptrace_scope`
+b) Có, đây chắc chắn là lỗi quyền file — user cần được thêm vào group có quyền đọc
+   `/proc/<pid>`
+c) Không chắc, nhưng chắc chắn do thiếu `CAP_SYS_PTRACE` được cấp qua `setcap` cho binary
+   `strace`
+d) Có, `strace -p` luôn yêu cầu sudo bất kể user có sở hữu process hay không — đây đúng là
+   thiếu quyền
+
+**Đáp án: a** — Không chắc — rất có thể là Yama LSM (`ptrace_scope`) chặn, một chính sách
+bảo mật RIÊNG của kernel về việc ptrace process khác, KHÁC với permission file thông thường.
+Cần kiểm tra `/proc/sys/kernel/yama/ptrace_scope` để xác nhận.
+
+---
+
+**Câu 3**: Vì sao `lsof -p <pid>` thường chạy được dù `strace -p` CÙNG pid đó bị chặn bởi
+`ptrace_scope`?
+
+a) Vì `lsof` luôn chạy với quyền root ngầm định, bất kể user gọi là ai
+b) `lsof` chỉ đọc METADATA (danh sách file/socket đang mở) của process, không "nhìn vào" bộ
+   nhớ hay can thiệp syscall như `strace` (dùng ptrace) — Yama chỉ giới hạn ptrace, không
+   giới hạn đọc metadata thông thường
+c) Vì `ptrace_scope` chỉ chặn process có tên bắt đầu bằng chữ "s" như `strace`, không chặn
+   `lsof`
+d) Vì `lsof` và `strace` thực chất dùng chung một syscall `ptrace`, chỉ khác tham số gọi nên
+   hành vi khác nhau ngẫu nhiên
+
+**Đáp án: b** — `lsof` chỉ đọc METADATA (danh sách file/socket đang mở) của process, không
+"nhìn vào" bộ nhớ hay can thiệp syscall như `strace` (dùng ptrace) — mức độ "nhìn sâu" khác
+nhau dẫn tới yêu cầu quyền khác nhau, Yama chỉ giới hạn ptrace, không giới hạn đọc metadata
+thông thường.
+
+---
+
+**Câu 4**: Vì sao KHÔNG nên `strace -p` trực tiếp một process production cực kỳ nhạy về độ
+trễ mà không cân nhắc?
+
+a) Vì `strace -p` có thể vô tình sửa giá trị trả về của syscall, làm sai logic ứng dụng
+b) Vì `strace -p` yêu cầu dừng hẳn process trong vài giây trước khi bắt đầu trace
+c) `strace -p` làm CHẬM đáng kể process đang trace (mỗi syscall phải dừng để kernel thông
+   báo cho tracer) — với hệ thống nhạy thời gian, chi phí này có thể gây ảnh hưởng nghiêm
+   trọng hơn chính vấn đề đang điều tra
+d) Vì `strace -p` chỉ hoạt động đúng khi process đó không xử lý bất kỳ tín hiệu nào
+
+**Đáp án: c** — `strace -p` làm CHẬM đáng kể process đang trace (mỗi syscall phải dừng để
+kernel thông báo cho tracer) — với hệ thống nhạy thời gian, chi phí này có thể gây ảnh hưởng
+nghiêm trọng hơn chính vấn đề đang điều tra. Nên ưu tiên test trên bản sao, hoặc dùng công cụ
+ít tác động hơn.
+
+---
+
+**Câu 5**: Trong tình huống thực tế mục 6, vì sao team KIỂM TRA CPU/RAM/I/O TRƯỚC khi dùng
+`strace`/`lsof`, thay vì dùng `strace`/`lsof` ngay từ đầu?
+
+a) Vì `strace`/`lsof` chỉ hoạt động đúng khi CPU/RAM/I-O đã được xác nhận bình thường trước
+   đó — là điều kiện tiên quyết kỹ thuật
+b) Vì chạy `strace`/`lsof` trước sẽ tự động làm sai lệch số liệu CPU/RAM/I-O đo sau đó
+c) Vì theo quy định công ty, mọi ca incident đều phải qua đúng một trình tự cố định, không
+   linh hoạt
+d) Để LOẠI TRỪ các nguyên nhân hạ tầng ĐƠN GIẢN HƠN (CPU/RAM/I/O) trước khi đi vào chẩn đoán
+   CHI TIẾT HƠN (syscall/connection cụ thể) — tránh bỏ sót nguyên nhân dễ phát hiện bằng công
+   cụ tổng quát
+
+**Đáp án: d** — Để LOẠI TRỪ các nguyên nhân hạ tầng ĐƠN GIẢN HƠN (CPU/RAM/I/O) trước khi đi
+vào chẩn đoán CHI TIẾT HƠN (syscall/connection cụ thể) — tránh bỏ sót nguyên nhân dễ phát
+hiện bằng công cụ tổng quát, và tránh lãng phí thời gian phân tích chi tiết khi vấn đề thực
+ra nằm ở tầng hạ tầng cơ bản.
 
 ## 8. Bài liên quan và nguồn tham khảo
 

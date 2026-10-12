@@ -155,37 +155,85 @@ backup chạy", dù server có nhiều CPU và job backup không dùng 100% CPU 
 
 ## 7. Tự kiểm tra
 
-1. Process A có nice value `-5`, process B có nice value `10`. Khi CÓ tranh chấp CPU, process
-   nào được ưu tiên nhiều CPU hơn?
-   <details><summary>Đáp án</summary>Process A (nice <code>-5</code>) — nice value THẤP hơn
-   (kể cả âm) nghĩa là ưu tiên CAO hơn, "nhường" ít hơn, được cấp nhiều CPU hơn khi có tranh
-   chấp.</details>
+**Câu 1**: Process A có nice value `-5`, process B có nice value `10`. Khi CÓ tranh chấp CPU,
+process nào được ưu tiên nhiều CPU hơn?
 
-2. Bạn `renice` một job xuống nice `19` nhưng máy đang hoàn toàn rảnh (không process khác cần
-   CPU). Job đó có chạy chậm hơn không?
-   <details><summary>Đáp án</summary>Không — nice value chỉ ảnh hưởng khi CÓ TRANH CHẤP CPU
-   với process khác. Máy rảnh, không ai tranh chấp, job chạy với tốc độ bình thường dù nice
-   value cao.</details>
+a) Process A (nice `-5`) — nice value THẤP hơn (kể cả âm) nghĩa là ưu tiên CAO hơn, "nhường"
+   ít hơn, được cấp nhiều CPU hơn khi có tranh chấp
+b) Process B (nice `10`) được ưu tiên hơn, vì nice value cao nghĩa là mức độ quan trọng cao
+   hơn
+c) Cả hai được cấp CPU bằng nhau, vì nice value chỉ ảnh hưởng tới I/O priority, không ảnh
+   hưởng CPU scheduling
+d) Không xác định được — phải xem thêm giá trị priority tuyệt đối trong `/proc`, nice value
+   không đủ để so sánh
 
-3. `vmstat 1` cho thấy `%CPU idle` luôn trên 80%, nhưng cột `cs` (context switch) rất cao và
-   tăng dần. Ứng dụng phản hồi chậm. Hướng điều tra hợp lý nhất là gì?
-   <details><summary>Đáp án</summary>Điều tra NGUYÊN NHÂN tạo quá nhiều process/thread tranh
-   giành CPU liên tục (chi phí context switch cao), KHÔNG phải thêm CPU — vì %CPU idle cao đã
-   xác nhận không thiếu CPU để "làm việc", vấn đề nằm ở chi phí CHUYỂN ĐỔI giữa quá nhiều đơn
-   vị tranh chấp.</details>
+**Đáp án: a** — Process A (nice `-5`) — nice value THẤP hơn (kể cả âm) nghĩa là ưu tiên CAO
+hơn, "nhường" ít hơn, được cấp nhiều CPU hơn khi có tranh chấp.
 
-4. Cột `r` trong `vmstat` đo gì, khác load average (1/5/15 phút) ở điểm nào?
-   <details><summary>Đáp án</summary><code>r</code> là số process runnable (đang chờ hoặc
-   đang chạy CPU) NGAY TẠI THỜI ĐIỂM đo — một snapshot. Load average là giá trị TRUNG BÌNH
-   theo thời gian (1/5/15 phút), phản ánh xu hướng dài hơn, không phải một thời điểm tức
-   thì.</details>
+---
 
-5. Vì sao nên đặt nice value cao hơn mặc định cho MỌI job nền không cần hoàn thành gấp (backup,
-   batch xử lý), không chỉ sửa sau khi có khiếu nại?
-   <details><summary>Đáp án</summary>Vì nice value chỉ phát huy tác dụng khi CÓ tranh chấp CPU
-   — đặt sẵn từ đầu đảm bảo job quan trọng hơn (ứng dụng chính) luôn được ưu tiên đúng mức
-   ngay khi tranh chấp xảy ra, không cần đợi phát hiện vấn đề rồi mới sửa (lúc đó ảnh hưởng đã
-   xảy ra).</details>
+**Câu 2**: Bạn `renice` một job xuống nice `19` nhưng máy đang hoàn toàn rảnh (không process
+khác cần CPU). Job đó có chạy chậm hơn không?
+
+a) Có, nice `19` luôn giới hạn CPU tối đa job được dùng xuống 5%, bất kể máy rảnh hay bận
+b) Không — nice value chỉ ảnh hưởng khi CÓ TRANH CHẤP CPU với process khác. Máy rảnh, không
+   ai tranh chấp, job chạy với tốc độ bình thường dù nice value cao
+c) Có, nhưng chỉ chậm hơn một chút do overhead tính toán lại priority của scheduler
+d) Không xác định được — phụ thuộc vào loại CPU scheduler đang dùng (CFS/EEVDF), không có
+   câu trả lời chung
+
+**Đáp án: b** — Không — nice value chỉ ảnh hưởng khi CÓ TRANH CHẤP CPU với process khác. Máy
+rảnh, không ai tranh chấp, job chạy với tốc độ bình thường dù nice value cao.
+
+---
+
+**Câu 3**: `vmstat 1` cho thấy `%CPU idle` luôn trên 80%, nhưng cột `cs` (context switch) rất
+cao và tăng dần. Ứng dụng phản hồi chậm. Hướng điều tra hợp lý nhất là gì?
+
+a) Thêm CPU/core ngay — `cs` cao luôn là dấu hiệu thiếu năng lực xử lý tổng thể
+b) Kiểm tra RAM trước tiên — context switch cao thường do thiếu RAM gây swap liên tục
+c) Điều tra NGUYÊN NHÂN tạo quá nhiều process/thread tranh giành CPU liên tục (chi phí
+   context switch cao), KHÔNG phải thêm CPU — vì %CPU idle cao đã xác nhận không thiếu CPU
+   để "làm việc"
+d) Không cần điều tra thêm — `cs` cao là chỉ số bình thường, không liên quan tới độ trễ ứng
+   dụng
+
+**Đáp án: c** — Điều tra NGUYÊN NHÂN tạo quá nhiều process/thread tranh giành CPU liên tục
+(chi phí context switch cao), KHÔNG phải thêm CPU — vì %CPU idle cao đã xác nhận không thiếu
+CPU để "làm việc", vấn đề nằm ở chi phí CHUYỂN ĐỔI giữa quá nhiều đơn vị tranh chấp.
+
+---
+
+**Câu 4**: Cột `r` trong `vmstat` đo gì, khác load average (1/5/15 phút) ở điểm nào?
+
+a) `r` đo tổng số process đang tồn tại trên hệ thống (cả chạy và ngủ), giống hệt load average
+b) `r` là giá trị trung bình trong 1 giây gần nhất, giống load average 1 phút nhưng chu kỳ
+   ngắn hơn
+c) `r` đo số CPU core đang hoạt động, load average đo số process — hai khái niệm đo đối
+   tượng khác nhau hoàn toàn
+d) `r` là số process runnable (đang chờ hoặc đang chạy CPU) NGAY TẠI THỜI ĐIỂM đo — một
+   snapshot. Load average là giá trị TRUNG BÌNH theo thời gian (1/5/15 phút)
+
+**Đáp án: d** — `r` là số process runnable (đang chờ hoặc đang chạy CPU) NGAY TẠI THỜI ĐIỂM
+đo — một snapshot. Load average là giá trị TRUNG BÌNH theo thời gian (1/5/15 phút), phản ánh
+xu hướng dài hơn, không phải một thời điểm tức thì.
+
+---
+
+**Câu 5**: Vì sao nên đặt nice value cao hơn mặc định cho MỌI job nền không cần hoàn thành
+gấp (backup, batch xử lý), không chỉ sửa sau khi có khiếu nại?
+
+a) Vì nice value chỉ phát huy tác dụng khi CÓ tranh chấp CPU — đặt sẵn từ đầu đảm bảo job
+   quan trọng hơn luôn được ưu tiên đúng mức ngay khi tranh chấp xảy ra, không cần đợi phát
+   hiện vấn đề rồi mới sửa
+b) Vì `renice` sau khi process đã chạy sẽ không có tác dụng gì, chỉ áp dụng được lúc khởi
+   động
+c) Vì mỗi lần `renice` tốn chi phí I/O ghi log đáng kể, nên đặt sẵn từ đầu tiết kiệm hơn
+d) Vì nice value chỉ có thể đặt một lần trong đời process, không sửa lại được sau đó
+
+**Đáp án: a** — Vì nice value chỉ phát huy tác dụng khi CÓ tranh chấp CPU — đặt sẵn từ đầu
+đảm bảo job quan trọng hơn (ứng dụng chính) luôn được ưu tiên đúng mức ngay khi tranh chấp
+xảy ra, không cần đợi phát hiện vấn đề rồi mới sửa (lúc đó ảnh hưởng đã xảy ra).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -162,36 +162,83 @@ process 4521 (java)", không có thêm chi tiết.
 
 ## 7. Tự kiểm tra
 
-1. `free -h` cho thấy `free=500Mi` nhưng `available=6Gi`. Máy có sắp hết RAM không?
-   <details><summary>Đáp án</summary>Không — <code>available</code> (đã tính cả phần cache có
-   thể giải phóng ngay) mới là chỉ số đúng để đánh giá RAM thực sự còn dùng được.
-   <code>available=6Gi</code> cho thấy máy còn dư RAM đáng kể, dù <code>free</code> (RAM hoàn
-   toàn chưa đụng) thấp.</details>
+**Câu 1**: `free -h` cho thấy `free=500Mi` nhưng `available=6Gi`. Máy có sắp hết RAM không?
 
-2. Một process dùng RẤT NHIỀU RAM nhưng có `oom_score_adj = -1000`. Process này có dễ bị OOM
-   killer chọn giết không?
-   <details><summary>Đáp án</summary>Không — <code>oom_score_adj</code> rất âm làm GIẢM mạnh
-   <code>oom_score</code> hiệu lực, khiến process này được "bảo vệ" khỏi OOM killer dù dùng
-   nhiều RAM. Đây là cách admin bảo vệ process quan trọng (ví dụ database chính) khỏi bị chọn
-   giết trước các process khác.</details>
+a) Có, `free` thấp là chỉ số chính xác nhất để đánh giá RAM còn dùng được, `available` chỉ
+   là ước lượng không đáng tin
+b) Không — `available` (đã tính cả phần cache có thể giải phóng ngay) mới là chỉ số đúng để
+   đánh giá RAM thực sự còn dùng được. `available=6Gi` cho thấy máy còn dư RAM đáng kể
+c) Không, nhưng chỉ vì máy có swap đủ lớn để bù đắp phần RAM thiếu
+d) Có, vì `free` và `available` luôn bằng nhau trên hệ thống hoạt động đúng — sự khác biệt
+   lớn này cho thấy lỗi kernel
 
-3. Swap used tăng từ 0 lên 200MB một lần rồi GIỮ NGUYÊN ổn định trong nhiều ngày sau đó. Đây
-   có phải dấu hiệu cần nâng cấp RAM ngay không?
-   <details><summary>Đáp án</summary>Không nhất thiết — một lần swap ra rồi ổn định có thể là
-   kernel tối ưu hợp lý (đẩy trang nhớ ít dùng ra để dành RAM cho dữ liệu tích cực hơn). Chỉ
-   đáng lo khi swap TĂNG LIÊN TỤC hoặc có hoạt động <code>si</code>/<code>so</code> tích cực
-   (thrashing).</details>
+**Đáp án: b** — Không — `available` (đã tính cả phần cache có thể giải phóng ngay) mới là
+chỉ số đúng để đánh giá RAM thực sự còn dùng được. `available=6Gi` cho thấy máy còn dư RAM
+đáng kể, dù `free` (RAM hoàn toàn chưa đụng) thấp.
 
-4. Một ứng dụng bị OOM killer giết. Hành động "restart ứng dụng" có giải quyết được nguyên
-   nhân gốc không?
-   <details><summary>Đáp án</summary>Không — restart chỉ xử lý TRIỆU CHỨNG (process đã chết).
-   Nếu nguyên nhân là memory leak hoặc tải thật sự vượt khả năng RAM, vấn đề sẽ LẶP LẠI. Cần
-   điều tra xu hướng RAM trước khi OOM xảy ra để tìm đúng nguyên nhân gốc.</details>
+---
 
-5. Vì sao `oom_score` của PID 1 (`systemd`/init) luôn ở mức thấp nhất có thể?
-   <details><summary>Đáp án</summary>Vì PID 1 là tiến trình init — nếu bị giết, toàn bộ hệ
-   thống sẽ sập (kernel panic hoặc không còn tiến trình nào quản lý các process khác). Kernel
-   tự bảo vệ tuyệt đối PID 1 khỏi bị OOM killer chọn, bất kể lượng RAM nó dùng.</details>
+**Câu 2**: Một process dùng RẤT NHIỀU RAM nhưng có `oom_score_adj = -1000`. Process này có
+dễ bị OOM killer chọn giết không?
+
+a) Có, lượng RAM sử dụng luôn là yếu tố duy nhất quyết định — `oom_score_adj` không ảnh
+   hưởng gì
+b) Không, nhưng chỉ vì process này chạy với quyền root nên OOM killer tự động bỏ qua
+c) Không — `oom_score_adj` rất âm làm GIẢM mạnh `oom_score` hiệu lực, khiến process này
+   được "bảo vệ" khỏi OOM killer dù dùng nhiều RAM
+d) Có, `oom_score_adj=-1000` thực ra làm TĂNG `oom_score`, khiến process dễ bị giết hơn
+
+**Đáp án: c** — Không — `oom_score_adj` rất âm làm GIẢM mạnh `oom_score` hiệu lực, khiến
+process này được "bảo vệ" khỏi OOM killer dù dùng nhiều RAM. Đây là cách admin bảo vệ process
+quan trọng (ví dụ database chính) khỏi bị chọn giết trước các process khác.
+
+---
+
+**Câu 3**: Swap used tăng từ 0 lên 200MB một lần rồi GIỮ NGUYÊN ổn định trong nhiều ngày sau
+đó. Đây có phải dấu hiệu cần nâng cấp RAM ngay không?
+
+a) Có, bất kỳ swap used > 0 đều là dấu hiệu RAM không đủ, cần nâng cấp ngay
+b) Không, swap chỉ được dùng khi RAM đã hoàn toàn đầy 100% — 200MB ổn định nghĩa là RAM đã
+   hết sạch
+c) Có, nhưng chỉ cần nâng cấp nếu swap used vượt quá 500MB — dưới mức đó không đáng lo
+d) Không nhất thiết — một lần swap ra rồi ổn định có thể là kernel tối ưu hợp lý. Chỉ đáng
+   lo khi swap TĂNG LIÊN TỤC hoặc có hoạt động `si`/`so` tích cực (thrashing)
+
+**Đáp án: d** — Không nhất thiết — một lần swap ra rồi ổn định có thể là kernel tối ưu hợp
+lý (đẩy trang nhớ ít dùng ra để dành RAM cho dữ liệu tích cực hơn). Chỉ đáng lo khi swap TĂNG
+LIÊN TỤC hoặc có hoạt động `si`/`so` tích cực (thrashing).
+
+---
+
+**Câu 4**: Một ứng dụng bị OOM killer giết. Hành động "restart ứng dụng" có giải quyết được
+nguyên nhân gốc không?
+
+a) Không — restart chỉ xử lý TRIỆU CHỨNG (process đã chết). Nếu nguyên nhân là memory leak
+   hoặc tải thật sự vượt khả năng RAM, vấn đề sẽ LẶP LẠI. Cần điều tra xu hướng RAM trước khi
+   OOM xảy ra để tìm đúng nguyên nhân gốc
+b) Có, restart luôn giải quyết hoàn toàn vì process mới khởi động lại từ bộ nhớ sạch
+c) Có, nhưng chỉ nếu restart kèm theo tăng `oom_score_adj` cho process đó ngay sau khi chạy
+   lại
+d) Không cần quan tâm — OOM killer chỉ giết nhầm hiếm khi xảy ra thật sự do lỗi app
+
+**Đáp án: a** — Không — restart chỉ xử lý TRIỆU CHỨNG (process đã chết). Nếu nguyên nhân là
+memory leak hoặc tải thật sự vượt khả năng RAM, vấn đề sẽ LẶP LẠI. Cần điều tra xu hướng RAM
+trước khi OOM xảy ra để tìm đúng nguyên nhân gốc.
+
+---
+
+**Câu 5**: Vì sao `oom_score` của PID 1 (`systemd`/init) luôn ở mức thấp nhất có thể?
+
+a) Vì PID 1 luôn dùng ít RAM nhất trong mọi hệ thống, nên tự nhiên có `oom_score` thấp
+b) Vì PID 1 là tiến trình init — nếu bị giết, toàn bộ hệ thống sẽ sập. Kernel tự bảo vệ
+   tuyệt đối PID 1 khỏi bị OOM killer chọn, bất kể lượng RAM nó dùng
+c) Vì PID 1 có `oom_score_adj` mặc định là `-500`, giống mọi process hệ thống khác
+d) Vì PID 1 chạy trong namespace riêng biệt, không nằm trong phạm vi tính toán của OOM
+   killer
+
+**Đáp án: b** — Vì PID 1 là tiến trình init — nếu bị giết, toàn bộ hệ thống sẽ sập (kernel
+panic hoặc không còn tiến trình nào quản lý các process khác). Kernel tự bảo vệ tuyệt đối
+PID 1 khỏi bị OOM killer chọn, bất kể lượng RAM nó dùng.
 
 ## 8. Bài liên quan và nguồn tham khảo
 
