@@ -37,6 +37,12 @@ import type { z } from "zod";
 
 const MAX_ATTEMPTS = 3; // 1 lần gọi gốc + tối đa 2 lần retry
 
+// `fetch` không có timeout mặc định — nếu LLM gateway nhận connection nhưng không bao giờ trả
+// response (từng xảy ra thật với free gateway bên thứ 3 khi batch lớn), request treo vô thời
+// hạn, không rơi vào catch/finally nên không log được gì. AbortSignal.timeout() ép fail rõ
+// ràng sau ngưỡng này thay vì treo mãi.
+const LLM_FETCH_TIMEOUT_MS = 60_000;
+
 interface ChatCompletionResponse {
   choices: { message: { content: string } }[];
   usage?: { prompt_tokens: number; completion_tokens: number };
@@ -94,6 +100,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
               { role: "user", content: correctionPrompt },
             ],
           }),
+          signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
         });
 
         if (!res.ok) {
@@ -267,6 +274,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
             { role: "user", content: params.message },
           ],
         }),
+        // Timeout tính từ lúc gửi request tới khi STREAM KẾT THÚC (không reset mỗi chunk) —
+        // đủ cho hội thoại dài bình thường, vẫn chặn được trường hợp gateway treo hẳn giữa
+        // chừng. Nếu cần hội thoại rất dài trong tương lai, cân nhắc tăng riêng constant này.
+        signal: AbortSignal.timeout(LLM_FETCH_TIMEOUT_MS),
       });
 
       if (!res.ok || !res.body) {
