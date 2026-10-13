@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/shell/app-shell";
 import { auth } from "@/lib/auth";
+import { isAdminRole } from "@/lib/rbac";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth();
@@ -10,7 +11,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   if (!user) return children;
 
   return (
-    <AppShell name={user.name ?? "User"} email={user.email ?? ""} isAdmin={user.role === "ADMIN"}>
+    <AppShell name={user.name ?? "User"} email={user.email ?? ""} isAdmin={isAdminRole(user.role)}>
       {children}
     </AppShell>
   );

@@ -35,10 +35,10 @@ async function main() {
       email: adminEmail,
       passwordHash,
       name: adminName,
-      role: "ADMIN",
+      role: "OWNER",
     },
   });
-  console.log(`✓ Admin user: ${adminEmail}`);
+  console.log(`✓ Owner user: ${adminEmail}`);
 
   for (const topic of SAMPLE_TOPICS) {
     await db.topic.upsert({

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { KeyRound, LogOut, ShieldCheck } from "lucide-react";
 
 import { logoutAction } from "@/app/(app)/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -37,16 +37,20 @@ export function UserMenu({ name, email, isAdmin }: UserMenuProps) {
             <span className="text-xs font-normal text-muted-foreground">{email}</span>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <KeyRound className="mr-2 size-4" />
+            Đổi mật khẩu
+          </Link>
+        </DropdownMenuItem>
         {isAdmin ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/admin">
-                <ShieldCheck className="mr-2 size-4" />
-                Trang quản trị
-              </Link>
-            </DropdownMenuItem>
-          </>
+          <DropdownMenuItem asChild>
+            <Link href="/admin">
+              <ShieldCheck className="mr-2 size-4" />
+              Trang quản trị
+            </Link>
+          </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

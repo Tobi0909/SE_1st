@@ -5,7 +5,7 @@ import { BookOpen } from "lucide-react";
 import { SkillNodeTree } from "@/components/roadmap/skill-node-tree";
 import { db } from "@/lib/db";
 import { getArticles } from "@/lib/knowledge/queries";
-import { requireUser } from "@/lib/rbac";
+import { isAdminRole, requireUser } from "@/lib/rbac";
 import { computeTopicRoadmap, ensureSkillTree } from "@/lib/roadmap/progress";
 
 // Maps topic slug to knowledge domain for "related articles" section
@@ -32,7 +32,7 @@ export default async function RoadmapTopicPage({ params }: PageProps<"/roadmap/[
   const [roadmap, articleResult] = await Promise.all([
     ensureSkillTree(topic.id, user.id).then(() => computeTopicRoadmap(user.id, topic.id)),
     domain
-      ? getArticles({ domain, isAdmin: user.role === "ADMIN", pageSize: 50 })
+      ? getArticles({ domain, isAdmin: isAdminRole(user.role), pageSize: 50 })
       : Promise.resolve({ items: [], total: 0 }),
   ]);
 

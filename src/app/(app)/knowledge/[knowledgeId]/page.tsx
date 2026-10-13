@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, BookOpen, CheckCircle, Clock, ExternalLink } from "lucide-react";
 
 import { verifyArticleAction } from "@/app/(app)/knowledge/actions";
-import { requireUser } from "@/lib/rbac";
+import { isAdminRole, requireUser } from "@/lib/rbac";
 import { getArticle } from "@/lib/knowledge/queries";
 import { ArticleBody } from "@/components/knowledge/article-body";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default async function ArticlePage({
   params: Promise<{ knowledgeId: string }>;
 }) {
   const user = await requireUser();
-  const isAdmin = user.role === "ADMIN";
+  const isAdmin = isAdminRole(user.role);
   const { knowledgeId: encoded } = await params;
   const knowledgeId = decodeURIComponent(encoded);
 

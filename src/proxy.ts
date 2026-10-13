@@ -15,7 +15,8 @@ export const proxy = auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoggedIn && pathname.startsWith("/admin") && req.auth?.user.role !== "ADMIN") {
+  const role = req.auth?.user.role;
+  if (isLoggedIn && pathname.startsWith("/admin") && role !== "ADMIN" && role !== "OWNER") {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   }
 

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-import { requireUser } from "@/lib/rbac";
+import { isAdminRole, requireUser } from "@/lib/rbac";
 import {
   getArticles,
   getArticleDomains,
@@ -20,7 +20,7 @@ export default async function KnowledgePage({
   searchParams: Promise<Record<string, string>>;
 }) {
   const user = await requireUser();
-  const isAdmin = user.role === "ADMIN";
+  const isAdmin = isAdminRole(user.role);
   const sp = await searchParams;
 
   const query   = sp.q?.trim() ?? "";
