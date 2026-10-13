@@ -195,37 +195,99 @@ Một ứng dụng e-commerce phát hiện cơ chế chống fraud (dựa trên 
 
 ## 7. Tự kiểm tra
 
-1. Một backend đứng sau reverse proxy ghi log mọi request đều từ IP `10.0.0.5` (IP của chính
-   proxy). Đây có phải bug của backend không?
-   <details><summary>Đáp án</summary>Không hẳn là bug, mà là THIẾU xử lý đúng — backend đang
-   đọc IP ở tầng TCP (luôn là IP của proxy, vì proxy tạo kết nối mới), cần sửa để đọc từ header
-   <code>X-Forwarded-For</code> mới thấy đúng IP client gốc.</details>
+**Câu 1**: Một backend đứng sau reverse proxy ghi log mọi request đều từ IP `10.0.0.5` (IP
+của chính proxy). Đây có phải bug của backend không?
 
-2. Vì sao không nên để backend tin tưởng TUYỆT ĐỐI vào header `X-Forwarded-For` nếu backend có
-   thể nhận kết nối trực tiếp từ Internet (không chỉ qua proxy)?
-   <details><summary>Đáp án</summary>Vì client ác ý có thể TỰ thêm header
-   <code>X-Forwarded-For</code> với giá trị giả mạo bất kỳ trong request của họ — nếu backend
-   mở trực tiếp ra Internet và tin mù quáng header này, kẻ tấn công có thể giả danh bất kỳ IP
-   nào. Cần giới hạn backend chỉ nhận traffic từ đúng IP proxy tin cậy.</details>
+a) Không hẳn là bug, mà là THIẾU xử lý đúng — backend đang đọc IP ở tầng TCP (luôn là IP của
+   proxy, vì proxy tạo kết nối mới), cần sửa để đọc từ header X-Forwarded-For mới thấy đúng IP
+   client gốc
+b) Có, đây chắc chắn là bug nghiêm trọng của backend cần sửa ngay bằng cách đổi hẳn sang UDP để
+   nhận đúng IP
+c) Không, đây là hành vi đúng vì mọi request qua proxy luôn PHẢI hiện IP proxy, không có cách
+   nào thấy IP client thật
+d) Có, lỗi do backend chưa cập nhật phiên bản mới nhất của thư viện HTTP server
 
-3. Trong demo Python ở mục 4, `User-Agent` mà backend nhận được là `Python-urllib/3.10`, không
-   phải `curl/7.81.0` của client gốc. Giải thích vì sao.
-   <details><summary>Đáp án</summary>Vì proxy không "chuyển tiếp" request gốc nguyên văn — nó
-   TẠO MỘT REQUEST MỚI HOÀN TOÀN tới backend bằng thư viện của chính nó
-   (<code>urllib</code>), nên các header mặc định (như User-Agent) phản ánh thư viện/công cụ
-   proxy dùng để gọi, không phải client gốc.</details>
+**Đáp án: a** — Không hẳn là bug, mà là THIẾU xử lý đúng — backend đang đọc IP ở tầng TCP (luôn
+là IP của proxy), cần sửa để đọc từ header X-Forwarded-For. Đổi sang UDP không liên quan và
+không giải quyết được vấn đề (HTTP không chạy trên UDP theo cách đó — loại b); hoàn toàn CÓ
+cách thấy IP client thật, qua header X-Forwarded-For (loại c); đây không phải vấn đề phiên bản
+thư viện, mà là THIẾU đọc đúng header (loại d).
 
-4. Phân biệt Reverse Proxy và Forward Proxy dựa trên "ai đang được che giấu khỏi ai".
-   <details><summary>Đáp án</summary>Reverse proxy che giấu BACKEND khỏi client (client chỉ
-   thấy một địa chỉ, không biết backend thật). Forward proxy che giấu CLIENT khỏi server đích
-   (server đích chỉ thấy IP của forward proxy, không biết client thật).</details>
+---
 
-5. Vì sao cấu hình `proxy_set_header X-Forwarded-For $remote_addr` trong Nginx dùng
-   `$remote_addr` (IP client kết nối TỚI Nginx) mà không phải một biến khác?
-   <details><summary>Đáp án</summary>Vì đây đúng là bước proxy "ghi lại" IP client THẬT (thấy
-   được ở tầng TCP của chính Nginx, trước khi Nginx tạo kết nối mới tới backend) vào header,
-   để backend (vốn sẽ chỉ thấy IP của Nginx ở tầng TCP của NÓ) có thể biết được IP client gốc
-   qua header này.</details>
+**Câu 2**: Vì sao không nên để backend tin tưởng TUYỆT ĐỐI vào header `X-Forwarded-For` nếu
+backend có thể nhận kết nối trực tiếp từ Internet (không chỉ qua proxy)?
+
+a) Vì header X-Forwarded-For chỉ hỗ trợ IPv4, không phản ánh đúng IP khi client dùng IPv6
+b) Vì client ác ý có thể TỰ thêm header X-Forwarded-For với giá trị giả mạo bất kỳ trong
+   request của họ — nếu backend mở trực tiếp ra Internet và tin mù quáng header này, kẻ tấn
+   công có thể giả danh bất kỳ IP nào. Cần giới hạn backend chỉ nhận traffic từ đúng IP proxy
+   tin cậy
+c) Vì X-Forwarded-For bị giới hạn độ dài 15 ký tự, dễ bị cắt cụt gây sai lệch
+d) Vì chỉ có proxy hợp pháp mới có quyền ghi header này, client thường không thể tự thêm được
+
+**Đáp án: b** — Vì client ác ý có thể TỰ thêm header X-Forwarded-For với giá trị giả mạo bất kỳ
+— nếu backend mở trực tiếp ra Internet và tin mù quáng header này, kẻ tấn công có thể giả danh
+bất kỳ IP nào. X-Forwarded-For hỗ trợ cả IPv4 và IPv6, không giới hạn IPv4 (loại a); không có
+giới hạn độ dài cứng 15 ký tự cho header này (loại c); ngược lại, bất kỳ client nào (bao gồm
+client ác ý) đều có thể tự thêm header này trong request của họ — đây chính là lý do rủi ro
+(loại d).
+
+---
+
+**Câu 3**: Trong demo Python ở mục 4, `User-Agent` mà backend nhận được là
+`Python-urllib/3.10`, không phải `curl/7.81.0` của client gốc. Giải thích vì sao.
+
+a) Vì backend tự động thay đổi User-Agent thành giá trị mặc định của ngôn ngữ nó đang chạy
+b) Vì curl gửi sai header User-Agent do lỗi phiên bản cũ, backend nhận được giá trị rác
+c) Vì proxy không "chuyển tiếp" request gốc nguyên văn — nó TẠO MỘT REQUEST MỚI HOÀN TOÀN tới
+   backend bằng thư viện của chính nó (urllib), nên các header mặc định (như User-Agent) phản
+   ánh thư viện/công cụ proxy dùng để gọi, không phải client gốc
+d) Vì proxy cố tình ẩn danh User-Agent gốc để bảo vệ quyền riêng tư của client
+
+**Đáp án: c** — Vì proxy không "chuyển tiếp" request gốc nguyên văn — nó TẠO MỘT REQUEST MỚI
+HOÀN TOÀN tới backend bằng thư viện của chính nó (urllib), nên header mặc định phản ánh công cụ
+proxy dùng để gọi, không phải client gốc. Backend không tự đổi User-Agent — giá trị nhận được
+đã là của request MỚI do proxy tạo (loại a); curl không có lỗi gì ở đây, vấn đề là proxy tạo
+request riêng (loại b); đây không phải chủ đích ẩn danh, mà là hệ quả của cách proxy triển khai
+trong demo (dùng urllib để gọi lại) (loại d).
+
+---
+
+**Câu 4**: Phân biệt Reverse Proxy và Forward Proxy dựa trên "ai đang được che giấu khỏi ai".
+
+a) Reverse proxy che giấu client khỏi backend; forward proxy che giấu backend khỏi client
+b) Cả hai đều che giấu CẢ client và server khỏi nhau, chỉ khác vị trí đặt trong mạng
+c) Reverse proxy không che giấu ai cả, chỉ forward proxy mới có chức năng ẩn danh
+d) Reverse proxy che giấu BACKEND khỏi client (client chỉ thấy một địa chỉ, không biết backend
+   thật). Forward proxy che giấu CLIENT khỏi server đích (server đích chỉ thấy IP của forward
+   proxy, không biết client thật)
+
+**Đáp án: d** — Reverse proxy che giấu BACKEND khỏi client. Forward proxy che giấu CLIENT khỏi
+server đích. Vai trò bị đảo ngược hoàn toàn (loại a); mỗi loại chỉ che giấu MỘT phía, không che
+giấu cả hai (loại b); reverse proxy thực sự có chức năng che giấu backend, không phải "không
+che giấu ai" (loại c).
+
+---
+
+**Câu 5**: Vì sao cấu hình `proxy_set_header X-Forwarded-For $remote_addr` trong Nginx dùng
+`$remote_addr` (IP client kết nối TỚI Nginx) mà không phải một biến khác?
+
+a) Vì đây đúng là bước proxy "ghi lại" IP client THẬT (thấy được ở tầng TCP của chính Nginx,
+   trước khi Nginx tạo kết nối mới tới backend) vào header, để backend (vốn sẽ chỉ thấy IP của
+   Nginx ở tầng TCP của NÓ) có thể biết được IP client gốc qua header này
+b) Vì $remote_addr là biến duy nhất Nginx hỗ trợ cho mọi loại header, không có lựa chọn khác
+c) Vì $remote_addr lấy IP của backend để xác nhận kết nối ngược đã thành công
+d) Vì dùng biến nào cũng cho cùng kết quả, $remote_addr chỉ là lựa chọn mặc định không có ý
+   nghĩa đặc biệt
+
+**Đáp án: a** — Vì đây đúng là bước proxy "ghi lại" IP client THẬT (thấy được ở tầng TCP của
+chính Nginx, trước khi Nginx tạo kết nối mới tới backend) vào header, để backend có thể biết
+được IP client gốc qua header này. Nginx có nhiều biến khác nhau (`$http_x_forwarded_for`,
+`$proxy_add_x_forwarded_for`...), `$remote_addr` không phải biến duy nhất (loại b);
+`$remote_addr` là IP của CLIENT kết nối tới Nginx, không phải IP backend (loại c); việc chọn
+đúng biến có ý nghĩa quan trọng — dùng sai biến (ví dụ biến đã chứa chuỗi X-Forwarded-For cũ)
+sẽ cho kết quả khác (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

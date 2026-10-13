@@ -178,40 +178,105 @@ không tăng.
 
 ## 7. Tự kiểm tra
 
-1. Hệ thống có endpoint A (xử lý 50ms) và endpoint B (xử lý 5 giây, ít gọi hơn nhiều). Thuật
-   toán nào PHÙ HỢP HƠN round-robin cho tình huống này, và vì sao?
-   <details><summary>Đáp án</summary><code>least_conn</code> — vì nó chọn backend theo SỐ KẾT
-   NỐI ĐANG XỬ LÝ thực tế, tự tránh dồn request mới vào backend đang "mắc" request B (xử lý
-   lâu), khác với round-robin chỉ xoay vòng theo thứ tự mà không quan tâm backend nào đang bận
-   hơn.</details>
+**Câu 1**: Hệ thống có endpoint A (xử lý 50ms) và endpoint B (xử lý 5 giây, ít gọi hơn nhiều).
+Thuật toán nào PHÙ HỢP HƠN round-robin cho tình huống này, và vì sao?
 
-2. Một công ty có 200 nhân viên cùng ra Internet qua MỘT IP public (NAT). Dùng `ip_hash` cho
-   load balancer của một dịch vụ công ty này dùng, điều gì có khả năng xảy ra?
-   <details><summary>Đáp án</summary>TẤT CẢ request từ 200 nhân viên sẽ hash vào CÙNG một
-   backend (vì cùng IP nguồn), dồn hết tải vào một server dù có nhiều backend khác đang rảnh —
-   "cân bằng tải" theo tên nhưng thực tế không cân bằng trong tình huống NAT chung IP.</details>
+a) round-robin vẫn là lựa chọn tốt nhất vì đơn giản và luôn chia đều tải bất kể thời gian xử lý
+b) least_conn — vì nó chọn backend theo SỐ KẾT NỐI ĐANG XỬ LÝ thực tế, tự tránh dồn request mới
+   vào backend đang "mắc" request B (xử lý lâu), khác với round-robin chỉ xoay vòng theo thứ tự
+   mà không quan tâm backend nào đang bận hơn
+c) ip_hash phù hợp hơn vì đảm bảo cùng client luôn vào cùng backend đang xử lý nhanh
+d) weighted round-robin với weight cố định theo endpoint, không cần quan tâm số kết nối hiện tại
 
-3. Vì sao health check chỉ kiểm tra "port có mở không" (TCP connect) có thể KHÔNG đủ để phát
-   hiện một backend đã hỏng?
-   <details><summary>Đáp án</summary>Process/port có thể vẫn đang chạy (TCP connect vẫn thành
-   công) nhưng LOGIC XỬ LÝ bên trong ứng dụng đã treo/deadlock — health check "nông" chỉ xác
-   nhận tầng TCP, không phản ánh đúng khả năng ứng dụng THỰC SỰ xử lý request. Cần health check
-   gọi đúng endpoint ứng dụng tự kiểm tra và trả lời.</details>
+**Đáp án: b** — `least_conn` — vì nó chọn backend theo SỐ KẾT NỐI ĐANG XỬ LÝ thực tế, tự tránh
+dồn request mới vào backend đang "mắc" request B. Round-robin chia đều theo THỨ TỰ, không quan
+tâm backend nào đang bận hơn — đây chính là nhược điểm cần tránh (loại a); `ip_hash` không liên
+quan tới việc backend nào đang nhanh/chậm, nó chỉ cố định client vào 1 backend theo IP (loại
+c); weight cố định không tự điều chỉnh theo tải thực tế đang biến động như `least_conn` làm
+được (loại d).
 
-4. Trong cấu hình Nginx `server 10.0.0.1:8080 weight=3;` và `server 10.0.0.2:8080 weight=1;`,
-   tỷ lệ traffic mỗi server nhận là bao nhiêu?
-   <details><summary>Đáp án</summary>Server đầu (<code>weight=3</code>) nhận khoảng 3/4 (75%)
-   traffic, server sau (<code>weight=1</code>) nhận khoảng 1/4 (25%) — tỷ lệ theo đúng trọng số
-   tương đối giữa các server.</details>
+---
 
-5. Một ứng dụng lưu session trong RAM cục bộ của từng backend (không dùng session store
-   chung). Đổi từ round-robin sang `ip_hash` có giải quyết được vấn đề "user bị đăng xuất liên
-   tục" không? Đây có phải giải pháp TỐT NHẤT không?
-   <details><summary>Đáp án</summary>Có giải quyết được (vì cùng client luôn rơi vào cùng
-   backend, nơi session của họ được lưu) — NHƯNG không phải giải pháp tốt nhất về dài hạn, vì
-   vẫn giữ nhược điểm của <code>ip_hash</code> (lệch tải khi nhiều client dùng chung IP qua
-   NAT). Giải pháp tốt hơn là chuyển session sang store CHUNG (Redis/Memcached), để mọi thuật
-   toán load balancing đều hoạt động đúng mà không cần "dính" theo IP.</details>
+**Câu 2**: Một công ty có 200 nhân viên cùng ra Internet qua MỘT IP public (NAT). Dùng
+`ip_hash` cho load balancer của một dịch vụ công ty này dùng, điều gì có khả năng xảy ra?
+
+a) Traffic sẽ được chia đều ngẫu nhiên giữa các backend vì ip_hash tính theo port nguồn, không
+   theo IP
+b) ip_hash sẽ tự phát hiện NAT và chuyển sang round-robin để tránh dồn tải
+c) TẤT CẢ request từ 200 nhân viên sẽ hash vào CÙNG một backend (vì cùng IP nguồn), dồn hết tải
+   vào một server dù có nhiều backend khác đang rảnh — "cân bằng tải" theo tên nhưng thực tế
+   không cân bằng trong tình huống NAT chung IP
+d) Mỗi nhân viên sẽ được cấp một backend riêng vì ip_hash phân biệt theo session cookie, không
+   theo IP
+
+**Đáp án: c** — TẤT CẢ request từ 200 nhân viên sẽ hash vào CÙNG một backend (vì cùng IP
+nguồn), dồn hết tải vào một server dù có nhiều backend khác đang rảnh. `ip_hash` tính theo IP
+NGUỒN, không theo port (loại a); `ip_hash` không tự phát hiện NAT hay tự đổi thuật toán — nó
+luôn hash cố định theo IP (loại b); `ip_hash` theo đúng tên của nó là phân biệt theo IP, không
+theo session cookie (loại d).
+
+---
+
+**Câu 3**: Vì sao health check chỉ kiểm tra "port có mở không" (TCP connect) có thể KHÔNG đủ
+để phát hiện một backend đã hỏng?
+
+a) Vì TCP connect luôn thất bại ngẫu nhiên do lỗi mạng, không phản ánh đúng trạng thái backend
+b) Vì port có thể bị đổi bất kỳ lúc nào mà health check không theo dõi được
+c) Vì TCP connect chỉ hoạt động với IPv4, backend chạy IPv6 sẽ luôn báo sai
+d) Process/port có thể vẫn đang chạy (TCP connect vẫn thành công) nhưng LOGIC XỬ LÝ bên trong
+   ứng dụng đã treo/deadlock — health check "nông" chỉ xác nhận tầng TCP, không phản ánh đúng
+   khả năng ứng dụng THỰC SỰ xử lý request. Cần health check gọi đúng endpoint ứng dụng tự kiểm
+   tra và trả lời
+
+**Đáp án: d** — Process/port có thể vẫn đang chạy (TCP connect vẫn thành công) nhưng LOGIC XỬ
+LÝ bên trong ứng dụng đã treo/deadlock — health check "nông" chỉ xác nhận tầng TCP, không phản
+ánh đúng khả năng ứng dụng THỰC SỰ xử lý request. TCP connect không "ngẫu nhiên thất bại" theo
+cách đó — vấn đề là nó THÀNH CÔNG dù ứng dụng đã hỏng (loại a); port đổi là một tình huống khác,
+không phải lý do chính được bài đề cập (loại b); TCP connect hoạt động với cả IPv4 và IPv6, không
+giới hạn (loại c).
+
+---
+
+**Câu 4**: Trong cấu hình Nginx `server 10.0.0.1:8080 weight=3;` và `server 10.0.0.2:8080
+weight=1;`, tỷ lệ traffic mỗi server nhận là bao nhiêu?
+
+a) Server đầu (weight=3) nhận khoảng 3/4 (75%) traffic, server sau (weight=1) nhận khoảng 1/4
+   (25%) — tỷ lệ theo đúng trọng số tương đối giữa các server
+b) Cả hai nhận tỷ lệ bằng nhau 50/50 vì weight chỉ ảnh hưởng thứ tự chọn, không ảnh hưởng tỷ lệ
+c) Server đầu nhận 100% traffic, server sau chỉ nhận request khi server đầu down (weight dùng
+   làm failover priority)
+d) Server đầu nhận 3 request liên tiếp rồi dừng hẳn, server sau nhận toàn bộ phần còn lại
+
+**Đáp án: a** — Server đầu (weight=3) nhận khoảng 3/4 (75%) traffic, server sau (weight=1)
+nhận khoảng 1/4 (25%) — tỷ lệ theo đúng trọng số tương đối giữa các server. weight ảnh hưởng
+trực tiếp tới TỶ LỆ traffic, không chỉ thứ tự (loại b); đây không phải cấu hình failover
+priority — cả hai server cùng nhận traffic liên tục theo tỷ lệ, không phải "chỉ nhận khi server
+đầu down" (loại c); weight không có nghĩa "dừng hẳn sau N request" — tỷ lệ áp dụng liên tục
+qua nhiều request, không phải một lần duy nhất (loại d).
+
+---
+
+**Câu 5**: Một ứng dụng lưu session trong RAM cục bộ của từng backend (không dùng session
+store chung). Đổi từ round-robin sang `ip_hash` có giải quyết được vấn đề "user bị đăng xuất
+liên tục" không? Đây có phải giải pháp TỐT NHẤT không?
+
+a) Có giải quyết được và đây CHÍNH LÀ giải pháp tốt nhất, không cần làm gì thêm
+b) Có giải quyết được (vì cùng client luôn rơi vào cùng backend, nơi session của họ được lưu) —
+   NHƯNG không phải giải pháp tốt nhất về dài hạn, vì vẫn giữ nhược điểm của ip_hash (lệch tải
+   khi nhiều client dùng chung IP qua NAT). Giải pháp tốt hơn là chuyển session sang store
+   CHUNG (Redis/Memcached), để mọi thuật toán load balancing đều hoạt động đúng mà không cần
+   "dính" theo IP
+c) Không giải quyết được gì cả vì ip_hash không liên quan tới việc giữ session ổn định theo
+   client
+d) Có giải quyết được, nhưng chỉ vì ip_hash tự đồng bộ session giữa các backend qua mạng nội bộ
+
+**Đáp án: b** — Có giải quyết được (vì cùng client luôn rơi vào cùng backend) — NHƯNG không
+phải giải pháp tốt nhất về dài hạn, vì vẫn giữ nhược điểm của `ip_hash` (lệch tải qua NAT). Giải
+pháp tốt hơn là chuyển session sang store CHUNG. Đây KHÔNG phải giải pháp tốt nhất — vẫn còn
+nhược điểm lệch tải (loại a); `ip_hash` CÓ giải quyết được vấn đề đăng xuất, vì nó cố định
+client vào đúng backend giữ session của họ (loại c); `ip_hash` không đồng bộ session giữa các
+backend — nó chỉ định tuyến client ổn định tới MỘT backend, session vẫn chỉ nằm cục bộ ở đó
+(loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -66,7 +66,12 @@ phải bỏ qua.
 `kb:build-quiz` → 443 câu MCQ tổng (428 cũ + 15 mới), idempotent, `kb:lint` pass. Không có câu
 nào phải bỏ qua.
 
-**Còn lại trong `networking`**: 3 module (http-lb 3 bài, vpn 1, diagnostic-tools 3 = 7 bài).
+`networking.http-lb` (3 bài, 15 câu — xem commit theo sau trong git log): `http-fundamentals`,
+`reverse-proxy`, `lb-algorithms`. Verify qua PGlite: `kb:import` → 3 bài cập nhật,
+`kb:build-quiz` → 458 câu MCQ tổng (443 cũ + 15 mới), idempotent, `kb:lint` pass. Không có câu
+nào phải bỏ qua.
+
+**Còn lại trong `networking`**: 2 module (vpn 1 bài, diagnostic-tools 3 = 4 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
