@@ -232,31 +232,74 @@ Kết quả tuần 3:
 
 ## 7. Tự kiểm tra
 
-1. Alert "Disk usage > 80%" fire liên tục mỗi ngày nhưng không gây incident. Nên làm gì?
-   <details><summary>Đáp án</summary>Tùy thuộc vào context: (a) Nếu disk tăng đều đặn và sẽ
-   đầy trong vài tuần: đây là warning hợp lệ nhưng không cần wake on-call — hạ xuống Slack
-   notification, đặt deadline cleanup; (b) Nếu disk luôn ở 80-85% và ổn định: threshold quá
-   thấp so với capacity planning — tăng ngưỡng lên 90% hoặc alert trên growth rate thay vì
-   absolute level; (c) Nếu disk tăng đột ngột: đây là symptom đáng alert, nhưng cần tìm root
-   cause (log explosion? backup chưa cleanup?) và fix thay vì liên tục snooze. Mọi trường hợp:
-   không nên silently dismiss — hoặc fix nguyên nhân, hoặc điều chỉnh alert cho phù hợp hơn.</details>
+**Câu 1**: Alert "Disk usage > 80%" fire liên tục mỗi ngày nhưng không gây incident. Nên làm
+gì?
 
-2. Sự khác biệt giữa symptom-based và cause-based alerting là gì? Cho ví dụ cụ thể.
-   <details><summary>Đáp án</summary>Cause-based: alert theo internal metric không trực tiếp
-   phản ánh user experience — "CPU > 80%", "Memory > 70%", "DB connection pool > 80%". Vấn đề:
-   có thể fire khi hệ thống vẫn phục vụ user tốt, tạo noise; cũng có thể KHÔNG fire khi user
-   bị ảnh hưởng (DB slow nhưng connection pool chưa đầy). Symptom-based: alert theo điều user
-   thực sự trải nghiệm — "Error rate > 1%", "P99 latency > 500ms", "Checkout success rate < 99%".
-   Fire khi và chỉ khi user bị ảnh hưởng thật sự. Cause metrics vẫn quan trọng — nhưng để trong
-   dashboard/runbook để diagnose, không phải làm trigger wake on-call.</details>
+a) Luôn tăng ngưỡng lên 95% ngay, không cần xem xét nguyên nhân cụ thể đang gây fire
+b) Snooze/mute alert vĩnh viễn vì nó chưa từng gây incident thật, không cần điều tra thêm
+c) Tùy thuộc vào context: (a) Nếu disk tăng đều đặn và sẽ đầy trong vài tuần: đây là warning
+   hợp lệ nhưng không cần wake on-call — hạ xuống Slack notification, đặt deadline cleanup;
+   (b) Nếu disk luôn ở 80-85% và ổn định: threshold quá thấp so với capacity planning — tăng
+   ngưỡng lên 90% hoặc alert trên growth rate thay vì absolute level; (c) Nếu disk tăng đột
+   ngột: đây là symptom đáng alert, nhưng cần tìm root cause (log explosion? backup chưa
+   cleanup?) và fix thay vì liên tục snooze. Mọi trường hợp: không nên silently dismiss —
+   hoặc fix nguyên nhân, hoặc điều chỉnh alert cho phù hợp hơn
+d) Luôn xoá hẳn alert này khỏi hệ thống vì nó đã được xác nhận là false positive cố định
 
-3. Alert rule không có `for` clause. Điều gì xảy ra khi có spike ngắn (30 giây) vượt ngưỡng?
-   <details><summary>Đáp án</summary>Alert fire ngay khi expression TRUE lần đầu — dù condition
-   chỉ kéo dài 30 giây. Prometheus gửi FIRING đến Alertmanager, Alertmanager gửi notification
-   sau `group_wait` (default 30s). Nếu spike tự hết trong 30s, Alertmanager đã nhận FIRING và
-   sẽ gửi "resolved" ngay sau. On-call nhận 1 "firing" rồi ngay sau 1 "resolved" — mà không
-   có vấn đề thật nào cần xử lý. Thêm `for: 5m` sẽ require condition TRUE liên tục 5 phút
-   trước khi fire, loại bỏ spike ngắn không quan trọng.</details>
+**Đáp án: c** — Tuỳ context: hạ mức độ nếu tăng đều đặn chậm, tăng ngưỡng nếu ổn định ở
+80-85%, tìm root cause nếu tăng đột ngột. Không nên silently dismiss. Tăng ngưỡng NGAY mà
+không xem xét nguyên nhân có thể bỏ sót trường hợp disk tăng đột ngột do lỗi thật (log
+explosion...) (loại a); mute vĩnh viễn không điều tra là chính xác hành vi "silently dismiss"
+cần tránh (loại b); xoá hẳn alert bỏ mất khả năng phát hiện khi disk THẬT SỰ gần đầy trong
+tương lai — cần điều chỉnh chứ không xoá hoàn toàn (loại d).
+
+---
+
+**Câu 2**: Sự khác biệt giữa symptom-based và cause-based alerting là gì? Cho ví dụ cụ thể.
+
+a) Cause-based luôn chính xác hơn symptom-based vì đo trực tiếp nguyên nhân gốc, không bao
+   giờ noise
+b) Symptom-based và cause-based là hai tên gọi khác nhau cho cùng một kỹ thuật alerting
+c) Symptom-based chỉ áp dụng được cho hệ thống không có database, cause-based mới áp dụng
+   được cho DB
+d) Cause-based: alert theo internal metric không trực tiếp phản ánh user experience — "CPU >
+   80%", "Memory > 70%", "DB connection pool > 80%". Vấn đề: có thể fire khi hệ thống vẫn phục
+   vụ user tốt, tạo noise; cũng có thể KHÔNG fire khi user bị ảnh hưởng (DB slow nhưng
+   connection pool chưa đầy). Symptom-based: alert theo điều user thực sự trải nghiệm —
+   "Error rate > 1%", "P99 latency > 500ms", "Checkout success rate < 99%". Fire khi và chỉ
+   khi user bị ảnh hưởng thật sự. Cause metrics vẫn quan trọng — nhưng để trong dashboard/
+   runbook để diagnose, không phải làm trigger wake on-call
+
+**Đáp án: d** — Cause-based dựa trên internal metric, có thể noise hoặc bỏ sót; symptom-based
+dựa trên trải nghiệm user thật, fire khi và chỉ khi user bị ảnh hưởng. Cause-based CÓ THỂ
+noise hoặc bỏ sót user impact thật — không phải "luôn chính xác hơn, không bao giờ noise"
+(loại a); hai kỹ thuật có TRIẾT LÝ khác nhau rõ rệt (nguyên nhân nội bộ vs trải nghiệm user),
+không phải tên gọi của cùng một thứ (loại b); cả hai kỹ thuật áp dụng được cho hệ thống có
+hoặc không có database — sự phân biệt không nằm ở có database hay không (loại c).
+
+---
+
+**Câu 3**: Alert rule không có `for` clause. Điều gì xảy ra khi có spike ngắn (30 giây) vượt
+ngưỡng?
+
+a) Alert fire ngay khi expression TRUE lần đầu — dù condition chỉ kéo dài 30 giây. Prometheus
+   gửi FIRING đến Alertmanager, Alertmanager gửi notification sau group_wait (default 30s).
+   Nếu spike tự hết trong 30s, Alertmanager đã nhận FIRING và sẽ gửi "resolved" ngay sau.
+   On-call nhận 1 "firing" rồi ngay sau 1 "resolved" — mà không có vấn đề thật nào cần xử lý.
+   Thêm for: 5m sẽ require condition TRUE liên tục 5 phút trước khi fire, loại bỏ spike ngắn
+   không quan trọng
+b) Alert sẽ không fire gì cả vì thiếu for clause, Prometheus mặc định yêu cầu for mới cho fire
+c) Alert fire và giữ nguyên trạng thái FIRING mãi mãi dù spike đã hết từ lâu, không bao giờ
+   tự resolved
+d) Alertmanager sẽ tự động thêm for: 5m ngầm định nếu config không khai báo, nên hành vi
+   không đổi
+
+**Đáp án: a** — Không có `for`, alert fire NGAY khi expression TRUE lần đầu, rồi resolved
+ngay khi spike hết — gây false alarm vô ích. Thêm `for: 5m` loại bỏ spike ngắn. Không có `for`
+KHÔNG ngăn alert fire — ngược lại, nó khiến alert fire NGAY LẬP TỨC, không cần chờ gì (loại
+b); alert TỰ RESOLVED khi expression trở về FALSE, không giữ FIRING mãi mãi (loại c); không
+có `for` mặc định tương đương `for: 0`, Alertmanager KHÔNG tự thêm `for: 5m` ngầm định (loại
+d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
