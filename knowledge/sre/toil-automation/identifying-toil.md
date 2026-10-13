@@ -250,25 +250,108 @@ ansible-playbook provision-user.yml -e "username=newdev ssh_public_key='ssh-ed25
 
 ## 7. Tự kiểm tra
 
-**1. Toil là gì? Nêu 3 trong 6 đặc điểm của Google SRE Book.**
+**Câu 1**: Toil là gì? Nêu 3 trong 6 đặc điểm của Google SRE Book.
 
-Toil là công việc vận hành mang tính manual, repetitive và có thể tự động hóa mà không tạo ra giá trị kỹ thuật lâu dài. 3 đặc điểm chính: (1) Manual — phải thao tác tay, (2) Repetitive — lặp lại giống nhau, (3) Automatable — có thể viết script thay thế. Ngoài ra còn: Tactical (không chiến lược), No enduring value (không để lại gì), O(n) with growth (tăng theo scale hệ thống).
+a) Toil là công việc có giá trị chiến lược cao, lặp lại và cần nhiều kỹ năng chuyên sâu để
+   thực hiện
+b) Toil chỉ gồm 2 đặc điểm: Manual và Strategic — SRE Book không nhắc tới Repetitive hay
+   Automatable
+c) Toil là mọi công việc operations nói chung, không phân biệt có thể tự động hóa được hay
+   không
+d) Toil là công việc vận hành mang tính manual, repetitive và có thể tự động hóa mà không
+   tạo ra giá trị kỹ thuật lâu dài. 3 đặc điểm chính: (1) Manual — phải thao tác tay, (2)
+   Repetitive — lặp lại giống nhau, (3) Automatable — có thể viết script thay thế. Ngoài ra
+   còn: Tactical (không chiến lược), No enduring value (không để lại gì), O(n) with growth
+   (tăng theo scale hệ thống)
 
-**2. Google SRE Book đặt giới hạn toil là bao nhiêu % thời gian? Tại sao?**
+**Đáp án: d** — Toil manual, repetitive, automatable, không tạo giá trị kỹ thuật lâu dài; các
+đặc điểm khác: Tactical, No enduring value, O(n) with growth. Toil KHÔNG có giá trị chiến
+lược cao — ngược lại, nó "Tactical" (không chiến lược) theo đúng đặc điểm SRE Book liệt kê
+(loại a); SRE Book liệt kê đủ cả Repetitive và Automatable, không chỉ Manual/Strategic (và
+"Strategic" không phải đặc điểm của toil — toil là KHÔNG chiến lược — loại b); toil được định
+nghĩa RÕ RÀNG là loại việc CÓ THỂ tự động hóa, không phải "mọi công việc operations" chung
+(loại c).
 
-Tối đa 50% thời gian SRE. Nếu vượt ngưỡng này: không còn thời gian engineering để cải thiện hệ thống, toil tăng theo growth tạo vòng xoáy, và team burned out. Phần còn lại ≥50% phải là project work tạo giá trị dài hạn: automation, reliability improvements, tooling.
+---
 
-**3. Tính break-even point của automation: mất 6 giờ viết, tiết kiệm 45 phút mỗi lần, xảy ra 2 lần/tuần.**
+**Câu 2**: Google SRE Book đặt giới hạn toil là bao nhiêu % thời gian? Tại sao?
 
-Break-even = 6h / (45min × 2 / 60h) = 6 / 1.5 = 4 tuần. Sau 4 tuần là lãi ròng 1.5h/tuần. Sau 1 năm tiết kiệm 1.5 × 52 - 6 = 72h (trừ 6h đã đầu tư).
+a) Tối đa 50% thời gian SRE. Nếu vượt ngưỡng này: không còn thời gian engineering để cải
+   thiện hệ thống, toil tăng theo growth tạo vòng xoáy, và team burned out. Phần còn lại ≥50%
+   phải là project work tạo giá trị dài hạn: automation, reliability improvements, tooling
+b) Tối đa 20% thời gian SRE, vì phần còn lại 80% phải dành hoàn toàn cho on-call
+c) Không có giới hạn cụ thể nào được Google SRE Book đưa ra, chỉ là khuyến nghị "giảm toil
+   khi có thể"
+d) Tối đa 90% thời gian SRE, vì phần lớn công việc SRE vốn là vận hành lặp lại theo đúng bản
+   chất công việc
 
-**4. Sự khác biệt giữa toil và overhead là gì?**
+**Đáp án: a** — Tối đa 50% thời gian SRE; vượt ngưỡng gây thiếu thời gian engineering, vòng
+xoáy toil tăng theo growth, burnout. Giới hạn đúng là 50%, không phải 20% — và 80% còn lại
+không dành riêng cho on-call mà cho project work nói chung (loại b); SRE Book đưa ra con số CỤ
+THỂ (50%), không chỉ là khuyến nghị mơ hồ (loại c); 90% đi ngược hoàn toàn triết lý SRE — bản
+chất công việc SRE được THIẾT KẾ để GIẢM toil, không phải chấp nhận nó chiếm đa số thời gian
+(loại d).
 
-Toil là công việc manual, repetitive, có thể tự động hóa — ví dụ restart service, deploy thủ công. Overhead là công việc cần thiết cho tổ chức vận hành nhưng không tự động hóa được hoàn toàn — ví dụ meeting, viết report, interview. Overhead không thể loại bỏ hoàn toàn nhưng có thể giảm qua process tốt hơn; toil có thể loại bỏ hoàn toàn qua automation.
+---
 
-**5. Khi đánh giá toil nào nên tự động hóa trước, dùng tiêu chí gì để ưu tiên?**
+**Câu 3**: Tính break-even point của automation: mất 6 giờ viết, tiết kiệm 45 phút mỗi lần,
+xảy ra 2 lần/tuần.
 
-Dùng ROI: (Impact × Frequency) / Effort_to_automate. Ưu tiên "quick win" — tần suất cao, dễ tự động hóa, break-even nhanh. Ví dụ: log cleanup (1h viết, tiết kiệm 15min × 4 lần/tuần, break-even 1 tuần) ưu tiên hơn user provisioning (6h viết, tiết kiệm 20min × 4 lần/tuần, break-even 7.5 tuần). Bắt đầu quick win để giải phóng thời gian, dùng thời gian tiết kiệm được cho automation phức tạp hơn.
+a) Break-even = 6h / 45min = 8 tuần, vì chỉ tính 1 lần sử dụng mỗi tuần thay vì 2 lần
+b) Break-even = 6h / (45min × 2 / 60h) = 6 / 1.5 = 4 tuần. Sau 4 tuần là lãi ròng 1.5h/tuần.
+   Sau 1 năm tiết kiệm 1.5 × 52 - 6 = 72h (trừ 6h đã đầu tư)
+c) Break-even = 45min × 2 / 6h = 0.25 tuần, vì công thức đúng là lấy thời gian tiết kiệm chia
+   cho thời gian đầu tư
+d) Không bao giờ có break-even vì 45 phút mỗi lần luôn nhỏ hơn 6 giờ đầu tư ban đầu
+
+**Đáp án: b** — 6h / (45min×2/60h) = 6/1.5 = 4 tuần. Lãi ròng 1.5h/tuần sau đó. Cách tính ở
+lựa chọn a quên nhân với 2 lần/tuần, chỉ tính 1 lần nên ra 8 tuần sai (loại a); công thức bị
+đảo tử số/mẫu số trong lựa chọn c, cho ra kết quả vô lý nhỏ hơn 1 tuần (loại c); 45 phút mỗi
+lần CỘNG DỒN qua nhiều lần/tuần và nhiều tuần sẽ vượt 6 giờ đầu tư — break-even hoàn toàn đạt
+được sau 4 tuần, không phải "không bao giờ" (loại d).
+
+---
+
+**Câu 4**: Sự khác biệt giữa toil và overhead là gì?
+
+a) Overhead là công việc có thể tự động hóa hoàn toàn; toil là công việc không thể tự động
+   hóa
+b) Toil và overhead là từ đồng nghĩa, SRE Book dùng thay thế nhau không phân biệt
+c) Toil là công việc manual, repetitive, có thể tự động hóa — ví dụ restart service, deploy
+   thủ công. Overhead là công việc cần thiết cho tổ chức vận hành nhưng không tự động hóa
+   được hoàn toàn — ví dụ meeting, viết report, interview. Overhead không thể loại bỏ hoàn
+   toàn nhưng có thể giảm qua process tốt hơn; toil có thể loại bỏ hoàn toàn qua automation
+d) Overhead chỉ áp dụng cho công việc kỹ thuật (deploy, restart); toil chỉ áp dụng cho công
+   việc hành chính (meeting, report)
+
+**Đáp án: c** — Toil manual/repetitive/automatable (restart, deploy thủ công); overhead cần
+thiết nhưng không tự động hóa hết (meeting, report). Toil loại bỏ được hoàn toàn, overhead chỉ
+giảm được. Vai trò bị đảo ngược hoàn toàn trong lựa chọn a — TOIL mới là thứ có thể tự động
+hóa, overhead mới KHÓ tự động hóa hết (loại a); hai khái niệm có định nghĩa và đặc điểm khác
+biệt rõ rệt, SRE Book phân biệt rõ, không dùng thay thế nhau (loại b); ví dụ cụ thể trong
+lựa chọn d bị đảo ngược — deploy/restart là ví dụ của TOIL, meeting/report là ví dụ của
+OVERHEAD (loại d).
+
+---
+
+**Câu 5**: Khi đánh giá toil nào nên tự động hóa trước, dùng tiêu chí gì để ưu tiên?
+
+a) Luôn tự động hóa công việc có effort cao nhất trước, vì effort cao đồng nghĩa với giá trị
+   cao
+b) Chỉ dựa vào ý kiến cá nhân của SRE lead, không cần tính toán ROI hay break-even cụ thể
+c) Luôn ưu tiên công việc có frequency thấp nhất trước vì ít gây gián đoạn khi triển khai
+   automation
+d) Dùng ROI: (Impact × Frequency) / Effort_to_automate. Ưu tiên "quick win" — tần suất cao,
+   dễ tự động hóa, break-even nhanh. Ví dụ: log cleanup (1h viết, tiết kiệm 15min × 4 lần/
+   tuần, break-even 1 tuần) ưu tiên hơn user provisioning (6h viết, tiết kiệm 20min × 4 lần/
+   tuần, break-even 7.5 tuần). Bắt đầu quick win để giải phóng thời gian, dùng thời gian tiết
+   kiệm được cho automation phức tạp hơn
+
+**Đáp án: d** — ROI = (Impact × Frequency)/Effort; ưu tiên quick win (tần suất cao, dễ tự
+động, break-even nhanh). Effort cao KHÔNG đồng nghĩa giá trị cao — ROI mới là tiêu chí đúng,
+effort nằm ở MẪU SỐ (effort cao làm ROI thấp hơn, không phải ưu tiên) (loại a); quyết định
+cần dựa trên tính toán ROI/break-even cụ thể, không chỉ ý kiến cá nhân chủ quan (loại b);
+frequency CAO mới là yếu tố ưu tiên (tử số của ROI), không phải frequency thấp (loại c).
 
 ## 8. Bài liên quan và nguồn
 
