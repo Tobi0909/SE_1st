@@ -257,30 +257,67 @@ kubectl get svc -n ingress-nginx    # xem LoadBalancer IP/hostname
 
 ## 7. Tự kiểm tra
 
-1. Sự khác biệt quan trọng nhất giữa Helm 2 và Helm 3 là gì?
-   <details><summary>Đáp án</summary>Helm 3 loại bỏ Tiller (server-side component của Helm 2).
-   Tiller phải chạy trong cluster với ClusterRoleBinding `cluster-admin` — đây là security
-   issue nghiêm trọng (mọi người dùng Helm 2 thực ra có quyền cluster-admin thông qua Tiller).
-   Helm 3 là thuần CLI client, dùng trực tiếp kubeconfig + RBAC của user — bảo mật hơn và đơn
-   giản hơn nhiều. Release metadata không còn lưu trong Tiller pod mà lưu dưới dạng K8s Secret
-   trong namespace của release.</details>
+**Câu 1**: Sự khác biệt quan trọng nhất giữa Helm 2 và Helm 3 là gì?
 
-2. Cần cài nginx-ingress vào 2 namespace khác nhau (production và staging). Có thể dùng cùng
-   1 chart không? Làm thế nào?
-   <details><summary>Đáp án</summary>Được — đây chính xác là use case Helm sinh ra để phục vụ.
-   Chạy `helm install` 2 lần với TÊN RELEASE khác nhau và namespace khác nhau, ví dụ:
-   `helm install ingress-prod ingress-nginx/ingress-nginx -n production -f prod-values.yaml`
-   và `helm install ingress-staging ingress-nginx/ingress-nginx -n staging -f staging-values.yaml`.
-   Mỗi lần install tạo 1 release độc lập với revision history riêng — upgrade/rollback release
-   này không ảnh hưởng release kia.</details>
+a) Helm 3 thêm Tiller làm server-side component mạnh hơn Helm 2 để quản lý tập trung
+b) Helm 3 loại bỏ Tiller (server-side component của Helm 2). Tiller phải chạy trong cluster
+   với ClusterRoleBinding cluster-admin — đây là security issue nghiêm trọng (mọi người dùng
+   Helm 2 thực ra có quyền cluster-admin thông qua Tiller). Helm 3 là thuần CLI client, dùng
+   trực tiếp kubeconfig + RBAC của user — bảo mật hơn và đơn giản hơn nhiều. Release metadata
+   không còn lưu trong Tiller pod mà lưu dưới dạng K8s Secret trong namespace của release
+c) Helm 2 và Helm 3 hoàn toàn giống nhau về kiến trúc, chỉ khác số phiên bản
+d) Helm 3 lưu release metadata trong database riêng bên ngoài cluster, không còn trong K8s
+   Secret
 
-3. `helm upgrade --install` khác gì `helm install`? Khi nào nên dùng?
-   <details><summary>Đáp án</summary>`helm upgrade --install` install nếu release chưa tồn tại,
-   upgrade nếu đã tồn tại — không bao giờ lỗi vì "release đã tồn tại" hay "chưa tồn tại". Mỗi
-   lần gọi đều tạo revision mới (không phải truly idempotent — 2 lần gọi với cùng values tạo
-   revision 1 và 2). `helm install` thất bại nếu release đã tồn tại. Dùng `upgrade --install`
-   trong CI/CD pipeline để không cần kiểm tra trước; `helm install` cho lần đầu interactive khi
-   biết chắc chưa có release.</details>
+**Đáp án: b** — Helm 3 loại bỏ Tiller (vấn đề bảo mật cluster-admin), thuần CLI client dùng
+kubeconfig + RBAC của user, release metadata lưu dưới dạng K8s Secret. Vai trò Tiller bị đảo
+ngược — Helm 3 LOẠI BỎ Tiller, không thêm vào (loại a); hai phiên bản có kiến trúc khác biệt
+RÕ RỆT (có/không có server-side component), không chỉ khác số (loại c); metadata lưu trong K8s
+Secret TRONG cluster, không phải database riêng bên ngoài (loại d).
+
+---
+
+**Câu 2**: Cần cài nginx-ingress vào 2 namespace khác nhau (production và staging). Có thể
+dùng cùng 1 chart không? Làm thế nào?
+
+a) Không thể, Helm chỉ cho phép 1 release duy nhất cho mỗi chart trên toàn cluster
+b) Có, nhưng phải sửa trực tiếp file chart gốc thành 2 bản riêng cho từng namespace
+c) Được — đây chính xác là use case Helm sinh ra để phục vụ. Chạy helm install 2 lần với TÊN
+   RELEASE khác nhau và namespace khác nhau, ví dụ: helm install ingress-prod
+   ingress-nginx/ingress-nginx -n production -f prod-values.yaml và helm install
+   ingress-staging ingress-nginx/ingress-nginx -n staging -f staging-values.yaml. Mỗi lần
+   install tạo 1 release độc lập với revision history riêng — upgrade/rollback release này
+   không ảnh hưởng release kia
+d) Không thể, vì chart chỉ bind cố định với đúng 1 namespace được định nghĩa sẵn trong
+   Chart.yaml
+
+**Đáp án: c** — Được — chạy `helm install` 2 lần với tên release và namespace khác nhau, mỗi
+lần tạo 1 release độc lập. Một chart có thể install nhiều lần với tên release khác nhau, không
+giới hạn 1 release duy nhất trên toàn cluster (loại a); không cần sửa file chart gốc — chỉ cần
+đổi tên release/namespace/values khi gọi `helm install` (loại b); chart không bind cố định
+với 1 namespace trong `Chart.yaml` — namespace được chỉ định lúc install qua flag `-n` (loại
+d).
+
+---
+
+**Câu 3**: `helm upgrade --install` khác gì `helm install`? Khi nào nên dùng?
+
+a) helm install cũng tự động upgrade nếu release đã tồn tại, hai lệnh hoàn toàn tương đương
+b) helm upgrade --install chỉ dùng được ở lần đầu tiên, các lần sau phải đổi sang helm upgrade
+   thường
+c) helm upgrade --install sẽ xoá release cũ hoàn toàn rồi tạo lại từ đầu mỗi lần gọi
+d) helm upgrade --install install nếu release chưa tồn tại, upgrade nếu đã tồn tại — không
+   bao giờ lỗi vì "release đã tồn tại" hay "chưa tồn tại". Mỗi lần gọi đều tạo revision mới
+   (không phải truly idempotent — 2 lần gọi với cùng values tạo revision 1 và 2). helm install
+   thất bại nếu release đã tồn tại. Dùng upgrade --install trong CI/CD pipeline để không cần
+   kiểm tra trước; helm install cho lần đầu interactive khi biết chắc chưa có release
+
+**Đáp án: d** — `helm upgrade --install` install nếu chưa tồn tại, upgrade nếu đã tồn tại;
+`helm install` thất bại nếu release đã tồn tại. Dùng `upgrade --install` trong CI/CD. `helm
+install` KHÔNG tự upgrade nếu đã tồn tại — nó báo lỗi, đây chính là lý do cần `upgrade
+--install` cho CI/CD (loại a); `helm upgrade --install` dùng được ở MỌI lần gọi, không chỉ lần
+đầu — đó chính là lợi ích của nó (loại b); nó KHÔNG xoá rồi tạo lại từ đầu — nó upgrade tại
+chỗ, tạo revision mới, giữ history (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

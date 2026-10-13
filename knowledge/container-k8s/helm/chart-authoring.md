@@ -341,34 +341,70 @@ helm push my-api-0.1.0.tgz oci://my-registry.example.com/charts
 
 ## 7. Tự kiểm tra
 
-1. `{{ .Values.env }}` là map, cần render thành env var list trong Deployment. Cú pháp loop
-   đúng trong Helm template là gì?
-   <details><summary>Đáp án</summary>Dùng `range` với key-value destructuring:
-   ```yaml
-   {{- range $key, $value := .Values.env }}
-   - name: {{ $key }}
-     value: {{ $value | quote }}
-   {{- end }}
-   ```
-   `$key`/`$value` là biến có scope trong range block. `quote` bọc value trong `"..."` để xử
-   lý đúng string có ký tự đặc biệt. Lưu ý `-` trước `{{` để trim whitespace trước block.</details>
+**Câu 1**: `{{ .Values.env }}` là map, cần render thành env var list trong Deployment. Cú pháp
+loop đúng trong Helm template là gì?
 
-2. Hook Job với annotation `helm.sh/hook: pre-upgrade` fail (Job exit code ≠ 0). Helm upgrade
-   tiếp tục hay dừng lại?
-   <details><summary>Đáp án</summary>Helm dừng lại và đánh dấu release là `failed` — không apply
-   manifest chính (Deployment mới không được cập nhật). Đây là behaviour mong muốn cho migration:
-   nếu migration thất bại, không deploy app mới lên để tránh app mới chạy với schema DB lỗi.
-   Sau khi fix lỗi migration (sửa code migration, rebuild image), chạy `helm upgrade` lại.
-   Job cũ bị giữ lại để debug (trừ khi đặt `hook-delete-policy: hook-failed` — xoá ngay sau
-   khi Job thất bại; `before-hook-creation` chỉ xoá trước lần upgrade tiếp theo, không xoá ngay).</details>
+a) Dùng `range` với key-value destructuring: `{{- range $key, $value := .Values.env }}` theo
+   sau bởi `- name: {{ $key }}` và `value: {{ $value | quote }}`, kết thúc bằng `{{- end }}`.
+   `$key`/`$value` là biến có scope trong range block. `quote` bọc value trong dấu ngoặc kép để
+   xử lý đúng string có ký tự đặc biệt. Lưu ý dấu `-` trước `{{` để trim whitespace trước block
+b) Dùng `for $key, $value in .Values.env` — cú pháp giống Python, Helm template hỗ trợ trực
+   tiếp
+c) Dùng `{{ each .Values.env as $key, $value }} ... {{ /each }}` theo cú pháp Handlebars
+d) Dùng `{{ .Values.env.keys }}` để lấy list key rồi loop qua foreach thủ công, không có cú
+   pháp range cho map
 
-3. Tại sao cần dùng `{{ include "my-chart.labels" . | nindent 4 }}` thay vì trực tiếp viết
-   labels trong mỗi template?
-   <details><summary>Đáp án</summary>DRY (Don't Repeat Yourself) — labels chuẩn K8s
-   (`app.kubernetes.io/name`, `app.kubernetes.io/instance`, `app.kubernetes.io/version`) phải
-   nhất quán giữa Deployment, Service, và các manifest khác để selector hoạt động đúng. Định
-   nghĩa 1 lần trong `_helpers.tpl` và `include` lại tránh inconsistency. `nindent 4` đảm bảo
-   output indent đúng với vị trí trong YAML (metadata.labels ở indent 4, spec.selector ở 6).</details>
+**Đáp án: a** — Dùng `range $key, $value := .Values.env` với key-value destructuring, `quote`
+bọc giá trị, dấu `-` để trim whitespace. Helm template dựa trên Go template, KHÔNG hỗ trợ cú
+pháp `for...in` kiểu Python (loại b); cú pháp `each...as` là của Handlebars, không phải cú
+pháp Go template mà Helm dùng (loại c); Go template `range` HOÀN TOÀN hỗ trợ loop qua map với
+key-value destructuring trực tiếp, không cần lấy list key riêng rồi foreach thủ công (loại d).
+
+---
+
+**Câu 2**: Hook Job với annotation `helm.sh/hook: pre-upgrade` fail (Job exit code ≠ 0). Helm
+upgrade tiếp tục hay dừng lại?
+
+a) Helm tiếp tục upgrade bình thường, hook fail chỉ ghi log cảnh báo không chặn gì
+b) Helm dừng lại và đánh dấu release là failed — không apply manifest chính (Deployment mới
+   không được cập nhật). Đây là behaviour mong muốn cho migration: nếu migration thất bại,
+   không deploy app mới lên để tránh app mới chạy với schema DB lỗi. Sau khi fix lỗi migration
+   (sửa code migration, rebuild image), chạy helm upgrade lại. Job cũ bị giữ lại để debug (trừ
+   khi đặt hook-delete-policy: hook-failed — xoá ngay sau khi Job thất bại;
+   before-hook-creation chỉ xoá trước lần upgrade tiếp theo, không xoá ngay)
+c) Helm tự động retry hook 3 lần rồi mới quyết định dừng hay tiếp tục
+d) Helm rollback ngay về revision trước đó mà không cần người dùng chạy lệnh gì thêm
+
+**Đáp án: b** — Helm dừng lại, đánh dấu release `failed`, không apply manifest chính. Đây là
+behaviour mong muốn để tránh deploy app mới với migration lỗi. Hook fail KHÔNG chỉ ghi log
+cảnh báo — nó CHẶN HOÀN TOÀN việc apply manifest chính (loại a); Helm không tự retry hook 3
+lần — nó dừng ngay khi hook fail (loại c); Helm KHÔNG tự rollback — release chuyển sang
+`failed` và CẦN người dùng chủ động fix rồi chạy `helm upgrade` lại, không tự rollback (loại
+d).
+
+---
+
+**Câu 3**: Tại sao cần dùng `{{ include "my-chart.labels" . | nindent 4 }}` thay vì trực tiếp
+viết labels trong mỗi template?
+
+a) Vì Helm bắt buộc mọi label phải đi qua include, viết trực tiếp labels trong template sẽ bị
+   lint báo lỗi cú pháp
+b) Vì include giúp Helm render template nhanh hơn đáng kể so với viết labels trực tiếp
+c) DRY (Don't Repeat Yourself) — labels chuẩn K8s (app.kubernetes.io/name,
+   app.kubernetes.io/instance, app.kubernetes.io/version) phải nhất quán giữa Deployment,
+   Service, và các manifest khác để selector hoạt động đúng. Định nghĩa 1 lần trong
+   _helpers.tpl và include lại tránh inconsistency. nindent 4 đảm bảo output indent đúng với
+   vị trí trong YAML (metadata.labels ở indent 4, spec.selector ở 6)
+d) Vì nindent 4 là bắt buộc duy nhất cho mọi vị trí trong file YAML, không phụ thuộc độ sâu
+   indent thật
+
+**Đáp án: c** — DRY — labels chuẩn K8s phải nhất quán giữa các manifest để selector hoạt động
+đúng; định nghĩa 1 lần trong `_helpers.tpl`, `nindent` đảm bảo đúng độ sâu indent. Helm không
+bắt buộc mọi label phải qua `include` — đây là best practice để tránh inconsistency, không
+phải yêu cầu cú pháp bị lint chặn (loại a); `include` không ảnh hưởng đáng kể tới tốc độ
+render — lý do dùng nó là nhất quán (DRY), không phải hiệu năng (loại b); giá trị `nindent`
+PHẢI khớp với độ sâu thật tại vị trí chèn trong YAML (4 cho `metadata.labels`, 6 cho
+`spec.selector` chẳng hạn) — không phải một số cố định cho mọi vị trí (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

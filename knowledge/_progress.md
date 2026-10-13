@@ -125,9 +125,14 @@ MCQ tổng (536 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào
 `kb:build-quiz` → 551 câu MCQ tổng (542 cũ + 9 mới), idempotent, `kb:lint` pass. Không có câu
 nào phải bỏ qua.
 
-**Còn lại toàn kho**: `container-k8s.helm` (2 bài, essay), `monitoring` (5 module, 11 bài, toàn
-bộ essay), `data.redis` (1 bài), `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
-`sre.toil-automation` (1 bài).
+`container-k8s.helm` (2 bài, 6 câu — xem commit theo sau trong git log): `basics`,
+`chart-authoring`. Verify qua PGlite: `kb:import` → 2 bài cập nhật, `kb:build-quiz` → 557 câu
+MCQ tổng (551 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Domain `container-k8s` đã xong hoàn toàn (8/8 module).** Tiếp theo: domain `monitoring`.
+
+**Còn lại toàn kho**: `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis` (1 bài),
+`data.message-queue` (1 bài), `sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
