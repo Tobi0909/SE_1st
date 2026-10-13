@@ -45,13 +45,25 @@ export async function resolveCommand(params: RunCommandParams): Promise<RunComma
   }
 
   const provider = await getLLMProvider();
-  const result = await provider.terminalRespond({
-    userId: params.userId,
-    scenario: params.scenario,
-    currentState: params.state,
-    commandHistory: params.commandHistory,
-    command: params.rawCommand,
-  });
+  let result;
+  try {
+    result = await provider.terminalRespond({
+      userId: params.userId,
+      scenario: params.scenario,
+      currentState: params.state,
+      commandHistory: params.commandHistory,
+      command: params.rawCommand,
+    });
+  } catch {
+    // LLM gateway lỗi/không ổn định — không để lỗi này làm crash cả Server Action (Next.js sẽ
+    // ẩn message thật và trả về React minified error chung chung, vô nghĩa với người dùng).
+    // Không cache kết quả fallback này để lần gõ lại sau vẫn thử gọi LLM lại.
+    return {
+      output: "(Hệ thống AI tạm thời không phản hồi được lệnh này. Hãy thử lại sau ít phút, hoặc dùng các lệnh gợi ý trong scenario/phần Gợi ý.)",
+      newState: params.state,
+      source: "LLM",
+    };
+  }
 
   await db.labLlmCommandCache
     .create({
