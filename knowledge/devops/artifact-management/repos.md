@@ -236,25 +236,99 @@ Kết quả: zero lần hit Docker Hub trong tuần tiếp theo; build time gi�
 
 ## 7. Tự kiểm tra
 
-**1. Sự khác biệt giữa image tag và image digest trong Docker là gì? Khi nào nên dùng digest thay vì tag?**
+**Câu 1**: Sự khác biệt giữa image tag và image digest trong Docker là gì? Khi nào nên dùng
+digest thay vì tag?
 
-Tag là mutable reference — cùng tag `nginx:1.25` có thể trỏ đến image khác nhau nếu maintainer re-push. Digest (`sha256:...`) là immutable — luôn tương ứng với đúng một bộ layer. Dùng digest trong production deployment để đảm bảo không có drift giữa staging và production, và để rollback có thể lấy lại đúng image đã test.
+a) Tag là mutable reference — cùng tag nginx:1.25 có thể trỏ đến image khác nhau nếu
+   maintainer re-push. Digest (sha256:...) là immutable — luôn tương ứng với đúng một bộ
+   layer. Dùng digest trong production deployment để đảm bảo không có drift giữa staging và
+   production, và để rollback có thể lấy lại đúng image đã test
+b) Digest là mutable reference có thể đổi; tag là immutable luôn cố định
+c) Tag và digest hoàn toàn giống nhau, chỉ khác độ dài chuỗi ký tự
+d) Chỉ nên dùng tag trong production vì digest không được Docker Hub hỗ trợ cho image public
 
-**2. Registry loại "proxy" trong Nexus khác loại "hosted" thế nào?**
+**Đáp án: a** — Tag mutable, có thể đổi khi re-push. Digest immutable, luôn tương ứng đúng
+một bộ layer. Dùng digest trong production để tránh drift và đảm bảo rollback đúng image. Vai
+trò bị đảo ngược hoàn toàn trong lựa chọn b (loại b); tag và digest có bản chất KHÁC NHAU rõ
+rệt (mutable vs immutable), không chỉ khác độ dài (loại c); digest được Docker Hub hỗ trợ đầy
+đủ cho cả image public và private, không có hạn chế đó (loại d).
 
-Hosted lưu artifact do team tự build/upload. Proxy kết nối đến remote registry (Docker Hub, Maven Central) và cache kết quả — client kéo qua Nexus nhưng Nexus tự đi fetch nếu chưa có. Group hợp nhất nhiều repo (hosted + proxy) dưới một URL duy nhất.
+---
 
-**3. Tại sao cần chạy garbage collection cho Docker registry? Điều gì xảy ra nếu không chạy?**
+**Câu 2**: Registry loại "proxy" trong Nexus khác loại "hosted" thế nào?
 
-Khi xoá tag hoặc manifest, registry chỉ xoá metadata; blob (layer data) vẫn còn trên disk vì có thể được tham chiếu bởi image khác. GC quét tìm blob không còn được tham chiếu và xoá chúng. Nếu không chạy GC, disk sẽ đầy dần theo thời gian dù số lượng image logic ít.
+a) Hosted kết nối remote registry và cache; proxy lưu artifact do team tự build
+b) Hosted lưu artifact do team tự build/upload. Proxy kết nối đến remote registry (Docker
+   Hub, Maven Central) và cache kết quả — client kéo qua Nexus nhưng Nexus tự đi fetch nếu
+   chưa có. Group hợp nhất nhiều repo (hosted + proxy) dưới một URL duy nhất
+c) Cả hai loại hoàn toàn giống nhau, chỉ khác giao diện quản trị
+d) Proxy chỉ dùng được cho Maven, không hỗ trợ Docker image
 
-**4. Pod Kubernetes bị `ImagePullBackOff`. Bước đầu tiên để debug là gì?**
+**Đáp án: b** — Hosted lưu artifact do team tự build; proxy kết nối remote registry và cache.
+Group hợp nhất nhiều repo. Vai trò bị đảo ngược hoàn toàn trong lựa chọn a (loại a); hai loại
+repo có CHỨC NĂNG khác biệt rõ rệt (lưu trữ tự build vs cache remote), không chỉ khác giao
+diện (loại c); proxy repository hỗ trợ cả Docker Hub lẫn Maven Central, không giới hạn chỉ
+Maven (loại d).
 
-Chạy `kubectl describe pod <name>` để xem Events — thường thấy rõ lý do (registry không tồn tại, credential sai, image tag không tồn tại). Kiểm tra Secret `imagePullSecrets` có đúng namespace không, credential có còn hạn không. Thử `docker pull` thủ công từ máy có cùng credential để xác nhận lỗi.
+---
 
-**5. Tại sao không nên dùng `insecure-registries` trong production?**
+**Câu 3**: Tại sao cần chạy garbage collection cho Docker registry? Điều gì xảy ra nếu không
+chạy?
 
-`insecure-registries` cho phép Docker kết nối HTTP (không mã hóa) hoặc bỏ qua xác minh TLS. Điều này mở ra tấn công man-in-the-middle: kẻ tấn công có thể thay thế image khi đang truyền. Registry production phải có TLS hợp lệ; `insecure-registries` chỉ chấp nhận cho môi trường dev/test hoàn toàn tách biệt.
+a) Vì xoá tag sẽ tự động xoá cả blob layer ngay lập tức, GC chỉ dọn file log thừa
+b) GC chỉ cần chạy đúng 1 lần duy nhất khi mới cài registry, sau đó không cần chạy lại nữa
+c) Khi xoá tag hoặc manifest, registry chỉ xoá metadata; blob (layer data) vẫn còn trên disk
+   vì có thể được tham chiếu bởi image khác. GC quét tìm blob không còn được tham chiếu và
+   xoá chúng. Nếu không chạy GC, disk sẽ đầy dần theo thời gian dù số lượng image logic ít
+d) Không chạy GC sẽ khiến registry crash ngay lập tức khi push image mới, không liên quan
+   tới dung lượng disk
+
+**Đáp án: c** — Xoá tag/manifest chỉ xoá metadata, blob vẫn còn trên disk. GC quét và xoá
+blob không còn tham chiếu. Không chạy GC thì disk đầy dần. Xoá tag KHÔNG tự xoá blob ngay lập
+tức — đó chính là lý do cần GC riêng (loại a); GC cần chạy ĐỊNH KỲ (hoặc theo lịch), không chỉ
+1 lần khi cài, vì blob rác tích lũy liên tục theo thời gian sử dụng (loại b); không chạy GC
+gây đầy DISK DẦN THEO THỜI GIAN, không gây crash ngay lập tức khi push (loại d).
+
+---
+
+**Câu 4**: Pod Kubernetes bị `ImagePullBackOff`. Bước đầu tiên để debug là gì?
+
+a) Xoá Pod và tạo lại ngay, ImagePullBackOff luôn tự hết sau khi recreate Pod
+b) Restart toàn bộ node đang chạy Pod đó, lỗi image luôn liên quan tới node bị lỗi
+c) Tăng resources.limits.memory của Pod lên cao hơn, ImagePullBackOff thường do thiếu RAM
+   khi pull image
+d) Chạy kubectl describe pod <name> để xem Events — thường thấy rõ lý do (registry không
+   tồn tại, credential sai, image tag không tồn tại). Kiểm tra Secret imagePullSecrets có
+   đúng namespace không, credential có còn hạn không. Thử docker pull thủ công từ máy có cùng
+   credential để xác nhận lỗi
+
+**Đáp án: d** — `kubectl describe pod` xem Events để biết lý do cụ thể; kiểm tra
+`imagePullSecrets`; thử `docker pull` thủ công xác nhận. Xoá/tạo lại Pod không tự giải quyết
+nguyên nhân gốc (credential sai, tag không tồn tại...) — lỗi sẽ lặp lại (loại a); lỗi pull
+image thường KHÔNG liên quan tới node mà liên quan tới registry/credential/tag (loại b);
+`ImagePullBackOff` không liên quan tới RAM — đó là lỗi ở bước TẢI image, không phải chạy
+container (loại c).
+
+---
+
+**Câu 5**: Tại sao không nên dùng `insecure-registries` trong production?
+
+a) insecure-registries cho phép Docker kết nối HTTP (không mã hóa) hoặc bỏ qua xác minh TLS.
+   Điều này mở ra tấn công man-in-the-middle: kẻ tấn công có thể thay thế image khi đang
+   truyền. Registry production phải có TLS hợp lệ; insecure-registries chỉ chấp nhận cho môi
+   trường dev/test hoàn toàn tách biệt
+b) Vì insecure-registries làm giảm tốc độ pull image đáng kể do phải mã hoá lại nhiều lần
+c) insecure-registries chỉ là flag hiển thị cảnh báo trên log, không ảnh hưởng gì tới bảo
+   mật thật
+d) Vì insecure-registries chỉ hoạt động được với registry nội bộ, không áp dụng được cho
+   Docker Hub
+
+**Đáp án: a** — Cho phép HTTP/bỏ qua TLS verify, mở đường tấn công MITM. Chỉ chấp nhận cho
+dev/test tách biệt. `insecure-registries` làm GIẢM mã hoá (bỏ TLS), không phải "mã hoá lại
+nhiều lần" gây chậm — thực tế bỏ TLS thường nhanh hơn, nhưng đổi lại mất an toàn (loại b);
+đây là rủi ro bảo mật THẬT (MITM), không chỉ là cảnh báo hiển thị (loại c); flag này áp dụng
+cho registry bất kỳ được khai trong danh sách, không giới hạn registry nội bộ — có thể bật
+cho cả registry công khai nếu cấu hình sai (loại d).
 
 ## 8. Bài liên quan và nguồn
 
