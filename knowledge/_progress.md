@@ -94,11 +94,15 @@ idempotent, `kb:lint` pass (TODO-VERIFY vẫn đúng 15). Không có câu nào p
 
 Domain `virt-storage` đã xong hoàn toàn (5/5 module). Tiếp theo: domain `container-k8s`.
 
-**Còn lại toàn kho**: `container-k8s` (8 module, 23 bài, toàn bộ essay — docker-internals 5,
-k8s-architecture 2, k8s-workload 4, k8s-networking 3, k8s-storage 2, k8s-rbac-security 2,
-k8s-troubleshooting 3, helm 2), `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis`
-(1 bài), `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
-`sre.toil-automation` (1 bài).
+`container-k8s.docker-internals` (5 bài, 15 câu — xem commit theo sau trong git log):
+`namespaces-cgroups`, `images`, `networking`, `storage`, `compose`. Verify qua PGlite:
+`kb:import` → 5 bài cập nhật, `kb:build-quiz` → 503 câu MCQ tổng (488 cũ + 15 mới), idempotent,
+`kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Còn lại toàn kho**: `container-k8s` (7 module, 18 bài, toàn bộ essay — k8s-architecture 2,
+k8s-workload 4, k8s-networking 3, k8s-storage 2, k8s-rbac-security 2, k8s-troubleshooting 3,
+helm 2), `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis` (1 bài),
+`data.message-queue` (1 bài), `sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

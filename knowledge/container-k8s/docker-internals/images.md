@@ -193,28 +193,67 @@ Pipeline CI/CD mất 8-10 phút cho bước `docker build` mỗi lần commit, l
 
 ## 7. Tự kiểm tra
 
-1. Tại sao `docker pull` chỉ tải một số layer thay vì toàn bộ image?
-   <details><summary>Đáp án</summary>Layer được xác định bằng SHA256 hash của nội dung — nếu local
-   đã có layer đó (cùng hash), không cần tải lại. Ví dụ hai image khác nhau đều dùng
-   <code>ubuntu:22.04</code> base sẽ share layer base; khi pull image thứ hai, Docker thấy layer
-   đó đã có và bỏ qua.</details>
+**Câu 1**: Tại sao `docker pull` chỉ tải một số layer thay vì toàn bộ image?
 
-2. Một Dockerfile có `RUN apt-get update` ở một layer riêng và `RUN apt-get install nginx` ở layer
-   tiếp theo. Đây là best practice hay anti-pattern?
-   <details><summary>Đáp án</summary>Anti-pattern ("apt-get cache buster") — nếu layer
-   <code>apt-get update</code> được cache từ lâu nhưng layer install bị rebuild (ví dụ thêm package
-   khác), lệnh install sẽ dùng package metadata CŨ từ cache. Đúng là gộp cả hai vào một
-   <code>RUN apt-get update && apt-get install -y ...</code> để đảm bảo metadata luôn đồng bộ với
-   danh sách package.</details>
+a) Vì Docker Hub giới hạn băng thông tải xuống, chỉ cho tải một phần mỗi lần request
+b) Vì layer được đánh số thứ tự, Docker chỉ tải các layer có số thứ tự chưa từng thấy trước đó
+   bất kể nội dung
+c) Vì image luôn được chia nhỏ ngẫu nhiên mỗi lần build, layer cũ không còn hợp lệ để tái sử
+   dụng
+d) Layer được xác định bằng SHA256 hash của nội dung — nếu local đã có layer đó (cùng hash),
+   không cần tải lại. Ví dụ hai image khác nhau đều dùng ubuntu:22.04 base sẽ share layer base;
+   khi pull image thứ hai, Docker thấy layer đó đã có và bỏ qua
 
-3. `CMD ["node", "server.js"]` vs `ENTRYPOINT ["node"]` + `CMD ["server.js"]` — khác nhau thực tế ở
-   điểm nào khi dùng `docker run`?
-   <details><summary>Đáp án</summary>Với <code>CMD</code> thuần: <code>docker run myimage bash</code>
-   sẽ chạy <code>bash</code> thay vì <code>node server.js</code> (override hoàn toàn). Với
-   <code>ENTRYPOINT ["node"] + CMD ["server.js"]</code>: <code>docker run myimage
-   other-script.js</code> chạy <code>node other-script.js</code> — ENTRYPOINT cố định, CMD là
-   default argument có thể override. Dùng ENTRYPOINT khi muốn container luôn chạy một binary cụ
-   thể.</details>
+**Đáp án: d** — Layer được xác định bằng SHA256 hash của nội dung — nếu local đã có layer đó
+(cùng hash), không cần tải lại. Đây không phải giới hạn băng thông của Docker Hub — là cơ chế
+dedup theo nội dung, không theo chính sách tải (loại a); layer được nhận diện bằng HASH nội
+dung, không phải số thứ tự — hai layer khác image nhưng cùng hash vẫn được coi là MỘT layer
+(loại b); layer không chia ngẫu nhiên mỗi build — hash ổn định cho cùng nội dung, đó chính là
+lý do tái sử dụng được (loại c).
+
+---
+
+**Câu 2**: Một Dockerfile có `RUN apt-get update` ở một layer riêng và `RUN apt-get install
+nginx` ở layer tiếp theo. Đây là best practice hay anti-pattern?
+
+a) Anti-pattern ("apt-get cache buster") — nếu layer apt-get update được cache từ lâu nhưng
+   layer install bị rebuild (ví dụ thêm package khác), lệnh install sẽ dùng package metadata CŨ
+   từ cache. Đúng là gộp cả hai vào một RUN apt-get update && apt-get install -y ... để đảm bảo
+   metadata luôn đồng bộ với danh sách package
+b) Best practice, vì tách riêng 2 lệnh luôn giúp build nhanh hơn do tận dụng cache tối đa cho
+   mỗi bước
+c) Anti-pattern, nhưng chỉ vì tốn thêm 1 layer làm image nặng hơn, không liên quan tới cache
+   metadata
+d) Best practice nếu dùng multi-stage build, anti-pattern nếu build thường — phụ thuộc loại
+   build
+
+**Đáp án: a** — Anti-pattern ("apt-get cache buster") — nếu layer `apt-get update` được cache
+từ lâu nhưng layer install bị rebuild, lệnh install dùng package metadata CŨ từ cache. Đúng là
+gộp cả hai vào một `RUN`. Tách riêng không giúp build nhanh hơn một cách an toàn — nó gây rủi
+ro metadata lệch, đây chính là lý do coi là anti-pattern (loại b); vấn đề cốt lõi là METADATA
+LỆCH (cache stale), không chỉ đơn thuần tốn thêm 1 layer (loại c); đây không phải vấn đề riêng
+của multi-stage build — nguyên lý cache layer áp dụng giống nhau cho cả hai loại build (loại
+d).
+
+---
+
+**Câu 3**: `CMD ["node", "server.js"]` vs `ENTRYPOINT ["node"]` + `CMD ["server.js"]` — khác
+nhau thực tế ở điểm nào khi dùng `docker run`?
+
+a) Cả hai hoàn toàn tương đương về hành vi override, chỉ khác cách viết cú pháp YAML/Dockerfile
+b) Với CMD thuần: docker run myimage bash sẽ chạy bash thay vì node server.js (override hoàn
+   toàn). Với ENTRYPOINT ["node"] + CMD ["server.js"]: docker run myimage other-script.js chạy
+   node other-script.js — ENTRYPOINT cố định, CMD là default argument có thể override. Dùng
+   ENTRYPOINT khi muốn container luôn chạy một binary cụ thể
+c) ENTRYPOINT luôn bị override hoàn toàn giống CMD thuần, không có gì khác biệt thực tế
+d) CMD thuần không thể override bằng docker run, chỉ ENTRYPOINT mới override được
+
+**Đáp án: b** — Với `CMD` thuần, `docker run myimage bash` override hoàn toàn thành `bash`. Với
+`ENTRYPOINT ["node"] + CMD ["server.js"]`, phần sau `docker run` chỉ override CMD (argument),
+ENTRYPOINT cố định. Hai cách có hành vi override KHÁC nhau rõ rệt, không tương đương (loại a);
+`ENTRYPOINT` KHÔNG bị override hoàn toàn như CMD thuần — đó chính là điểm khác biệt cốt lõi
+(loại c); `CMD` thuần HOÀN TOÀN override được bằng cách truyền argument khác sau image name
+trong `docker run` (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

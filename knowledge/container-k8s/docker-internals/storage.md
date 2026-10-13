@@ -210,25 +210,62 @@ volumes:                    # PHẢI khai báo named volume ở đây để Comp
 
 ## 7. Tự kiểm tra
 
-1. Sự khác biệt quan trọng nhất giữa named volume và anonymous volume là gì?
-   <details><summary>Đáp án</summary>Named volume có tên cố định, dễ backup và quản lý; anonymous
-   volume có ID random, khó tìm lại. Cả hai đều tồn tại sau <code>docker compose down</code> — chỉ
-   bị xoá khi dùng <code>docker compose down --volumes</code>. Named volume được quản lý tường minh
-   hơn và không bị nhầm xoá.</details>
+**Câu 1**: Sự khác biệt quan trọng nhất giữa named volume và anonymous volume là gì?
 
-2. Khi nào dùng bind mount thay vì volume?
-   <details><summary>Đáp án</summary>Khi cần: (1) inject file config cụ thể từ host, (2) share
-   source code giữa host và container để hot-reload trong dev, (3) cần access trực tiếp file từ
-   phía host (không thông qua Docker volume API). Không dùng cho database data production —
-   volume tốt hơn vì portable, không phụ thuộc đường dẫn host, performance tốt hơn trên
-   Docker Desktop (Mac/Windows).</details>
+a) Named volume chỉ dùng được cho database, anonymous volume chỉ dùng được cho file tĩnh
+b) Named volume có tên cố định, dễ backup và quản lý; anonymous volume có ID random, khó tìm
+   lại. Cả hai đều tồn tại sau docker compose down — chỉ bị xoá khi dùng docker compose down
+   --volumes. Named volume được quản lý tường minh hơn và không bị nhầm xoá
+c) Named volume bị xoá tự động sau docker compose down, anonymous volume thì không
+d) Named volume lưu trên disk, anonymous volume chỉ lưu tạm trong RAM
 
-3. `docker volume prune` có thể xoá volume Postgres đang dùng cho database production không?
-   <details><summary>Đáp án</summary>Không, nếu có container (dù đã stopped) đang mount volume đó.
-   <code>prune</code> chỉ xoá volume KHÔNG CÓ container nào mount — kể cả container stopped vẫn
-   "giữ" volume. Để xoá volume đang được container stopped mount, phải <code>docker rm</code>
-   container trước, sau đó mới <code>docker volume rm</code> — hoặc dùng <code>docker-compose
-   down --volumes</code> (xoá cả container lẫn volume cùng lúc).</details>
+**Đáp án: b** — Named volume có tên cố định, dễ backup và quản lý; anonymous volume có ID
+random, khó tìm lại. Cả hai đều tồn tại sau `docker compose down` trừ khi dùng `--volumes`.
+Cả hai loại volume dùng được cho bất kỳ loại dữ liệu nào, không giới hạn theo database/file
+tĩnh (loại a); hành vi xoá khi `down` bị đảo ngược — thực tế KHÔNG loại nào tự xoá mặc định
+(loại c); cả hai đều lưu trên disk thật (qua volume driver), không phải RAM tạm (loại d).
+
+---
+
+**Câu 2**: Khi nào dùng bind mount thay vì volume?
+
+a) Khi cần hiệu năng cao nhất cho database production, bind mount luôn nhanh hơn volume trên
+   mọi hệ điều hành
+b) Khi muốn Docker tự động backup dữ liệu định kỳ, chỉ bind mount hỗ trợ tính năng này
+c) Khi cần: (1) inject file config cụ thể từ host, (2) share source code giữa host và
+   container để hot-reload trong dev, (3) cần access trực tiếp file từ phía host (không thông
+   qua Docker volume API). Không dùng cho database data production — volume tốt hơn vì
+   portable, không phụ thuộc đường dẫn host, performance tốt hơn trên Docker Desktop
+   (Mac/Windows)
+d) Khi container cần chạy hoàn toàn offline không cần truy cập filesystem host
+
+**Đáp án: c** — Dùng bind mount khi cần inject config, share source code hot-reload dev, hoặc
+access trực tiếp file từ host. Không dùng cho database production — volume tốt hơn vì portable
+và performance tốt hơn trên Docker Desktop. Bind mount KHÔNG luôn nhanh hơn volume trên mọi hệ
+điều hành — trên Docker Desktop (Mac/Windows), volume thường nhanh hơn (loại a); Docker không
+có tính năng tự động backup định kỳ gắn với loại mount, đây không phải sự khác biệt thật (loại
+b); bind mount không liên quan tới việc chạy offline — cả hai loại mount đều hoạt động không
+cần mạng (loại d).
+
+---
+
+**Câu 3**: `docker volume prune` có thể xoá volume Postgres đang dùng cho database production
+không?
+
+a) Có, prune luôn xoá mọi volume bất kể có container nào đang mount hay không
+b) Có, nhưng chỉ nếu volume đó được tạo quá 30 ngày trước, prune có ngưỡng thời gian mặc định
+c) Không, vì prune chỉ áp dụng cho image, hoàn toàn không liên quan tới volume
+d) Không, nếu có container (dù đã stopped) đang mount volume đó. prune chỉ xoá volume KHÔNG CÓ
+   container nào mount — kể cả container stopped vẫn "giữ" volume. Để xoá volume đang được
+   container stopped mount, phải docker rm container trước, sau đó mới docker volume rm — hoặc
+   dùng docker-compose down --volumes (xoá cả container lẫn volume cùng lúc)
+
+**Đáp án: d** — Không, nếu có container (dù đã stopped) đang mount volume đó. `prune` chỉ xoá
+volume KHÔNG CÓ container nào mount. `docker volume prune` CÓ loại trừ volume đang được mount
+(dù container stopped), không xoá vô điều kiện (loại a); không có ngưỡng thời gian 30 ngày mặc
+định trong `prune` — tiêu chí là "có container mount hay không", không phải tuổi volume (loại
+b); `docker volume prune` là lệnh RIÊNG CHO VOLUME, khác `docker image prune` cho image (loại
+c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

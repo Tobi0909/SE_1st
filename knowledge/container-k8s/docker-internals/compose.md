@@ -214,28 +214,66 @@ Onboard một dự án open source mới chạy local để debug, dự án có 
 
 ## 7. Tự kiểm tra
 
-1. Sự khác biệt giữa `docker compose up` và `docker compose start` là gì?
-   <details><summary>Đáp án</summary><code>docker compose up</code> tạo container nếu chưa có
-   (từ định nghĩa trong YAML), rồi start. <code>docker compose start</code> chỉ start container
-   ĐÃ TỒN TẠI (từ lần <code>up</code> trước) — không tạo mới nếu container đã bị <code>rm</code>.
-   Thực tế gần như luôn dùng <code>up</code>.</details>
+**Câu 1**: Sự khác biệt giữa `docker compose up` và `docker compose start` là gì?
 
-2. Hai service khai báo trong cùng `docker-compose.yml` không thể giao tiếp với nhau dù đã
-   dùng tên service. Nguyên nhân có thể là gì?
-   <details><summary>Đáp án</summary>Hai service được khai báo trong <code>networks:</code> KHÁC
-   NHAU — chỉ service trong cùng network mới resolve được tên nhau qua Docker DNS nội bộ. Cách
-   xác nhận: <code>docker network inspect &lt;network&gt;</code> xem Containers section — chỉ
-   liệt kê container trong network đó. Cách xử lý: đảm bảo cả hai service khai báo cùng network,
-   hoặc bỏ <code>networks:</code> riêng để dùng mặc định của Compose (<code>&lt;project&gt;
-   _default</code>).</details>
+a) docker compose up tạo container nếu chưa có (từ định nghĩa trong YAML), rồi start. docker
+   compose start chỉ start container ĐÃ TỒN TẠI (từ lần up trước) — không tạo mới nếu container
+   đã bị rm. Thực tế gần như luôn dùng up
+b) start tạo container mới mỗi lần gọi; up chỉ start container đã tồn tại từ trước
+c) Cả hai hoàn toàn giống nhau, chỉ là alias khác tên cho cùng một hành động
+d) up chỉ dùng được lần đầu tiên của project, các lần sau phải dùng start
 
-3. Tại sao nên có `healthcheck` cho database service trong Compose?
-   <details><summary>Đáp án</summary>Container Postgres có thể START (process chạy) nhưng chưa
-   READY (accept connection — cần vài giây để init). Nếu app service chỉ dùng <code>depends_on:
-   condition: service_started</code>, app start khi container DB đang khởi động, gặp "connection
-   refused", crash. Healthcheck (ví dụ <code>pg_isready</code>) test xem DB thực sự accept
-   connection — <code>service_healthy</code> condition đảm bảo app chỉ start sau khi DB sẵn
-   sàng thực sự.</details>
+**Đáp án: a** — `docker compose up` tạo container nếu chưa có rồi start. `docker compose
+start` chỉ start container ĐÃ TỒN TẠI, không tạo mới nếu đã bị `rm`. Vai trò bị đảo ngược hoàn
+toàn trong lựa chọn b (loại b); hai lệnh có hành vi khác biệt rõ rệt, không phải alias của nhau
+(loại c); `up` dùng được ở MỌI lần, không chỉ lần đầu — nó tự nhận biết container đã tồn tại
+hay chưa (loại d).
+
+---
+
+**Câu 2**: Hai service khai báo trong cùng `docker-compose.yml` không thể giao tiếp với nhau
+dù đã dùng tên service. Nguyên nhân có thể là gì?
+
+a) Vì Compose chỉ cho phép tối đa 1 service gọi tên service khác trong cùng file, không hỗ trợ
+   gọi 2 chiều
+b) Hai service được khai báo trong networks: KHÁC NHAU — chỉ service trong cùng network mới
+   resolve được tên nhau qua Docker DNS nội bộ. Cách xác nhận: docker network inspect
+   <network> xem Containers section — chỉ liệt kê container trong network đó. Cách xử lý: đảm
+   bảo cả hai service khai báo cùng network, hoặc bỏ networks: riêng để dùng mặc định của
+   Compose (<project>_default)
+c) Vì tên service trùng với tên một biến môi trường hệ thống, gây xung đột DNS resolve
+d) Vì cả hai service chưa khai báo depends_on lẫn nhau, Docker DNS chỉ hoạt động khi có
+   depends_on
+
+**Đáp án: b** — Hai service được khai báo trong `networks:` KHÁC NHAU — chỉ service trong
+cùng network mới resolve được tên nhau qua Docker DNS nội bộ. Compose không giới hạn chỉ 1
+service gọi được service khác — gọi hai chiều hoàn toàn bình thường khi cùng network (loại a);
+trùng tên biến môi trường không gây xung đột DNS resolve kiểu này (loại c); `depends_on` chỉ
+ảnh hưởng tới THỨ TỰ start, không phải điều kiện để Docker DNS hoạt động — DNS hoạt động dựa
+trên network, không dựa trên depends_on (loại d).
+
+---
+
+**Câu 3**: Tại sao nên có `healthcheck` cho database service trong Compose?
+
+a) Vì Compose yêu cầu bắt buộc mọi service phải có healthcheck, nếu không sẽ không start được
+b) Healthcheck chỉ dùng để hiển thị trạng thái đẹp hơn trên docker ps, không ảnh hưởng tới thứ
+   tự start thật
+c) Container Postgres có thể START (process chạy) nhưng chưa READY (accept connection — cần
+   vài giây để init). Nếu app service chỉ dùng depends_on: condition: service_started, app
+   start khi container DB đang khởi động, gặp "connection refused", crash. Healthcheck (ví dụ
+   pg_isready) test xem DB thực sự accept connection — service_healthy condition đảm bảo app
+   chỉ start sau khi DB sẵn sàng thực sự
+d) Vì database luôn start chậm hơn app service đúng 10 giây cố định, healthcheck dùng để chờ
+   đủ 10 giây đó
+
+**Đáp án: c** — Container Postgres có thể START nhưng chưa READY. `depends_on:
+condition: service_started` không đủ, app có thể gặp "connection refused". Healthcheck +
+`service_healthy` đảm bảo app chỉ start sau khi DB sẵn sàng thực sự. Healthcheck KHÔNG bắt buộc
+với mọi service trong Compose — nó là tuỳ chọn (loại a); healthcheck ảnh hưởng THẬT tới thứ tự
+start khi dùng với `condition: service_healthy`, không chỉ để hiển thị đẹp (loại b); thời gian
+DB sẵn sàng không cố định 10 giây — nó biến thiên tuỳ tải/cấu hình, đây chính là lý do cần kiểm
+tra ĐỘNG bằng healthcheck thay vì chờ một khoảng cố định (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

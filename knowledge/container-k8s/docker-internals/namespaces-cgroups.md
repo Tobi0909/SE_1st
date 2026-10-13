@@ -186,23 +186,58 @@ sai — dùng để giải thích tại sao "container an toàn nhưng không ho
 
 ## 7. Tự kiểm tra
 
-1. Hai process có cùng inode trong `/proc/<pid>/ns/net`. Điều này có nghĩa là gì?
-   <details><summary>Đáp án</summary>Chúng đang dùng CHUNG network namespace — thấy cùng interface,
-   route table, iptables rule. Nếu một là container và một là host, container đó đang dùng network
-   của host (tương đương <code>--network=host</code> trong Docker), không được cách ly mạng.</details>
+**Câu 1**: Hai process có cùng inode trong `/proc/<pid>/ns/net`. Điều này có nghĩa là gì?
 
-2. Vì sao container thường "nhẹ hơn" VM về overhead?
-   <details><summary>Đáp án</summary>Container dùng namespace/cgroup để cách ly và giới hạn process
-   trực tiếp trên kernel host — KHÔNG có hypervisor, KHÔNG có guest kernel riêng, KHÔNG có hardware
-   emulation. Process trong container chạy với kernel của host, chỉ có cái nhìn về hệ thống là
-   khác (do namespace). VM chạy thêm một kernel đầy đủ và hypervisor, nên overhead cao hơn
-   nhiều.</details>
+a) Chúng đang dùng CHUNG network namespace — thấy cùng interface, route table, iptables rule.
+   Nếu một là container và một là host, container đó đang dùng network của host (tương đương
+   --network=host trong Docker), không được cách ly mạng
+b) Nghĩa là hai process có cùng PID, chỉ khác tên gọi hiển thị
+c) Nghĩa là hai process đang chạy trên hai host khác nhau nhưng cùng chia sẻ 1 địa chỉ IP
+d) Nghĩa là namespace đó đã bị corrupt, cần restart lại network stack
 
-3. `--privileged` trong `docker run` vô hiệu hoá điều gì?
-   <details><summary>Đáp án</summary>Hầu hết cách ly namespace và tất cả giới hạn capability — container
-   nhận đầy đủ Linux capability (như root thật trên host), có thể mount filesystem, thay đổi kernel
-   parameter qua sysctl, load module... Thực chất là process root với quyền đầy đủ trên host dù
-   "nhìn từ ngoài" vẫn là container.</details>
+**Đáp án: a** — Chúng đang dùng CHUNG network namespace — thấy cùng interface, route table,
+iptables rule. Nếu một là container và một là host, container đó đang dùng network của host,
+không được cách ly mạng. Inode của namespace không liên quan tới PID — hai process có thể PID
+khác nhau nhưng cùng namespace (loại b); đây không phải chia sẻ IP giữa hai host khác nhau —
+cùng inode nghĩa là cùng MỘT namespace trên CÙNG một host (loại c); cùng inode là trạng thái
+hợp lệ và bình thường, không phải dấu hiệu corrupt (loại d).
+
+---
+
+**Câu 2**: Vì sao container thường "nhẹ hơn" VM về overhead?
+
+a) Vì container luôn chạy ít tiến trình hơn VM theo thiết kế bắt buộc của Docker
+b) Container dùng namespace/cgroup để cách ly và giới hạn process trực tiếp trên kernel host —
+   KHÔNG có hypervisor, KHÔNG có guest kernel riêng, KHÔNG có hardware emulation. Process trong
+   container chạy với kernel của host, chỉ có cái nhìn về hệ thống là khác (do namespace). VM
+   chạy thêm một kernel đầy đủ và hypervisor, nên overhead cao hơn nhiều
+c) Vì container nén toàn bộ filesystem lại nên dùng ít RAM hơn VM một cách tự động
+d) Vì container chỉ hỗ trợ ứng dụng viết bằng ngôn ngữ nhẹ, không hỗ trợ ứng dụng nặng như VM
+
+**Đáp án: b** — Container dùng namespace/cgroup để cách ly và giới hạn process trực tiếp trên
+kernel host — KHÔNG có hypervisor, KHÔNG có guest kernel riêng. VM chạy thêm một kernel đầy đủ
+và hypervisor, nên overhead cao hơn nhiều. Số lượng tiến trình không phải lý do cốt lõi về
+overhead — một container vẫn có thể chạy nhiều process (loại a); container không tự nén
+filesystem để giảm RAM — lý do nhẹ hơn là KHÔNG CẦN guest kernel/hypervisor (loại c); container
+chạy được bất kỳ ứng dụng nào image hỗ trợ, không giới hạn theo ngôn ngữ "nhẹ" (loại d).
+
+---
+
+**Câu 3**: `--privileged` trong `docker run` vô hiệu hoá điều gì?
+
+a) Vô hiệu hoá hoàn toàn network namespace, buộc container luôn dùng --network=host
+b) Chỉ vô hiệu hoá giới hạn CPU/memory của cgroup, không ảnh hưởng gì tới capability
+c) Hầu hết cách ly namespace và tất cả giới hạn capability — container nhận đầy đủ Linux
+   capability (như root thật trên host), có thể mount filesystem, thay đổi kernel parameter
+   qua sysctl, load module... Thực chất là process root với quyền đầy đủ trên host dù "nhìn từ
+   ngoài" vẫn là container
+d) Vô hiệu hoá việc pull image mới, chỉ cho phép dùng image đã cache sẵn
+
+**Đáp án: c** — Hầu hết cách ly namespace và tất cả giới hạn capability — container nhận đầy đủ
+Linux capability như root thật trên host. `--privileged` không ép buộc dùng `--network=host` —
+container vẫn có thể giữ network namespace riêng, chỉ là capability mạng được mở rộng tối đa
+(loại a); phạm vi ảnh hưởng rộng hơn nhiều so với chỉ CPU/memory — nó mở capability toàn diện
+(loại b); đây không liên quan gì tới việc pull image (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
