@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { LabScenarioSchema, QuizBatchSchema, TerminalOutputSchema } from "@/lib/llm/schemas";
+import { LabScenarioSchema, QuizBatchSchema } from "@/lib/llm/schemas";
 
 const validQuestion = {
   stem: "Lệnh nào xem trạng thái service trên systemd?",
@@ -93,32 +93,6 @@ describe("LabScenarioSchema", () => {
 
   it("từ chối khi version khác 1", () => {
     const result = LabScenarioSchema.safeParse({ ...validScenario, version: 2 });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("TerminalOutputSchema", () => {
-  it("chấp nhận output không có stateEffect", () => {
-    const result = TerminalOutputSchema.safeParse({ output: "command not found" });
-    expect(result.success).toBe(true);
-  });
-
-  it("chấp nhận output có stateEffect patch", () => {
-    const result = TerminalOutputSchema.safeParse({
-      output: "nginx restarted",
-      stateEffect: {
-        description: "Service nginx chuyển sang running",
-        patch: [{ op: "set", path: "services.nginx.status", value: "running" }],
-      },
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("từ chối khi patch thiếu path", () => {
-    const result = TerminalOutputSchema.safeParse({
-      output: "x",
-      stateEffect: { description: "y", patch: [{ op: "set", value: "z" }] },
-    });
     expect(result.success).toBe(false);
   });
 });

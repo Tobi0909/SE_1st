@@ -7,7 +7,6 @@ import type {
   GradeEssayParams,
   GradeSubmissionParams,
   LLMProvider,
-  TerminalRespondParams,
 } from "@/lib/llm/provider";
 import { assertWithinRateLimit } from "@/lib/llm/rateLimiter";
 
@@ -83,8 +82,6 @@ export function withTracking(provider: LLMProvider): LLMProvider {
       tracked("quiz.generate", params.userId, () => provider.generateQuizBatch(params)),
     generateScenario: (params: GenerateScenarioParams) =>
       tracked("lab.scenario-generate", params.userId, () => provider.generateScenario(params)),
-    terminalRespond: (params: TerminalRespondParams) =>
-      tracked("lab.terminal-respond", params.userId, () => provider.terminalRespond(params)),
     gradeSubmission: (params: GradeSubmissionParams) =>
       tracked("lab.grade-submission", params.userId, () => provider.gradeSubmission(params)),
     gradeEssay: (params: GradeEssayParams) =>

@@ -39,6 +39,9 @@ enum ChatContextType {
 enum CommandSource {
   PRESET
   LLM
+  // Lệnh được một "virtual shell" rule-based diễn giải trực tiếp từ SessionState
+  // (services/files/logs), không gọi LLM — xem src/lib/lab/virtualShell.ts.
+  SIMULATED
 }
 
 enum LabSessionStatus {
@@ -291,18 +294,6 @@ model LabCommandLog {
 
   @@index([sessionId, createdAt])
   @@map("lab_command_logs")
-}
-
-model LabLlmCommandCache {
-  id          String   @id @default(cuid())
-  scenarioId  String
-  stateHash   String
-  commandNorm String
-  output      String
-  createdAt   DateTime @default(now())
-
-  @@unique([scenarioId, stateHash, commandNorm])
-  @@map("lab_llm_command_cache")
 }
 
 model LabHintUsage {

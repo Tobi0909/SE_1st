@@ -29,20 +29,7 @@ export async function runCommandAction(sessionId: string, rawCommand: string): P
   const scenario = LabScenarioSchema.parse(session.scenario.data);
   const state = session.state as unknown as SessionState;
 
-  const recentLogs = await db.labCommandLog.findMany({
-    where: { sessionId },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
-
-  const result = await resolveCommand({
-    scenario,
-    scenarioId: session.scenarioId,
-    state,
-    commandHistory: recentLogs.reverse().map((l) => ({ command: l.command, output: l.output })),
-    rawCommand,
-    userId: user.id,
-  });
+  const result = resolveCommand({ scenario, state, rawCommand });
 
   await db.labCommandLog.create({
     data: { sessionId, command: rawCommand, output: result.output, source: result.source },

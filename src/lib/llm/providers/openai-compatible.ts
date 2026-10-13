@@ -8,7 +8,6 @@ import type {
   GradeEssayParams,
   GradeSubmissionParams,
   LLMProvider,
-  TerminalRespondParams,
 } from "@/lib/llm/provider";
 import { assertWithinRateLimit } from "@/lib/llm/rateLimiter";
 import {
@@ -17,17 +16,14 @@ import {
   QuizBatchSchema,
   SkillTreeSchema,
   SubmissionGradeSchema,
-  TerminalOutputSchema,
   type EssayGrade,
   type LabScenario,
   type QuizBatch,
   type SkillTree,
   type SubmissionGrade,
-  type TerminalOutput,
 } from "@/lib/llm/schemas";
 import * as quizGenerate from "@prompts/quiz/generate.v2";
 import * as scenarioGenerate from "@prompts/lab/scenario-generate.v2";
-import * as terminalOutput from "@prompts/lab/terminal-output.v1";
 import * as gradeSubmission from "@prompts/lab/grade-submission.v1";
 import * as chatPrompt from "@prompts/tutor/chat.v1";
 import * as gradeEssay from "@prompts/tutor/grade-essay.v1";
@@ -177,26 +173,6 @@ export class OpenAICompatibleProvider implements LLMProvider {
       params.userId,
       LabScenarioSchema,
       scenarioGenerate.systemPrompt,
-      userPrompt,
-    );
-  }
-
-  async terminalRespond(params: TerminalRespondParams): Promise<TerminalOutput> {
-    const userPrompt = terminalOutput.buildUserPrompt({
-      scenarioBriefing: `${params.scenario.briefing.context}\nTriệu chứng: ${params.scenario.briefing.symptoms.join(", ")}`,
-      hiddenStateJson: JSON.stringify({
-        hiddenState: params.scenario.hiddenState,
-        rootCause: params.scenario.rootCause,
-      }),
-      currentStateJson: JSON.stringify(params.currentState),
-      commandHistory: params.commandHistory,
-      command: params.command,
-    });
-    return this.callJson(
-      "lab.terminal-respond",
-      params.userId,
-      TerminalOutputSchema,
-      terminalOutput.systemPrompt,
       userPrompt,
     );
   }

@@ -5,7 +5,6 @@ import type {
   QuizBatch,
   SkillTree,
   SubmissionGrade,
-  TerminalOutput,
 } from "@/lib/llm/schemas";
 
 export class LLMOutputValidationError extends Error {
@@ -49,14 +48,6 @@ export interface GenerateScenarioParams {
   curriculumArea?: CurriculumAreaHint;
 }
 
-export interface TerminalRespondParams {
-  userId: string | null;
-  scenario: LabScenario;
-  currentState: unknown;
-  commandHistory: { command: string; output: string }[];
-  command: string;
-}
-
 export interface GradeSubmissionParams {
   userId: string | null;
   scenario: LabScenario;
@@ -92,7 +83,6 @@ export interface ChatParams {
 export interface LLMProvider {
   generateQuizBatch(params: GenerateQuizParams): Promise<QuizBatch>;
   generateScenario(params: GenerateScenarioParams): Promise<LabScenario>;
-  terminalRespond(params: TerminalRespondParams): Promise<TerminalOutput>;
   gradeSubmission(params: GradeSubmissionParams): Promise<SubmissionGrade>;
   gradeEssay(params: GradeEssayParams): Promise<EssayGrade>;
   generateSkillTree(params: GenerateSkillTreeParams): Promise<SkillTree>;

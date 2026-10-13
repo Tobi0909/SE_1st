@@ -7,7 +7,6 @@ import {
   QuizBatchSchema,
   SkillTreeSchema,
   SubmissionGradeSchema,
-  TerminalOutputSchema,
 } from "@/lib/llm/schemas";
 
 const provider = new MockLLMProvider();
@@ -33,23 +32,6 @@ describe("MockLLMProvider", () => {
       difficulty: "MEDIUM",
     });
     expect(LabScenarioSchema.safeParse(scenario).success).toBe(true);
-  });
-
-  it("terminalRespond trả dữ liệu đúng schema", async () => {
-    const scenario = await provider.generateScenario({
-      userId: null,
-      topicName: "Linux",
-      topicSlug: "linux",
-      difficulty: "MEDIUM",
-    });
-    const output = await provider.terminalRespond({
-      userId: null,
-      scenario,
-      currentState: {},
-      commandHistory: [],
-      command: "ls -la",
-    });
-    expect(TerminalOutputSchema.safeParse(output).success).toBe(true);
   });
 
   it("gradeSubmission trả dữ liệu đúng schema", async () => {

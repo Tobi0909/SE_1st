@@ -6,7 +6,6 @@ import type {
   GradeEssayParams,
   GradeSubmissionParams,
   LLMProvider,
-  TerminalRespondParams,
 } from "@/lib/llm/provider";
 import type {
   EssayGrade,
@@ -14,7 +13,6 @@ import type {
   QuizBatch,
   SkillTree,
   SubmissionGrade,
-  TerminalOutput,
 } from "@/lib/llm/schemas";
 
 /**
@@ -72,10 +70,6 @@ export class MockLLMProvider implements LLMProvider {
         "Kiểm tra cú pháp file cấu hình bằng lệnh test cấu hình của service đó.",
       ],
     };
-  }
-
-  async terminalRespond(params: TerminalRespondParams): Promise<TerminalOutput> {
-    return { output: `bash: ${params.command}: command not found (mock)` };
   }
 
   async gradeSubmission(params: GradeSubmissionParams): Promise<SubmissionGrade> {

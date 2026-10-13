@@ -95,17 +95,6 @@ export const LabScenarioSchema = z.object({
 });
 export type LabScenario = z.infer<typeof LabScenarioSchema>;
 
-export const TerminalOutputSchema = z.object({
-  output: z.string(),
-  stateEffect: z
-    .object({
-      description: z.string(),
-      patch: z.array(StatePatchOpSchema),
-    })
-    .optional(),
-});
-export type TerminalOutput = z.infer<typeof TerminalOutputSchema>;
-
 export const SubmissionGradeSchema = z.object({
   total: z.number().min(0).max(100),
   byRubricItem: z.array(
