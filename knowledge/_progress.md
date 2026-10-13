@@ -61,8 +61,12 @@ session): `kb:import` → 146 bài (full re-import, DB mới), `kb:build-quiz` �
 (= 413 câu cũ + 15 câu mới, khớp đúng số dự kiến), idempotent, `kb:lint` pass. Không có câu nào
 phải bỏ qua.
 
-**Còn lại trong `networking`**: 4 module (tls-pki 3 bài, http-lb 3, vpn 1, diagnostic-tools 3 =
-10 bài).
+`networking.tls-pki` (3 bài, 15 câu — xem commit theo sau trong git log): `handshake`,
+`pki-cert-mgmt`, `troubleshooting`. Verify qua PGlite: `kb:import` → 3 bài cập nhật,
+`kb:build-quiz` → 443 câu MCQ tổng (428 cũ + 15 mới), idempotent, `kb:lint` pass. Không có câu
+nào phải bỏ qua.
+
+**Còn lại trong `networking`**: 3 module (http-lb 3 bài, vpn 1, diagnostic-tools 3 = 7 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

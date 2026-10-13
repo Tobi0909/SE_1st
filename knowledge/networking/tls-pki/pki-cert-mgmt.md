@@ -173,33 +173,98 @@ vào đúng 00:00 một ngày, dù không ai thay đổi gì trong cấu hình s
 
 ## 7. Tự kiểm tra
 
-1. Khi tạo CSR để xin CA ký chứng chỉ, file CSR có chứa private key của server không?
-   <details><summary>Đáp án</summary>Không. CSR chỉ chứa PUBLIC key và thông tin domain/
-   organization — private key KHÔNG BAO GIỜ được gửi đi trong bất kỳ bước nào của quy
-   trình.</details>
+**Câu 1**: Khi tạo CSR để xin CA ký chứng chỉ, file CSR có chứa private key của server không?
 
-2. Một chứng chỉ có `subject` và `issuer` giống nhau. Đây là loại chứng chỉ gì?
-   <details><summary>Đáp án</summary>Self-signed certificate — chứng chỉ tự ký bằng chính
-   private key của nó, không qua một CA nào khác xác nhận.</details>
+a) Có, CSR cần đính kèm private key để CA xác minh quyền sở hữu domain
+b) Không. CSR chỉ chứa PUBLIC key và thông tin domain/organization — private key KHÔNG BAO
+   GIỜ được gửi đi trong bất kỳ bước nào của quy trình
+c) Có, nhưng private key trong CSR được mã hoá nên vẫn an toàn khi gửi đi
+d) Không, CSR hoàn toàn trống, chỉ là placeholder để CA tự sinh cả keypair mới
 
-3. Client báo "chứng chỉ không tin cậy" khi kết nối tới server dùng CA nội bộ tự tạo, dù
-   `openssl verify -CAfile ca.crt server.crt` trả `OK`. Vấn đề nằm ở server hay client?
-   <details><summary>Đáp án</summary>Ở CLIENT — chứng chỉ server hoàn toàn hợp lệ (xác nhận
-   qua verify thành công với đúng CA), chỉ là client đó chưa cài CA nội bộ vào danh sách tin
-   cậy của nó. Đây đúng như thiết kế PKI, không phải lỗi server.</details>
+**Đáp án: b** — Không. CSR chỉ chứa PUBLIC key và thông tin domain/organization — private key
+KHÔNG BAO GIỜ được gửi đi trong bất kỳ bước nào của quy trình. CA xác minh quyền sở hữu domain
+qua cơ chế khác (ví dụ DNS/HTTP challenge), không cần private key (loại a); không có "private
+key mã hoá" nào trong CSR — CSR chỉ chứa public key, hoàn toàn không mang private key dù mã
+hoá hay không (loại c); CSR không rỗng — nó chứa đầy đủ public key và thông tin định danh, CA
+không tự sinh keypair cho server (loại d).
 
-4. Vì sao hết hạn CA ROOT nội bộ nghiêm trọng hơn nhiều so với hết hạn một chứng chỉ server
-   đơn lẻ?
-   <details><summary>Đáp án</summary>CA root hết hạn ảnh hưởng TOÀN BỘ chứng chỉ được CA đó ký
-   (nhiều server/dịch vụ cùng lúc), và quy trình khắc phục phức tạp hơn nhiều (phải tạo/gia hạn
-   CA mới VÀ phân phối lại tới mọi máy client đã tin cậy CA cũ), không chỉ renew một chứng chỉ
-   đơn lẻ như trường hợp thông thường.</details>
+---
 
-5. Vì sao private key của CA cần được bảo vệ NGHIÊM NGẶT HƠN private key của một server thông
-   thường?
-   <details><summary>Đáp án</summary>Lộ private key của CA cho phép kẻ tấn công KÝ GIẢ bất kỳ
-   chứng chỉ nào mà CA đó được tin cậy — ảnh hưởng toàn bộ hệ thống dùng CA đó, nghiêm trọng
-   hơn nhiều so với lộ key của một server đơn lẻ (chỉ ảnh hưởng đúng server đó).</details>
+**Câu 2**: Một chứng chỉ có `subject` và `issuer` giống nhau. Đây là loại chứng chỉ gì?
+
+a) Intermediate certificate, vì mọi CA trung gian đều có subject/issuer giống nhau theo chuẩn
+   X.509
+b) Wildcard certificate, vì subject trùng issuer là dấu hiệu chứng chỉ áp dụng cho nhiều domain
+   con
+c) Self-signed certificate — chứng chỉ tự ký bằng chính private key của nó, không qua một CA
+   nào khác xác nhận
+d) Expired certificate, vì hệ thống tự gán issuer = subject khi chứng chỉ hết hạn
+
+**Đáp án: c** — Self-signed certificate — chứng chỉ tự ký bằng chính private key của nó, không
+qua một CA nào khác xác nhận. Intermediate certificate có `issuer` là CA cấp trên nó, KHÁC
+`subject` của chính nó (loại a); wildcard certificate liên quan tới tên domain (`*.example.com`
+trong subject/SAN), không liên quan tới việc subject có trùng issuer hay không (loại b); hết
+hạn không làm hệ thống tự đổi giá trị issuer trong chứng chỉ — các trường này cố định từ lúc ký
+(loại d).
+
+---
+
+**Câu 3**: Client báo "chứng chỉ không tin cậy" khi kết nối tới server dùng CA nội bộ tự tạo,
+dù `openssl verify -CAfile ca.crt server.crt` trả `OK`. Vấn đề nằm ở server hay client?
+
+a) Ở SERVER — chứng chỉ server thật ra bị lỗi định dạng mà openssl verify không phát hiện ra
+b) Cả hai đều có lỗi — cần sửa cấu hình song song ở server và client
+c) Ở SERVER — server đang gửi sai thứ tự chain khiến một số client không parse được
+d) Ở CLIENT — chứng chỉ server hoàn toàn hợp lệ (xác nhận qua verify thành công với đúng CA),
+   chỉ là client đó chưa cài CA nội bộ vào danh sách tin cậy của nó. Đây đúng như thiết kế PKI,
+   không phải lỗi server
+
+**Đáp án: d** — Ở CLIENT — chứng chỉ server hoàn toàn hợp lệ (xác nhận qua verify thành công
+với đúng CA), chỉ là client đó chưa cài CA nội bộ vào danh sách tin cậy của nó. Đây đúng như
+thiết kế PKI, không phải lỗi server. `openssl verify -CAfile ca.crt` trả OK đã loại trừ khả năng
+lỗi định dạng chứng chỉ (loại a); không có lỗi ở cả hai phía — chỉ cần sửa phía client (loại b);
+verify thành công nghĩa là chain parse đúng, không phải vấn đề thứ tự chain (loại c).
+
+---
+
+**Câu 4**: Vì sao hết hạn CA ROOT nội bộ nghiêm trọng hơn nhiều so với hết hạn một chứng chỉ
+server đơn lẻ?
+
+a) CA root hết hạn ảnh hưởng TOÀN BỘ chứng chỉ được CA đó ký (nhiều server/dịch vụ cùng lúc), và
+   quy trình khắc phục phức tạp hơn nhiều (phải tạo/gia hạn CA mới VÀ phân phối lại tới mọi máy
+   client đã tin cậy CA cũ), không chỉ renew một chứng chỉ đơn lẻ như trường hợp thông thường
+b) Vì CA root không thể gia hạn được, phải xây dựng lại toàn bộ hệ thống PKI từ đầu
+c) Vì chứng chỉ server đơn lẻ không ảnh hưởng gì tới người dùng, chỉ CA root mới gây downtime
+d) Vì CA root hết hạn chỉ ảnh hưởng tới HTTPS, không ảnh hưởng tới các giao thức khác dùng TLS
+
+**Đáp án: a** — CA root hết hạn ảnh hưởng TOÀN BỘ chứng chỉ được CA đó ký (nhiều server/dịch
+vụ cùng lúc), và quy trình khắc phục phức tạp hơn nhiều (phải tạo/gia hạn CA mới VÀ phân phối
+lại tới mọi máy client đã tin cậy CA cũ). CA root hoàn toàn có thể gia hạn được (tạo lại với
+thời hạn mới), không bắt buộc xây lại từ đầu, dù việc phân phối lại tốn công (loại b); chứng
+chỉ server đơn lẻ hết hạn vẫn ảnh hưởng người dùng của đúng server đó — chỉ là phạm vi nhỏ hơn
+CA root (loại c); CA root được dùng cho mọi giao thức dựa trên TLS (không chỉ HTTPS — ví dụ
+LDAPS, SMTPS), nên ảnh hưởng rộng hơn, không giới hạn HTTPS (loại d).
+
+---
+
+**Câu 5**: Vì sao private key của CA cần được bảo vệ NGHIÊM NGẶT HƠN private key của một server
+thông thường?
+
+a) Vì CA private key luôn có độ dài bit lớn hơn, tốn chi phí tính toán hơn để bảo vệ
+b) Lộ private key của CA cho phép kẻ tấn công KÝ GIẢ bất kỳ chứng chỉ nào mà CA đó được tin
+   cậy — ảnh hưởng toàn bộ hệ thống dùng CA đó, nghiêm trọng hơn nhiều so với lộ key của một
+   server đơn lẻ (chỉ ảnh hưởng đúng server đó)
+c) Vì CA private key dùng thuật toán mã hoá khác hoàn toàn so với key server thông thường
+d) Vì CA private key bị pháp luật quy định phải lưu trữ trong HSM, không liên quan tới mức độ
+   rủi ro nếu lộ
+
+**Đáp án: b** — Lộ private key của CA cho phép kẻ tấn công KÝ GIẢ bất kỳ chứng chỉ nào mà CA đó
+được tin cậy — ảnh hưởng toàn bộ hệ thống dùng CA đó, nghiêm trọng hơn nhiều so với lộ key của
+một server đơn lẻ. Độ dài bit không phải lý do cần bảo vệ nghiêm ngặt hơn — CA key và server
+key có thể cùng độ dài (loại a); CA và server có thể dùng cùng loại thuật toán (RSA/ECDSA),
+không nhất thiết khác hoàn toàn (loại c); lý do cốt lõi là mức độ RỦI RO nếu lộ (ký giả hàng
+loạt), không phải do yêu cầu pháp lý về nơi lưu trữ — HSM là một BIỆN PHÁP bảo vệ xuất phát từ
+chính rủi ro đó, không phải nguyên nhân (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

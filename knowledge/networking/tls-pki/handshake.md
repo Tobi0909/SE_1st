@@ -166,37 +166,104 @@ browser hiện đại gọi CÙNG API vẫn hoạt động bình thường.
 
 ## 7. Tự kiểm tra
 
-1. Vì sao TLS 1.3 chỉ cần 1 vòng round-trip (1-RTT) để hoàn tất handshake, trong khi TLS 1.2
-   cần 2?
-   <details><summary>Đáp án</summary>TLS 1.3 gộp việc gửi Certificate/CertificateVerify/
-   Finished vào NGAY sau ServerHello trong cùng một lượt phản hồi, và mã hoá các message này
-   ngay từ đó — không cần một vòng round-trip riêng để thống nhất tham số trước như TLS
-   1.2.</details>
+**Câu 1**: Vì sao TLS 1.3 chỉ cần 1 vòng round-trip (1-RTT) để hoàn tất handshake, trong khi
+TLS 1.2 cần 2?
 
-2. Server gửi một Certificate hợp lệ (đúng domain, còn hạn), nhưng handshake vẫn thất bại ở
-   bước `CertificateVerify`. Nguyên nhân khả năng cao nhất là gì?
-   <details><summary>Đáp án</summary>Server không có ĐÚNG private key tương ứng với
-   certificate đó — CertificateVerify là bước server phải TỰ KÝ bằng private key để chứng
-   minh sở hữu, chỉ có certificate (public) không đủ để qua bước này.</details>
+a) TLS 1.3 gộp việc gửi Certificate/CertificateVerify/Finished vào NGAY sau ServerHello trong
+   cùng một lượt phản hồi, và mã hoá các message này ngay từ đó — không cần một vòng round-trip
+   riêng để thống nhất tham số trước như TLS 1.2
+b) TLS 1.3 bỏ hẳn bước xác thực chứng chỉ server để tiết kiệm 1 round-trip
+c) TLS 1.3 dùng UDP thay TCP nên không cần round-trip bắt tay TCP riêng
+d) TLS 1.3 chỉ hỗ trợ pre-shared key (PSK), không cần trao đổi chứng chỉ nên nhanh hơn
 
-3. Vì sao thiếu chứng chỉ CA trung gian (intermediate) trong chuỗi server gửi có thể gây lỗi
-   "chuỗi tin cậy", dù CA root cuối cùng THẬT SỰ nằm trong danh sách tin cậy của client?
-   <details><summary>Đáp án</summary>Client không tự "tìm" được chứng chỉ intermediate thiếu
-   — nó chỉ lần theo CHUỖI mà server GỬI KÈM. Thiếu một cấp trung gian khiến client không lần
-   được tới root dù root đó có tin cậy, vì "đường đi" trong chuỗi bị đứt đoạn.</details>
+**Đáp án: a** — TLS 1.3 gộp việc gửi Certificate/CertificateVerify/Finished vào NGAY sau
+ServerHello trong cùng một lượt phản hồi, và mã hoá các message này ngay từ đó — không cần một
+vòng round-trip riêng để thống nhất tham số trước như TLS 1.2. TLS 1.3 vẫn xác thực chứng chỉ
+server đầy đủ, không bỏ bước này (loại b); TLS 1.3 vẫn chạy trên TCP (QUIC là giao thức khác,
+không phải TLS 1.3 tiêu chuẩn — loại c); TLS 1.3 hỗ trợ cả PSK và trao đổi chứng chỉ thông
+thường, không giới hạn chỉ PSK (loại d).
 
-4. `openssl s_client ... | grep Verify` trả về `Verify return code: 0 (ok)`. Điều này xác nhận
-   gì?
-   <details><summary>Đáp án</summary>Chuỗi tin cậy (chain of trust) đã được xác thực thành
-   công — chứng chỉ server lần theo được tới một CA root nằm trong danh sách tin cậy sẵn có
-   trên máy đang chạy lệnh. Khác 0 nghĩa là có vấn đề với chuỗi tin cậy.</details>
+---
 
-5. Một client cũ chỉ hỗ trợ cipher suite đã bị server tắt (vì lý do an toàn). Có cách nào "ép"
-   hai bên thống nhất được cipher chung mà không đổi cấu hình bên nào không?
-   <details><summary>Đáp án</summary>Không — hai bên PHẢI có ít nhất một cipher suite CHUNG để
-   thống nhất trong ClientHello/ServerHello. Không có cách ép buộc nếu không có giao điểm; phải
-   đổi cấu hình MỘT trong hai bên (mở lại cipher cũ ở server, hoặc nâng cấp client) để có cipher
-   chung.</details>
+**Câu 2**: Server gửi một Certificate hợp lệ (đúng domain, còn hạn), nhưng handshake vẫn thất
+bại ở bước `CertificateVerify`. Nguyên nhân khả năng cao nhất là gì?
+
+a) Server gửi sai thứ tự chứng chỉ trong chain, cần sắp lại theo đúng thứ tự
+b) Server không có ĐÚNG private key tương ứng với certificate đó — CertificateVerify là bước
+   server phải TỰ KÝ bằng private key để chứng minh sở hữu, chỉ có certificate (public) không
+   đủ để qua bước này
+c) Client chưa cập nhật danh sách CA root mới nhất
+d) Certificate dùng thuật toán ký đã bị deprecated (ví dụ SHA-1), không liên quan tới private
+   key
+
+**Đáp án: b** — Server không có ĐÚNG private key tương ứng với certificate đó — CertificateVerify
+là bước server phải TỰ KÝ bằng private key để chứng minh sở hữu, chỉ có certificate (public)
+không đủ để qua bước này. Sai thứ tự chain thường gây lỗi ở bước xác thực chain, không phải
+CertificateVerify (loại a); CA root của client không liên quan tới bước này — đó là lỗi chain
+of trust, khác với lỗi CertificateVerify (loại c); thuật toán ký deprecated có thể gây cảnh
+báo/lỗi khác, nhưng câu hỏi hỏi về nguyên nhân CẦU KHẢ NĂNG CAO NHẤT ở đúng bước này, là thiếu
+private key tương ứng (loại d).
+
+---
+
+**Câu 3**: Vì sao thiếu chứng chỉ CA trung gian (intermediate) trong chuỗi server gửi có thể
+gây lỗi "chuỗi tin cậy", dù CA root cuối cùng THẬT SỰ nằm trong danh sách tin cậy của client?
+
+a) Vì root CA chỉ tin cậy chứng chỉ ký trực tiếp bởi nó, không chấp nhận chứng chỉ qua
+   intermediate
+b) Vì client tự động tải intermediate còn thiếu từ Internet nhưng việc này luôn thất bại do
+   timeout
+c) Client không tự "tìm" được chứng chỉ intermediate thiếu — nó chỉ lần theo CHUỖI mà server
+   GỬI KÈM. Thiếu một cấp trung gian khiến client không lần được tới root dù root đó có tin
+   cậy, vì "đường đi" trong chuỗi bị đứt đoạn
+d) Vì thiếu intermediate chỉ gây cảnh báo nhẹ, không phải lỗi chuỗi tin cậy nghiêm trọng
+
+**Đáp án: c** — Client không tự "tìm" được chứng chỉ intermediate thiếu — nó chỉ lần theo CHUỖI
+mà server GỬI KÈM. Thiếu một cấp trung gian khiến client không lần được tới root dù root đó có
+tin cậy, vì "đường đi" trong chuỗi bị đứt đoạn. Root CA vẫn tin cậy chứng chỉ được ký qua chuỗi
+intermediate hợp lệ, không chỉ chứng chỉ ký trực tiếp (loại a); hầu hết client KHÔNG tự động tải
+intermediate thiếu từ Internet (một số trình duyệt có AIA fetching nhưng không phải hành vi mặc
+định phổ biến cho mọi client — bài không nói tới cơ chế này, loại b); đây là lỗi nghiêm trọng,
+khiến kết nối thất bại hoàn toàn, không chỉ cảnh báo nhẹ (loại d).
+
+---
+
+**Câu 4**: `openssl s_client ... | grep Verify` trả về `Verify return code: 0 (ok)`. Điều này
+xác nhận gì?
+
+a) Xác nhận riêng server đang dùng TLS 1.3, không liên quan tới chain of trust
+b) Xác nhận cipher suite được chọn là an toàn nhất hiện có
+c) Xác nhận domain trong chứng chỉ khớp chính xác với hostname đang kết nối
+d) Chuỗi tin cậy (chain of trust) đã được xác thực thành công — chứng chỉ server lần theo được
+   tới một CA root nằm trong danh sách tin cậy sẵn có trên máy đang chạy lệnh. Khác 0 nghĩa là
+   có vấn đề với chuỗi tin cậy
+
+**Đáp án: d** — Chuỗi tin cậy (chain of trust) đã được xác thực thành công — chứng chỉ server
+lần theo được tới một CA root nằm trong danh sách tin cậy sẵn có trên máy đang chạy lệnh. Khác
+0 nghĩa là có vấn đề với chuỗi tin cậy. Verify return code không liên quan tới phiên bản TLS
+đang dùng (loại a); nó không đánh giá độ an toàn của cipher suite (loại b); hostname mismatch
+là một lỗi RIÊNG (error 62), độc lập với verify return code của chain (loại c).
+
+---
+
+**Câu 5**: Một client cũ chỉ hỗ trợ cipher suite đã bị server tắt (vì lý do an toàn). Có cách
+nào "ép" hai bên thống nhất được cipher chung mà không đổi cấu hình bên nào không?
+
+a) Không — hai bên PHẢI có ít nhất một cipher suite CHUNG để thống nhất trong
+   ClientHello/ServerHello. Không có cách ép buộc nếu không có giao điểm; phải đổi cấu hình MỘT
+   trong hai bên (mở lại cipher cũ ở server, hoặc nâng cấp client) để có cipher chung
+b) Có, TLS tự động fallback xuống SSL 3.0 để tìm cipher chung nếu không khớp ở TLS
+c) Có, nếu dùng chế độ "cipher negotiation bypass" có sẵn trong hầu hết thư viện TLS hiện đại
+d) Không, nhưng nếu cả hai bên cùng tin tưởng một CA chung, TLS sẽ tự bỏ qua việc so khớp
+   cipher suite
+
+**Đáp án: a** — Không — hai bên PHẢI có ít nhất một cipher suite CHUNG để thống nhất trong
+ClientHello/ServerHello. Không có cách ép buộc nếu không có giao điểm; phải đổi cấu hình MỘT
+trong hai bên (mở lại cipher cũ ở server, hoặc nâng cấp client) để có cipher chung. TLS hiện
+đại không tự fallback xuống SSL 3.0 (đã bị loại bỏ vì không an toàn — loại b); không có chế độ
+"bypass" nào trong thư viện TLS tiêu chuẩn cho phép bỏ qua yêu cầu cipher chung (loại c); việc
+tin tưởng cùng một CA hoàn toàn không liên quan tới negotiation cipher suite — đó là hai bước
+khác nhau trong handshake (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
