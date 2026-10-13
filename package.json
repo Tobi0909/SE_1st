@@ -19,7 +19,9 @@
     "kb:import": "tsx scripts/kb-import.ts",
     "kb:import:dry": "tsx scripts/kb-import.ts --dry-run",
     "kb:build-quiz": "tsx scripts/kb-build-quiz.ts",
-    "kb:build-quiz:dry": "tsx scripts/kb-build-quiz.ts --dry-run"
+    "kb:build-quiz:dry": "tsx scripts/kb-build-quiz.ts --dry-run",
+    "lab:seed-scenarios": "tsx scripts/seed-lab-scenarios.ts",
+    "lab:seed-scenarios:dry": "tsx scripts/seed-lab-scenarios.ts --dry-run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
