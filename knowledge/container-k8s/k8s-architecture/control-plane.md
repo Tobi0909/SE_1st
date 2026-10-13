@@ -212,26 +212,67 @@ Một Pod trong cluster bị CrashLoopBackOff, cần xác định nguyên nhân:
 
 ## 7. Tự kiểm tra
 
-1. Kube-scheduler đã chọn node cho Pod và cập nhật `spec.nodeName`. Bước tiếp theo AI sẽ làm gì,
-   do component nào thực hiện?
-   <details><summary>Đáp án</summary>Kubelet trên node đó đang watch apiserver — nó nhận được event
-   "có PodSpec mới với nodeName = node này". Kubelet đọc PodSpec và gọi container runtime (qua CRI)
-   để pull image nếu cần và start container. Kubelet liên tục báo cáo trạng thái Pod về
-   apiserver.</details>
+**Câu 1**: Kube-scheduler đã chọn node cho Pod và cập nhật `spec.nodeName`. Bước tiếp theo sẽ
+làm gì, do component nào thực hiện?
 
-2. etcd bị mất toàn bộ data nhưng container vẫn đang chạy trên các worker node. Chuyện gì xảy ra?
-   <details><summary>Đáp án</summary>Container đang chạy không bị dừng ngay (process còn sống trên
-   node). Nhưng toàn bộ object (Pod, Deployment, Service...) trong cluster bị mất — apiserver không
-   còn biết gì về chúng. Nếu container crash, kubelet sẽ không restart theo spec (không có spec nào
-   còn tồn tại). Không thể schedule Pod mới, không có Service networking. Cluster về cơ bản là
-   "dead" dù process còn chạy — phải restore từ etcd backup.</details>
+a) apiserver tự gọi trực tiếp container runtime để start container, kubelet chỉ đóng vai trò
+   giám sát sau khi container đã chạy
+b) Controller-manager nhận event này và tự start container thay cho kubelet
+c) Scheduler tiếp tục theo dõi Pod cho tới khi container start xong, kubelet chỉ xử lý khi Pod
+   bị xoá
+d) Kubelet trên node đó đang watch apiserver — nó nhận được event "có PodSpec mới với
+   nodeName = node này". Kubelet đọc PodSpec và gọi container runtime (qua CRI) để pull image
+   nếu cần và start container. Kubelet liên tục báo cáo trạng thái Pod về apiserver
 
-3. Sự khác biệt giữa `kubectl get nodes` thấy `Ready=False` và `Ready=Unknown` là gì?
-   <details><summary>Đáp án</summary><code>Ready=False</code>: kubelet đang contact được apiserver
-   và CHỦ ĐỘNG báo cáo node không healthy (ví dụ thiếu tài nguyên, lỗi cấu hình). <code>Ready=
-   Unknown</code>: apiserver không nhận được heartbeat từ kubelet trong 40 giây — không biết node
-   đang ở trạng thái gì (có thể mất mạng, node bị tắt nguồn, kubelet crash...). Unknown thường
-   nghiêm trọng hơn vì không có thông tin gì để debug từ phía node.</details>
+**Đáp án: d** — Kubelet trên node đó watch apiserver, nhận event PodSpec mới, gọi container
+runtime qua CRI để start container, rồi báo cáo trạng thái về apiserver. apiserver không tự
+gọi container runtime — nó chỉ lưu trữ/phân phối state, kubelet mới là bên THỰC THI (loại a);
+controller-manager quản lý các controller cấp cao (ReplicaSet, Deployment...), không tự start
+container trên node (loại b); scheduler chỉ làm nhiệm vụ CHỌN node rồi dừng lại, không tiếp tục
+theo dõi quá trình start container (loại c).
+
+---
+
+**Câu 2**: etcd bị mất toàn bộ data nhưng container vẫn đang chạy trên các worker node.
+Chuyện gì xảy ra?
+
+a) Container đang chạy không bị dừng ngay (process còn sống trên node). Nhưng toàn bộ object
+   (Pod, Deployment, Service...) trong cluster bị mất — apiserver không còn biết gì về chúng.
+   Nếu container crash, kubelet sẽ không restart theo spec (không có spec nào còn tồn tại).
+   Không thể schedule Pod mới, không có Service networking. Cluster về cơ bản là "dead" dù
+   process còn chạy — phải restore từ etcd backup
+b) Toàn bộ container trên worker node sẽ bị kill ngay lập tức vì mất kết nối tới etcd
+c) Kubelet tự động lưu lại bản sao PodSpec cục bộ, không bị ảnh hưởng gì khi etcd mất data
+d) Container vẫn chạy và kubelet vẫn tự restart đúng theo spec cũ vì spec được cache tại node,
+   không phụ thuộc etcd
+
+**Đáp án: a** — Container đang chạy không bị dừng ngay, nhưng toàn bộ object trong cluster bị
+mất khỏi apiserver. Nếu container crash, kubelet không restart được (không có spec). Cluster về
+cơ bản "dead", phải restore từ etcd backup. Container KHÔNG bị kill ngay lập tức — process trên
+node chạy độc lập với etcd một khi đã start (loại b); kubelet không giữ bản sao PodSpec bền
+vững độc lập với etcd — nguồn sự thật (source of truth) là etcd qua apiserver (loại c); nếu
+spec gốc không còn tồn tại trong etcd, kubelet KHÔNG tự restart container theo spec cũ — chính
+đây là hậu quả nghiêm trọng của mất etcd (loại d).
+
+---
+
+**Câu 3**: Sự khác biệt giữa `kubectl get nodes` thấy `Ready=False` và `Ready=Unknown` là gì?
+
+a) Ready=False nghĩa là node đã bị xoá khỏi cluster; Ready=Unknown nghĩa là node mới được
+   thêm vào, chưa join xong
+b) Ready=False: kubelet đang contact được apiserver và CHỦ ĐỘNG báo cáo node không healthy
+   (ví dụ thiếu tài nguyên, lỗi cấu hình). Ready=Unknown: apiserver không nhận được heartbeat
+   từ kubelet trong 40 giây — không biết node đang ở trạng thái gì (có thể mất mạng, node bị
+   tắt nguồn, kubelet crash...). Unknown thường nghiêm trọng hơn vì không có thông tin gì để
+   debug từ phía node
+c) Cả hai có nghĩa giống nhau, chỉ khác cách hiển thị tuỳ phiên bản kubectl
+d) Ready=Unknown nghĩa là kubelet chủ động báo lỗi cấu hình; Ready=False nghĩa là mất heartbeat
+
+**Đáp án: b** — `Ready=False`: kubelet đang contact được apiserver và CHỦ ĐỘNG báo không
+healthy. `Ready=Unknown`: apiserver không nhận heartbeat trong 40 giây, không có thông tin.
+Node vẫn còn trong cluster ở cả hai trạng thái — đây không phải dấu hiệu bị xoá hay chưa join
+(loại a); hai trạng thái có ý nghĩa khác nhau rõ rệt (chủ động báo cáo vs mất liên lạc), không
+phải cùng một nghĩa (loại c); vai trò hai trạng thái bị đảo ngược trong lựa chọn d (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

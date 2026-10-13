@@ -257,27 +257,62 @@ selector) nhưng hữu ích để tìm object theo trạng thái.
 
 ## 7. Tự kiểm tra
 
-1. Sự khác biệt giữa `resources.requests` và `resources.limits` trong PodSpec là gì? Component
-   nào của K8s dùng `requests`?
-   <details><summary>Đáp án</summary><code>requests</code> là lượng tài nguyên SCHEDULER dùng để
-   quyết định có đủ chỗ để đặt Pod trên node không — nếu node có CPU <code>allocatable</code> còn
-   lại ít hơn <code>requests.cpu</code>, scheduler không đặt Pod đó lên đó. <code>limits</code>
-   là ngưỡng trên kernel sẽ enforce: vượt <code>limits.memory</code> → OOMKill; vượt
-   <code>limits.cpu</code> → CPU throttle (không kill). Scheduler dùng <code>requests</code>,
-   kernel enforce <code>limits</code>.</details>
+**Câu 1**: Sự khác biệt giữa `resources.requests` và `resources.limits` trong PodSpec là gì?
+Component nào của K8s dùng `requests`?
 
-2. Tại sao không nên tạo Pod trực tiếp trong production mà nên dùng Deployment?
-   <details><summary>Đáp án</summary>Pod là ephemeral — khi bị xoá (node fail, eviction, tay sai)
-   không tự tạo lại. Deployment tạo ReplicaSet để đảm bảo số lượng replica; khi Pod die, controller
-   tự tạo Pod thay thế (self-healing). Deployment còn quản lý rolling update (deploy phiên bản
-   mới không downtime) và rollback. Pod thủ công không có bất kỳ tính năng nào trong số này.</details>
+a) requests là ngưỡng kernel enforce (OOMKill khi vượt); limits là giá trị scheduler dùng để
+   đặt Pod
+b) Cả hai đều do kernel enforce như nhau, chỉ khác nhau ở đơn vị đo (requests theo m, limits
+   theo byte)
+c) requests là lượng tài nguyên SCHEDULER dùng để quyết định có đủ chỗ để đặt Pod trên node
+   không — nếu node có CPU allocatable còn lại ít hơn requests.cpu, scheduler không đặt Pod đó
+   lên đó. limits là ngưỡng trên kernel sẽ enforce: vượt limits.memory → OOMKill; vượt
+   limits.cpu → CPU throttle (không kill). Scheduler dùng requests, kernel enforce limits
+d) requests chỉ áp dụng cho CPU, limits chỉ áp dụng cho memory, không có chiều ngược lại
 
-3. `kubectl apply -f deployment.yaml` lần 2 với file không thay đổi — chuyện gì xảy ra?
-   <details><summary>Đáp án</summary>kubectl so sánh manifest với state hiện tại của object trong
-   cluster (client-side apply dùng annotation <code>kubectl.kubernetes.io/last-applied-configuration</code>
-   lưu lần apply trước). Nếu không có diff, kubectl không gửi patch và in <code>deployment.apps/my-app
-   unchanged</code>. Đây là lý do <code>apply</code> là idempotent và an toàn để chạy nhiều lần
-   (ví dụ trong CI/CD pipeline mỗi deploy).</details>
+**Đáp án: c** — `requests` là lượng tài nguyên SCHEDULER dùng để quyết định đặt Pod lên node
+nào. `limits` là ngưỡng kernel enforce (OOMKill cho memory, throttle cho CPU). Vai trò bị đảo
+ngược hoàn toàn trong lựa chọn a (loại a); hai khái niệm có vai trò hoàn toàn khác nhau
+(scheduler vs kernel), không chỉ khác đơn vị đo (loại b); cả `requests` và `limits` đều áp dụng
+được cho cả CPU và memory, không giới hạn mỗi bên một loại tài nguyên (loại d).
+
+---
+
+**Câu 2**: Tại sao không nên tạo Pod trực tiếp trong production mà nên dùng Deployment?
+
+a) Vì Pod tạo trực tiếp không hỗ trợ gán resources.requests/limits, chỉ Deployment mới hỗ trợ
+b) Vì kubectl không cho phép tạo Pod trực tiếp trong namespace production theo policy mặc định
+c) Vì Pod tạo trực tiếp chỉ chạy được tối đa 1 container, Deployment mới hỗ trợ nhiều container
+d) Pod là ephemeral — khi bị xoá (node fail, eviction, tay sai) không tự tạo lại. Deployment
+   tạo ReplicaSet để đảm bảo số lượng replica; khi Pod die, controller tự tạo Pod thay thế
+   (self-healing). Deployment còn quản lý rolling update (deploy phiên bản mới không downtime)
+   và rollback. Pod thủ công không có bất kỳ tính năng nào trong số này
+
+**Đáp án: d** — Pod là ephemeral, không tự tạo lại khi bị xoá. Deployment tạo ReplicaSet đảm
+bảo self-healing, quản lý rolling update và rollback. Pod tạo trực tiếp vẫn gán được
+`resources.requests`/`limits` bình thường — đây không phải lý do (loại a); kubectl không có
+policy mặc định nào cấm tạo Pod trực tiếp (loại b); Pod (cả tạo trực tiếp hay qua Deployment)
+đều hỗ trợ nhiều container trong cùng Pod (multi-container pod) — đây không phải sự khác biệt
+(loại c).
+
+---
+
+**Câu 3**: `kubectl apply -f deployment.yaml` lần 2 với file không thay đổi — chuyện gì xảy ra?
+
+a) kubectl so sánh manifest với state hiện tại của object trong cluster (client-side apply
+   dùng annotation kubectl.kubernetes.io/last-applied-configuration lưu lần apply trước). Nếu
+   không có diff, kubectl không gửi patch và in deployment.apps/my-app unchanged. Đây là lý do
+   apply là idempotent và an toàn để chạy nhiều lần (ví dụ trong CI/CD pipeline mỗi deploy)
+b) kubectl luôn gửi lại toàn bộ manifest và restart Deployment dù không có thay đổi gì
+c) kubectl báo lỗi vì không cho phép apply trùng manifest lần thứ hai
+d) kubectl tự động tăng version Deployment lên 1 mỗi lần apply, bất kể có thay đổi hay không
+
+**Đáp án: a** — kubectl so sánh manifest với state hiện tại (qua annotation
+`last-applied-configuration`). Không có diff thì không gửi patch, in `unchanged` — đây là lý do
+`apply` idempotent. kubectl KHÔNG gửi lại toàn bộ manifest khi không có thay đổi — đó chính là
+điểm làm `apply` an toàn để chạy nhiều lần (loại b); `apply` không báo lỗi khi chạy trùng —
+ngược lại, đó chính là mục đích thiết kế của nó (loại c); không có version nào tự tăng nếu
+không có thay đổi thật trong spec — tăng revision chỉ xảy ra khi có thay đổi (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
