@@ -226,24 +226,59 @@ Triển khai Postgres StatefulSet với PVC — đảm bảo data không mất k
 
 ## 7. Tự kiểm tra
 
-1. Sự khác biệt giữa PV và PVC là gì về lifecycle và scope?
-   <details><summary>Đáp án</summary>PV là cluster-scoped resource (admin-level), tồn tại độc lập
-   với namespace và Pod — lifecycle của PV không gắn với Pod. PVC là namespace-scoped (user-level),
-   binding 1-1 với PV. Khi Pod bị xoá, PVC không bị xoá tự động. Khi PVC bị xoá, PV chuyển sang
-   Released nhưng data còn hay mất tuỳ `reclaimPolicy`. PVC tách biệt "tôi cần storage" (user)
-   khỏi "storage đó là gì" (admin/provisioner).</details>
+**Câu 1**: Sự khác biệt giữa PV và PVC là gì về lifecycle và scope?
 
-2. PVC request 5Gi, có 2 PV: một 5Gi và một 20Gi, cùng accessMode và storageClass. K8s bind PVC
-   vào PV nào?
-   <details><summary>Đáp án</summary>PV 5Gi — K8s chọn PV nhỏ nhất đủ điều kiện để tránh lãng phí
-   PV lớn. Nếu PV 5Gi đang `Bound` hoặc không tồn tại, K8s sẽ dùng PV 20Gi. Đây là best-fit
-   binding strategy của K8s controller.</details>
+a) PV là cluster-scoped resource (admin-level), tồn tại độc lập với namespace và Pod —
+   lifecycle của PV không gắn với Pod. PVC là namespace-scoped (user-level), binding 1-1 với
+   PV. Khi Pod bị xoá, PVC không bị xoá tự động. Khi PVC bị xoá, PV chuyển sang Released nhưng
+   data còn hay mất tuỳ reclaimPolicy. PVC tách biệt "tôi cần storage" (user) khỏi "storage đó
+   là gì" (admin/provisioner)
+b) PV namespace-scoped (gắn theo namespace của Pod); PVC cluster-scoped (dùng chung mọi
+   namespace)
+c) PV và PVC có scope giống nhau hoàn toàn, chỉ khác tên gọi do lịch sử API cũ
+d) Khi Pod bị xoá, cả PV và PVC đều tự động bị xoá theo để giải phóng tài nguyên ngay
 
-3. PVC bị xoá, PV có `reclaimPolicy: Retain`. Có tạo PVC mới bind lại vào PV đó không?
-   <details><summary>Đáp án</summary>Không trực tiếp — PV ở trạng thái `Released` có field
-   `claimRef` vẫn trỏ vào PVC cũ; K8s không tự bind PVC mới vào PV Released. Để tái dùng PV:
-   admin phải xoá field `claimRef` trong spec của PV (`kubectl edit pv`) để PV trở về
-   `Available`, sau đó PVC mới mới bind được.</details>
+**Đáp án: a** — PV là cluster-scoped (admin-level), độc lập với namespace/Pod. PVC là
+namespace-scoped (user-level), binding 1-1 với PV. Pod xoá không tự xoá PVC. Scope bị đảo
+ngược hoàn toàn trong lựa chọn b (PV thực ra cluster-scoped, không gắn namespace của Pod —
+loại b); hai object có scope và vai trò khác nhau rõ rệt (cluster vs namespace, admin vs
+user), không chỉ khác tên (loại c); PVC KHÔNG tự xoá khi Pod bị xoá — đây chính là lý do PVC
+tách biệt được khỏi lifecycle Pod (loại d).
+
+---
+
+**Câu 2**: PVC request 5Gi, có 2 PV: một 5Gi và một 20Gi, cùng accessMode và storageClass.
+K8s bind PVC vào PV nào?
+
+a) PV 20Gi, vì K8s luôn ưu tiên PV dung lượng lớn nhất để tránh phải mở rộng sau này
+b) PV 5Gi — K8s chọn PV nhỏ nhất đủ điều kiện để tránh lãng phí PV lớn. Nếu PV 5Gi đang Bound
+   hoặc không tồn tại, K8s sẽ dùng PV 20Gi. Đây là best-fit binding strategy của K8s controller
+c) Cả hai PV cùng được bind, PVC có thể dùng chung dung lượng từ cả 2 PV
+d) Không PV nào được bind tự động, admin phải chỉ định thủ công PV nào dùng cho PVC này
+
+**Đáp án: b** — PV 5Gi — K8s chọn PV nhỏ nhất đủ điều kiện (best-fit), tránh lãng phí PV lớn.
+K8s KHÔNG ưu tiên PV lớn nhất — đó ngược với best-fit strategy, gây lãng phí (loại a); một PVC
+chỉ bind với MỘT PV duy nhất, không gộp dung lượng từ nhiều PV (loại c); binding tự động diễn
+ra qua controller dựa trên tiêu chí đủ điều kiện (size, accessMode, storageClass), không cần
+admin chỉ định thủ công cho static binding theo kịch bản thông thường này (loại d).
+
+---
+
+**Câu 3**: PVC bị xoá, PV có `reclaimPolicy: Retain`. Có tạo PVC mới bind lại vào PV đó không?
+
+a) Có, PVC mới tự động bind lại ngay vì Retain nghĩa là giữ nguyên trạng thái Bound
+b) Không, và PV đó sẽ bị xoá vĩnh viễn sau khi chuyển sang Released, không còn cách tái sử dụng
+c) Không trực tiếp — PV ở trạng thái Released có field claimRef vẫn trỏ vào PVC cũ; K8s không
+   tự bind PVC mới vào PV Released. Để tái dùng PV: admin phải xoá field claimRef trong spec
+   của PV (kubectl edit pv) để PV trở về Available, sau đó PVC mới mới bind được
+d) Có, nhưng chỉ nếu PVC mới có cùng tên chính xác với PVC cũ đã bị xoá
+
+**Đáp án: c** — Không trực tiếp. PV ở trạng thái Released vẫn giữ `claimRef` cũ, K8s không tự
+bind PVC mới. Admin phải xoá `claimRef` để PV về `Available`. Retain nghĩa là GIỮ DATA, không
+nghĩa là giữ trạng thái Bound — PV chuyển sang Released, không còn Bound (loại a); `Retain`
+chính là để TRÁNH xoá PV (ngược với "bị xoá vĩnh viễn") — mục đích của policy này là bảo toàn
+data để tái sử dụng (loại b); việc bind không dựa trên tên PVC trùng khớp — nó dựa trên trạng
+thái PV (`claimRef` còn trỏ hay đã xoá), không phải tên (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

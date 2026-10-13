@@ -112,9 +112,13 @@ Không có câu nào phải bỏ qua.
 Đã làm 5 module trong lượt này (virt-storage.ceph, container-k8s.docker-internals,
 .k8s-architecture, .k8s-workload, .k8s-networking) — dừng theo quy tắc tối đa 5 module/lượt.
 
-**Còn lại toàn kho**: `container-k8s` (4 module, 9 bài, toàn bộ essay — k8s-storage 2,
-k8s-rbac-security 2, k8s-troubleshooting 3, helm 2), `monitoring` (5 module, 11 bài, toàn bộ
-essay), `data.redis` (1 bài), `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
+`container-k8s.k8s-storage` (2 bài, 6 câu — xem commit theo sau trong git log): `pv-pvc`,
+`storageclass`. Verify qua PGlite: `kb:import` → 2 bài cập nhật, `kb:build-quiz` → 536 câu MCQ
+tổng (530 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Còn lại toàn kho**: `container-k8s` (3 module, 7 bài, toàn bộ essay — k8s-rbac-security 2,
+k8s-troubleshooting 3, helm 2), `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis`
+(1 bài), `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
 `sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
