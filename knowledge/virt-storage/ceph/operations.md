@@ -229,26 +229,102 @@ ssh ceph-02 "systemctl status ceph-osd@7"
 
 ## 7. Tự kiểm tra
 
-**1. Cluster Ceph báo `HEALTH_WARN: 1 osds down`. Điều đầu tiên cần làm là gì?**
+**Câu 1**: Cluster Ceph báo `HEALTH_WARN: 1 osds down`. Điều đầu tiên cần làm là gì?
 
-Chạy `ceph health detail` để biết OSD nào down và nguyên nhân (nếu có trong health detail). Sau đó SSH vào host chứa OSD đó và kiểm tra `systemctl status ceph-osd@<id>` cùng `journalctl -u ceph-osd@<id>` để xem log. Phân loại nguyên nhân: tiến trình crash (restart được), disk lỗi (cần replace), hay network issue.
+a) Restart toàn bộ cluster Ceph ngay để buộc OSD down tự phục hồi
+b) Chạy `ceph health detail` để biết OSD nào down và nguyên nhân (nếu có trong health detail).
+   Sau đó SSH vào host chứa OSD đó và kiểm tra `systemctl status ceph-osd@<id>` cùng
+   `journalctl -u ceph-osd@<id>` để xem log. Phân loại nguyên nhân: tiến trình crash (restart
+   được), disk lỗi (cần replace), hay network issue
+c) Chạy `ceph osd out <id>` ngay lập tức mà không cần xác định nguyên nhân trước
+d) Xoá OSD đó khỏi CRUSH map ngay để tránh ảnh hưởng tới các OSD khác
 
-**2. PG ở trạng thái `active+degraded` khác `active+undersized` thế nào? Cái nào nguy hiểm hơn?**
+**Đáp án: b** — Chạy `ceph health detail` để biết OSD nào down và nguyên nhân, rồi SSH vào
+host kiểm tra `systemctl status`/`journalctl` để phân loại nguyên nhân trước khi hành động.
+Restart toàn bộ cluster là hành động quá mạnh tay, ảnh hưởng mọi OSD khác đang hoạt động bình
+thường, không cần thiết cho 1 OSD down (loại a); mark `out` ngay mà chưa biết nguyên nhân có
+thể trigger rebalancing không cần thiết nếu OSD chỉ cần restart đơn giản (loại c); xoá khỏi
+CRUSH map là hành động vĩnh viễn, không nên thực hiện trước khi chẩn đoán nguyên nhân (loại d).
 
-`active+degraded`: PG đang hoạt động, nhưng số replica thực tế < `size` (ví dụ 2/3). Vẫn phục vụ IO, đang hoặc sắp recover. `active+undersized`: số replica < `min_size` — đây là ngưỡng nguy hiểm. Ceph có thể từ chối IO để bảo vệ data integrity. `undersized` nguy hiểm hơn vì IO có thể bị block.
+---
 
-**3. Lệnh `ceph osd set noout` dùng khi nào? Rủi ro nếu để lâu là gì?**
+**Câu 2**: PG ở trạng thái `active+degraded` khác `active+undersized` thế nào? Cái nào nguy
+hiểm hơn?
 
-Dùng trong maintenance window: khi cần restart OSD hay host để update/patch, tránh cluster tự động mark OSD "out" và trigger unnecessary rebalancing. Rủi ro nếu để lâu: nếu OSD thật sự chết vĩnh viễn, cluster không recover → dữ liệu mãi ở trạng thái degraded, rủi ro mất data nếu thêm OSD khác fail.
+a) active+undersized chỉ là cảnh báo hiển thị, không ảnh hưởng gì tới việc phục vụ IO thực tế
+b) active+degraded nguy hiểm hơn vì luôn đi kèm mất dữ liệu vĩnh viễn, còn undersized chỉ là
+   tạm thời
+c) `active+degraded`: PG đang hoạt động, nhưng số replica thực tế < `size` (ví dụ 2/3). Vẫn
+   phục vụ IO, đang hoặc sắp recover. `active+undersized`: số replica < `min_size` — đây là
+   ngưỡng nguy hiểm. Ceph có thể từ chối IO để bảo vệ data integrity. `undersized` nguy hiểm
+   hơn vì IO có thể bị block
+d) Hai trạng thái này giống nhau hoàn toàn, chỉ khác tên gọi theo phiên bản Ceph
 
-**4. Ceph OSD thường có bao nhiêu % disk là "an toàn" trước khi gặp vấn đề?**
+**Đáp án: c** — `active+degraded` vẫn phục vụ IO với replica < `size`; `active+undersized` là
+khi replica < `min_size`, Ceph có thể từ chối IO để bảo vệ data integrity — nguy hiểm hơn vì có
+thể block IO. `undersized` ảnh hưởng thật tới khả năng phục vụ IO, không chỉ là cảnh báo hiển
+thị (loại a); `degraded` không "luôn đi kèm mất dữ liệu vĩnh viễn" — nó vẫn phục vụ IO và có
+thể tự recover (loại b); hai trạng thái này có ngưỡng và mức độ nguy hiểm khác nhau rõ rệt,
+không phải cùng một thứ đổi tên (loại d).
 
-<!-- TODO-VERIFY: ngưỡng mặc định có thể thay đổi theo version -->
-Ceph có 3 ngưỡng mặc định: `nearfull_ratio` (~85%) cảnh báo, `backfill_full_ratio` (~90%) ngừng backfill, `full_ratio` (~95%) từ chối write. Thực tế nên alert từ 75-80% để có thời gian phản ứng. OSD full gây OSD crash như tình huống thực tế ở trên.
+---
 
-**5. Khi nào nên dùng `ceph osd reweight` so với `ceph osd crush reweight`?**
+**Câu 3**: Lệnh `ceph osd set noout` dùng khi nào? Rủi ro nếu để lâu là gì?
 
-`osd reweight` (giá trị 0-1) là điều chỉnh tạm thời, không thay đổi CRUSH map — dùng khi một OSD quá tải so với OSD khác và cần shift traffic ngay. `crush reweight` thay đổi weight trong CRUSH map theo disk size thực tế — dùng khi thêm disk lớn hơn vào cluster và muốn CRUSH tự động phân bổ nhiều PG hơn cho OSD đó.
+a) Dùng để tăng hiệu năng đọc/ghi tạm thời, không liên quan tới maintenance; không có rủi ro
+   nào nếu để lâu
+b) Dùng khi muốn xoá vĩnh viễn một OSD khỏi cluster ngay lập tức; rủi ro là mất dữ liệu ngay
+   khi chạy lệnh
+c) Dùng để buộc cluster ngừng hoàn toàn mọi hoạt động IO trong lúc backup; rủi ro là mất kết
+   nối client
+d) Dùng trong maintenance window: khi cần restart OSD hay host để update/patch, tránh cluster
+   tự động mark OSD "out" và trigger unnecessary rebalancing. Rủi ro nếu để lâu: nếu OSD thật
+   sự chết vĩnh viễn, cluster không recover → dữ liệu mãi ở trạng thái degraded, rủi ro mất
+   data nếu thêm OSD khác fail
+
+**Đáp án: d** — Dùng trong maintenance window để tránh cluster tự động mark OSD "out" và
+trigger rebalancing không cần thiết. Rủi ro nếu để lâu: nếu OSD chết vĩnh viễn, cluster không
+recover, dữ liệu mãi degraded. Lệnh này không liên quan tới tăng hiệu năng, và CÓ rủi ro thật
+nếu để lâu — không phải "không có rủi ro" (loại a); lệnh này KHÔNG xoá OSD khỏi cluster, nó
+chỉ ngăn việc tự động mark out (loại b); lệnh không chặn toàn bộ IO của cluster, nó chỉ ảnh
+hưởng tới hành vi mark out/rebalancing (loại c).
+
+---
+
+**Câu 4**: Ceph OSD thường có bao nhiêu % disk là "an toàn" trước khi gặp vấn đề?
+
+a) Ceph có 3 ngưỡng mặc định: `nearfull_ratio` (~85%) cảnh báo, `backfill_full_ratio` (~90%)
+   ngừng backfill, `full_ratio` (~95%) từ chối write. Thực tế nên alert từ 75-80% để có thời
+   gian phản ứng. OSD full gây OSD crash như tình huống thực tế ở trên
+b) Chỉ có 1 ngưỡng duy nhất full_ratio 100%, Ceph không cảnh báo sớm hơn mức đó
+c) Ceph tự động mở rộng dung lượng ảo khi gần đầy, nên không có ngưỡng cần quan tâm
+d) Ngưỡng an toàn luôn cố định là 50% bất kể version, không thay đổi được
+
+**Đáp án: a** — Ceph có 3 ngưỡng mặc định: `nearfull_ratio` (~85%), `backfill_full_ratio`
+(~90%), `full_ratio` (~95%); thực tế nên alert từ 75-80% để có thời gian phản ứng.
+<!-- TODO-VERIFY: ngưỡng mặc định có thể thay đổi theo version --> Ceph CÓ nhiều ngưỡng cảnh
+báo sớm trước 100%, không chỉ 1 ngưỡng duy nhất ở mức đầy hoàn toàn (loại b); Ceph không tự
+"mở rộng dung lượng ảo" khi gần đầy — disk vật lý vẫn là giới hạn thật (loại c); các ngưỡng
+này có thể CẤU HÌNH LẠI theo nhu cầu vận hành, không cố định cứng 50% (loại d).
+
+---
+
+**Câu 5**: Khi nào nên dùng `ceph osd reweight` so với `ceph osd crush reweight`?
+
+a) osd reweight thay đổi CRUSH map vĩnh viễn; crush reweight chỉ tạm thời cho tới khi restart
+   OSD
+b) `osd reweight` (giá trị 0-1) là điều chỉnh tạm thời, không thay đổi CRUSH map — dùng khi một
+   OSD quá tải so với OSD khác và cần shift traffic ngay. `crush reweight` thay đổi weight
+   trong CRUSH map theo disk size thực tế — dùng khi thêm disk lớn hơn vào cluster và muốn
+   CRUSH tự động phân bổ nhiều PG hơn cho OSD đó
+c) Cả hai lệnh hoàn toàn tương đương, chỉ khác cú pháp gõ lệnh
+d) osd reweight dùng khi thêm disk mới; crush reweight dùng khi một OSD quá tải tạm thời
+
+**Đáp án: b** — `osd reweight` là điều chỉnh tạm thời, không thay đổi CRUSH map, dùng khi một
+OSD quá tải cần shift traffic ngay. `crush reweight` thay đổi CRUSH map theo disk size thực
+tế, dùng khi thêm disk lớn hơn. Vai trò bị đảo ngược hoàn toàn trong lựa chọn a (`osd reweight`
+mới là tạm thời, không phải `crush reweight`); hai lệnh có mục đích và cơ chế khác biệt rõ
+rệt, không tương đương (loại c); use case bị đảo ngược trong lựa chọn d (loại d).
 
 ## 8. Bài liên quan và nguồn
 

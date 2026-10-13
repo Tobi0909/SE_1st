@@ -79,11 +79,26 @@ MCQ tổng (458 cũ + 20 mới), idempotent, `kb:lint` pass. Không có câu nà
 (nat-firewall, tls-pki, http-lb, vpn, diagnostic-tools) — dừng theo quy tắc tối đa 5 module/
 lượt. Tiếp theo: domain `virt-storage`.
 
-**Còn lại toàn kho**: domain `virt-storage` (vsphere 4 bài, proxmox-kvm 2, san-nas 3, ceph 2,
-backup-dr 2 = 13 bài), `container-k8s` (phần chưa chuyển — cần kiểm tra lại định dạng từng
-module khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — cần rà lại định dạng từng
-module trước khi làm (một số domain này đã viết sẵn dạng MCQ từ đầu theo _progress.md, không
-phải tất cả cần chuyển).
+**Rà lại định dạng (2026-10-13)**: `virt-storage.vsphere`/`.proxmox-kvm`/`.san-nas`/`.backup-dr`
+và toàn bộ domain `devops`/`security` ĐÃ là MCQ sẵn từ lúc viết, không cần chuyển. Domain
+`data` chỉ `mysql-postgres` đã MCQ (`redis`, `message-queue` còn essay). Domain `sre` chỉ
+`incident-response`/`postmortem`/`change-management` đã MCQ (`capacity-planning`,
+`toil-automation` còn essay). Domain `monitoring` và `container-k8s` toàn bộ còn essay.
+
+`virt-storage.ceph` (2 bài, 10 câu — xem commit theo sau trong git log): `architecture`,
+`operations` (định dạng gốc `**N.** + đoạn văn`, không phải `<details>`, vẫn chuyển theo đúng
+mẫu MCQ chuẩn). `operations.md` câu 4 giữ nguyên marker `TODO-VERIFY` gốc (ngưỡng % mặc định
+Ceph theo version) trong phần giải thích đáp án đúng — không bỏ sót khi reformat. Verify qua
+PGlite: `kb:import` → 2 bài cập nhật, `kb:build-quiz` → 488 câu MCQ tổng (478 cũ + 10 mới),
+idempotent, `kb:lint` pass (TODO-VERIFY vẫn đúng 15). Không có câu nào phải bỏ qua.
+
+Domain `virt-storage` đã xong hoàn toàn (5/5 module). Tiếp theo: domain `container-k8s`.
+
+**Còn lại toàn kho**: `container-k8s` (8 module, 23 bài, toàn bộ essay — docker-internals 5,
+k8s-architecture 2, k8s-workload 4, k8s-networking 3, k8s-storage 2, k8s-rbac-security 2,
+k8s-troubleshooting 3, helm 2), `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis`
+(1 bài), `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
+`sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
