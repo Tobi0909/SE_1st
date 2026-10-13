@@ -232,25 +232,103 @@ Sau 20 phút scale consumer, lag về 0. DLQ message được reprocess sau khi 
 
 ## 7. Tự kiểm tra
 
-**1. Tại sao Kafka không xoá message sau khi consumer đọc xong?**
+**Câu 1**: Tại sao Kafka không xoá message sau khi consumer đọc xong?
 
-Kafka là log-based — message được lưu theo retention policy (thời gian hoặc size), không theo trạng thái consumed. Điều này cho phép: (1) nhiều consumer group đọc độc lập cùng topic, (2) consumer có thể replay về offset cũ để xử lý lại. RabbitMQ thì xoá message sau khi consumer ack — phù hợp cho task queue nơi mỗi task chỉ cần xử lý một lần.
+a) Vì Kafka không có khái niệm xoá dữ liệu dưới bất kỳ hình thức nào, message tồn tại vĩnh
+   viễn không giới hạn
+b) Kafka là log-based — message được lưu theo retention policy (thời gian hoặc size), không
+   theo trạng thái consumed. Điều này cho phép: (1) nhiều consumer group đọc độc lập cùng
+   topic, (2) consumer có thể replay về offset cũ để xử lý lại. RabbitMQ thì xoá message sau
+   khi consumer ack — phù hợp cho task queue nơi mỗi task chỉ cần xử lý một lần
+c) Vì consumer trong Kafka không gửi ack nên broker không biết khi nào an toàn để xoá
+d) Vì RabbitMQ cũng giữ nguyên message sau khi đọc giống Kafka, không có khác biệt thật nào
+   giữa 2 hệ thống
 
-**2. Consumer lag trong Kafka là gì? Làm thế nào để giảm lag?**
+**Đáp án: b** — Kafka log-based, lưu theo retention policy, không theo trạng thái consumed —
+cho phép nhiều consumer group và replay. RabbitMQ xoá sau ack. Kafka CÓ xoá message, nhưng
+theo retention policy (thời gian/size), không phải "vĩnh viễn không giới hạn" (loại a); lý do
+không xoá không liên quan tới việc có ack hay không — bản chất Kafka là log lưu theo thời
+gian, khác cơ chế queue dựa trên ack (loại c); RabbitMQ XOÁ message sau ack, hành vi khác hẳn
+Kafka — đây chính là sự khác biệt cốt lõi (loại d).
 
-Consumer lag = khoảng cách giữa offset cuối cùng trong partition và offset consumer đã commit. Lag tăng nghĩa là consumer đang xử lý chậm hơn producer. Giảm lag bằng: scale consumer (không vượt số partition), tăng partition để tăng parallelism, tối ưu logic xử lý, hoặc batch processing.
+---
 
-**3. Tại sao Kafka yêu cầu số consumer trong 1 group không vượt số partition?**
+**Câu 2**: Consumer lag trong Kafka là gì? Làm thế nào để giảm lag?
 
-Mỗi partition chỉ được assign cho 1 consumer trong 1 group tại 1 thời điểm (để đảm bảo ordering và exactly-once semantics). Nếu có nhiều consumer hơn partition, consumer thừa sẽ idle — không có partition để đọc. Số partition là giới hạn parallelism của consumer group.
+a) Consumer lag là thời gian broker Kafka bị downtime, giảm lag bằng cách restart broker
+   thường xuyên hơn
+b) Consumer lag là số lượng consumer group đang active cùng lúc, giảm lag bằng cách giảm số
+   consumer group
+c) Consumer lag = khoảng cách giữa offset cuối cùng trong partition và offset consumer đã
+   commit. Lag tăng nghĩa là consumer đang xử lý chậm hơn producer. Giảm lag bằng: scale
+   consumer (không vượt số partition), tăng partition để tăng parallelism, tối ưu logic xử
+   lý, hoặc batch processing
+d) Consumer lag chỉ xảy ra khi dùng RabbitMQ chứ không xảy ra trong Kafka vì Kafka không có
+   khái niệm offset
 
-**4. Dead letter queue (DLQ) trong RabbitMQ là gì? Khi nào message bị chuyển vào DLQ?**
+**Đáp án: c** — Consumer lag là khoảng cách offset cuối và offset đã commit; giảm bằng scale
+consumer/partition, tối ưu logic, batch. Lag không liên quan tới downtime broker — nó đo tốc
+độ xử lý của consumer so với producer (loại a); lag không đo số consumer group active — đó là
+chỉ số khác hoàn toàn (loại b); consumer lag là khái niệm ĐẶC TRƯNG của Kafka (dựa trên
+offset), không phải của RabbitMQ — Kafka chính là hệ thống CÓ khái niệm offset (loại d).
 
-DLQ là queue đặc biệt nhận message bị từ chối. Message vào DLQ khi: consumer nack với `requeue=false`, message hết TTL (`x-message-ttl`), hoặc queue đầy (`x-overflow: dead-letter`). DLQ dùng để debug message thất bại mà không làm mất — team có thể inspect, sửa code, rồi requeue lại.
+---
 
-**5. Khi nào nên chọn Kafka thay vì RabbitMQ?**
+**Câu 3**: Tại sao Kafka yêu cầu số consumer trong 1 group không vượt số partition?
 
-Chọn Kafka khi: cần throughput cao (>10k msg/s), cần replay/audit trail (event sourcing), nhiều consumer group đọc cùng topic (streaming pipeline), hoặc cần retention dài (log aggregation). Chọn RabbitMQ khi: cần routing linh hoạt (fanout, topic, headers), workflow với ack/nack/retry built-in, hoặc task queue đơn giản với throughput vừa phải.
+a) Vì mỗi consumer chỉ được phép đọc tối đa 1 message mỗi giây, nhiều consumer hơn partition
+   sẽ vượt giới hạn tốc độ
+b) Vì Kafka giới hạn cứng số consumer tối đa là bằng số broker, không liên quan tới partition
+c) Vì nhiều consumer hơn partition sẽ làm Kafka tự động tạo thêm partition mới để cân bằng
+   tải
+d) Mỗi partition chỉ được assign cho 1 consumer trong 1 group tại 1 thời điểm (để đảm bảo
+   ordering và exactly-once semantics). Nếu có nhiều consumer hơn partition, consumer thừa sẽ
+   idle — không có partition để đọc. Số partition là giới hạn parallelism của consumer group
+
+**Đáp án: d** — Mỗi partition chỉ gán cho 1 consumer/group tại 1 thời điểm; consumer thừa sẽ
+idle. Số partition giới hạn parallelism. Không có giới hạn tốc độ "1 message/giây" nào trong
+Kafka theo cách đó — vấn đề là ASSIGNMENT partition, không phải throughput cứng (loại a); giới
+hạn số consumer gắn với số PARTITION, không phải số broker (loại b); Kafka KHÔNG tự tạo thêm
+partition khi thêm consumer — số partition là giá trị cấu hình cố định của topic, phải thay
+đổi thủ công (loại c).
+
+---
+
+**Câu 4**: Dead letter queue (DLQ) trong RabbitMQ là gì? Khi nào message bị chuyển vào DLQ?
+
+a) DLQ là queue đặc biệt nhận message bị từ chối. Message vào DLQ khi: consumer nack với
+   requeue=false, message hết TTL (x-message-ttl), hoặc queue đầy (x-overflow: dead-letter).
+   DLQ dùng để debug message thất bại mà không làm mất — team có thể inspect, sửa code, rồi
+   requeue lại
+b) DLQ là queue chính dùng để xử lý message bình thường, không phải nơi chứa message lỗi
+c) Message vào DLQ chỉ khi admin xoá queue gốc thủ công, không có cơ chế tự động nào khác
+d) DLQ chỉ tồn tại trong Kafka, RabbitMQ không hỗ trợ khái niệm dead letter queue
+
+**Đáp án: a** — DLQ nhận message bị từ chối (nack requeue=false, TTL hết, queue đầy); dùng để
+debug mà không mất message. DLQ là queue CHỨA MESSAGE LỖI, không phải queue xử lý message
+bình thường — đó chính là định nghĩa và mục đích của nó (loại b); DLQ hoạt động TỰ ĐỘNG qua
+nhiều cơ chế (nack, TTL, overflow), không chỉ khi admin xoá thủ công (loại c); DLQ là khái
+niệm CÓ trong RabbitMQ (qua `x-dead-letter-exchange`), không phải chỉ riêng Kafka (loại d).
+
+---
+
+**Câu 5**: Khi nào nên chọn Kafka thay vì RabbitMQ?
+
+a) Chọn Kafka khi cần routing linh hoạt (fanout, topic, headers); chọn RabbitMQ khi cần
+   replay/audit trail
+b) Chọn Kafka khi: cần throughput cao (>10k msg/s), cần replay/audit trail (event sourcing),
+   nhiều consumer group đọc cùng topic (streaming pipeline), hoặc cần retention dài (log
+   aggregation). Chọn RabbitMQ khi: cần routing linh hoạt (fanout, topic, headers), workflow
+   với ack/nack/retry built-in, hoặc task queue đơn giản với throughput vừa phải
+c) Luôn chọn Kafka cho mọi trường hợp vì Kafka vượt trội hoàn toàn RabbitMQ về mọi mặt
+d) Cả hai hoàn toàn tương đương, lựa chọn chỉ dựa vào sở thích cá nhân của team
+
+**Đáp án: b** — Kafka cho throughput cao/replay/nhiều consumer group/retention dài. RabbitMQ
+cho routing linh hoạt/ack-nack-retry/task queue đơn giản. Vai trò bị đảo ngược hoàn toàn trong
+lựa chọn a (routing linh hoạt thực ra là điểm mạnh của RabbitMQ, không phải Kafka — loại a);
+Kafka KHÔNG vượt trội trong mọi trường hợp — RabbitMQ vẫn tốt hơn cho routing phức tạp và task
+queue đơn giản, đây chính là lý do bài đưa ra tiêu chí lựa chọn cụ thể (loại c); hai công cụ
+có ĐIỂM MẠNH khác nhau rõ rệt theo use case, không phải chỉ là sở thích cá nhân (loại d).
 
 ## 8. Bài liên quan và nguồn
 
