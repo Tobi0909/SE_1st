@@ -245,29 +245,68 @@ Cài monitoring cho web server mới chạy Nginx, cần cảnh báo khi Nginx d
 
 ## 7. Tự kiểm tra
 
-1. Trigger dùng `last(/host/vm.memory.size[pavailable])<10` vs
-   `min(/host/vm.memory.size[pavailable],5m)<10`. Cái nào tốt hơn và tại sao?
-   <details><summary>Đáp án</summary>`min(,5m)<10` tốt hơn cho alert có ý nghĩa. `last()<10`
-   fire ngay khi MỘT giá trị dưới 10% — có thể là spike tạm thời. `min(,5m)<10` chỉ fire khi
-   giá trị THẤP NHẤT trong 5 phút cũng dưới 10% — nghĩa là memory đã thực sự thấp liên tục 5
-   phút, không phải spike ngắn. Trong thực tế vận hành, spike 1-2 phút ít quan trọng; memory
-   thấp liên tục mới cần alert.</details>
+**Câu 1**: Trigger dùng `last(/host/vm.memory.size[pavailable])<10` vs
+`min(/host/vm.memory.size[pavailable],5m)<10`. Cái nào tốt hơn và tại sao?
 
-2. Template "Linux by Zabbix agent" được link vào 50 host. Cần thêm 1 item mới giám sát
-   `/var/log/app.log` chứa từ "CRITICAL". Cần làm gì?
-   <details><summary>Đáp án</summary>Sửa template (Configuration → Templates → [template] →
-   Items → Create Item), không thêm vào từng host. Khi template được update, tất cả 50 host đã
-   link sẽ tự động nhận item mới. Nếu thêm trực tiếp vào host, phải lặp lại 50 lần VÀ không
-   được quản lý tập trung — khi cần sửa expression, phải sửa 50 chỗ. Item cho log dùng key
-   `log[/var/log/app.log,CRITICAL]` với type "Zabbix agent (active)".</details>
+a) last()<10 tốt hơn vì phản ứng ngay lập tức, không bị trễ 5 phút như min()
+b) Cả hai hoàn toàn tương đương về mặt alert, chỉ khác cách viết expression
+c) min(,5m)<10 tốt hơn cho alert có ý nghĩa. last()<10 fire ngay khi MỘT giá trị dưới 10% —
+   có thể là spike tạm thời. min(,5m)<10 chỉ fire khi giá trị THẤP NHẤT trong 5 phút cũng dưới
+   10% — nghĩa là memory đã thực sự thấp liên tục 5 phút, không phải spike ngắn. Trong thực tế
+   vận hành, spike 1-2 phút ít quan trọng; memory thấp liên tục mới cần alert
+d) min(,5m)<10 tệ hơn vì bỏ sót hoàn toàn các spike ngắn, không bao giờ phát hiện được sự cố
 
-3. Zabbix gửi alert cho trigger "nginx.process.count=0" nhưng ngay sau đó gửi thêm alert cho
-   "web health check fail" và "5xx rate spike" trên cùng host. Cách nào giảm thiểu noise?
-   <details><summary>Đáp án</summary>Trigger dependencies: set "web health check fail" và "5xx
-   rate spike" phụ thuộc (depend on) trigger "nginx.process.count=0". Khi Nginx down, trigger
-   root cause fire trước; 2 trigger còn lại bị suppress vì dependency đang active. Chỉ có 1
-   alert được gửi. Khi Nginx up lại và trigger root cause RESOLVED, 2 trigger phụ thuộc mới
-   được phép fire (nếu condition của chúng vẫn còn true).</details>
+**Đáp án: c** — `min(,5m)<10` tốt hơn — chỉ fire khi memory thấp LIÊN TỤC 5 phút, tránh alert
+vì spike tạm thời. Phản ứng ngay của `last()` chính là NHƯỢC ĐIỂM ở đây (dễ fire nhầm theo
+spike), không phải ưu điểm (loại a); hai expression cho hành vi alert KHÁC NHAU rõ rệt (fire
+theo 1 điểm vs fire theo cửa sổ thời gian), không tương đương (loại b); `min(,5m)` không "bỏ
+sót hoàn toàn" spike — nó CHỦ Ý bỏ qua spike ngắn để tránh alert vô nghĩa, vẫn phát hiện được
+vấn đề thật kéo dài (loại d).
+
+---
+
+**Câu 2**: Template "Linux by Zabbix agent" được link vào 50 host. Cần thêm 1 item mới giám
+sát `/var/log/app.log` chứa từ "CRITICAL". Cần làm gì?
+
+a) Thêm item trực tiếp vào từng host một trong 50 host để đảm bảo cấu hình linh hoạt riêng
+   từng máy
+b) Tạo 50 template riêng, mỗi template ứng với 1 host rồi link lại
+c) Xoá template cũ, tạo template mới có item này rồi link lại vào cả 50 host
+d) Sửa template (Configuration → Templates → [template] → Items → Create Item), không thêm
+   vào từng host. Khi template được update, tất cả 50 host đã link sẽ tự động nhận item mới.
+   Nếu thêm trực tiếp vào host, phải lặp lại 50 lần VÀ không được quản lý tập trung — khi cần
+   sửa expression, phải sửa 50 chỗ. Item cho log dùng key log[/var/log/app.log,CRITICAL] với
+   type "Zabbix agent (active)"
+
+**Đáp án: d** — Sửa template, không thêm vào từng host. 50 host đã link tự động nhận item
+mới. Thêm trực tiếp vào từng host là cách làm KHÔNG hiệu quả — tốn công lặp lại 50 lần và mất
+tính quản lý tập trung, không phải cách "linh hoạt" hơn (loại a); tạo 50 template riêng đi
+ngược lại chính mục đích của template (tái sử dụng, quản lý tập trung), không hợp lý (loại
+b); xoá và tạo lại template là hành động không cần thiết — chỉ cần SỬA template hiện có (loại
+c).
+
+---
+
+**Câu 3**: Zabbix gửi alert cho trigger "nginx.process.count=0" nhưng ngay sau đó gửi thêm
+alert cho "web health check fail" và "5xx rate spike" trên cùng host. Cách nào giảm thiểu
+noise?
+
+a) Trigger dependencies: set "web health check fail" và "5xx rate spike" phụ thuộc (depend
+   on) trigger "nginx.process.count=0". Khi Nginx down, trigger root cause fire trước; 2
+   trigger còn lại bị suppress vì dependency đang active. Chỉ có 1 alert được gửi. Khi Nginx
+   up lại và trigger root cause RESOLVED, 2 trigger phụ thuộc mới được phép fire (nếu
+   condition của chúng vẫn còn true)
+b) Tắt hẳn 2 trigger "web health check fail" và "5xx rate spike" vĩnh viễn, không bao giờ cần
+   cảnh báo riêng
+c) Tăng ngưỡng severity của cả 3 trigger lên mức cao nhất để Zabbix tự động gộp thành 1 alert
+d) Đổi cả 3 trigger sang cùng 1 item duy nhất để chúng luôn fire đồng thời thành 1 sự kiện
+
+**Đáp án: a** — Trigger dependencies: 2 trigger phụ thuộc vào trigger root cause
+"nginx.process.count=0", bị suppress khi dependency đang active. Chỉ 1 alert được gửi. Tắt
+vĩnh viễn 2 trigger làm MẤT khả năng cảnh báo khi chúng fire độc lập (không do Nginx down) —
+quá cực đoan so với dependency (loại b); tăng severity không có tác dụng gộp alert — Zabbix
+không tự gộp theo severity (loại c); đổi chung 1 item không hợp lý về mặt giám sát (các trigger
+theo dõi điều kiện khác nhau), và không phải cơ chế giảm noise chính thức của Zabbix (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

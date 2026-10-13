@@ -131,8 +131,16 @@ MCQ tổng (551 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào
 
 **Domain `container-k8s` đã xong hoàn toàn (8/8 module).** Tiếp theo: domain `monitoring`.
 
-**Còn lại toàn kho**: `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis` (1 bài),
-`data.message-queue` (1 bài), `sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
+`monitoring.zabbix` (2 bài, 6 câu — xem commit theo sau trong git log): `architecture`,
+`items-triggers`. Verify qua PGlite: `kb:import` → 2 bài cập nhật, `kb:build-quiz` → 563 câu
+MCQ tổng (557 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+Đã làm 5 module trong lượt này (k8s-storage, k8s-rbac-security, k8s-troubleshooting, helm,
+monitoring.zabbix) — dừng theo quy tắc tối đa 5 module/lượt.
+
+**Còn lại toàn kho**: `monitoring` (4 module, 9 bài, toàn bộ essay — prometheus-grafana 3,
+logging 3, alerting-design 1, sli-slo 2), `data.redis` (1 bài), `data.message-queue` (1 bài),
+`sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
