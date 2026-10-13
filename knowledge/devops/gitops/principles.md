@@ -206,25 +206,107 @@ Không cần can thiệp thủ công; Git log ghi lại ai đã merge commit đ�
 
 ## 7. Tự kiểm tra
 
-**1. Nguyên lý nào trong OpenGitOps giải thích tại sao GitOps agent phải PULL config thay vì nhận config được PUSH vào?**
+**Câu 1**: Nguyên lý nào trong OpenGitOps giải thích tại sao GitOps agent phải PULL config
+thay vì nhận config được PUSH vào?
 
-Nguyên lý 3 — "Pulled Automatically": software agent tự chủ động lấy khai báo trạng thái mong muốn từ nguồn. Điều này loại bỏ nhu cầu CI pipeline có credential vào cluster và bảo vệ cluster khỏi push từ hệ thống ngoài.
+a) Nguyên lý 1 "Declarative" — nguyên lý này nói về định dạng khai báo, không liên quan tới
+   cơ chế pull/push
+b) Nguyên lý 3 — "Pulled Automatically": software agent tự chủ động lấy khai báo trạng thái
+   mong muốn từ nguồn. Điều này loại bỏ nhu cầu CI pipeline có credential vào cluster và bảo
+   vệ cluster khỏi push từ hệ thống ngoài
+c) Không có nguyên lý nào trong OpenGitOps nói về pull vs push, đây là chi tiết
+   implementation tùy ArgoCD/Flux
+d) Nguyên lý 4 "Continuously Reconciled" — nguyên lý này giải thích vì sao phải PUSH liên
+   tục để đồng bộ
 
-**2. Drift xảy ra khi nào? GitOps phát hiện và xử lý drift như thế nào?**
+**Đáp án: b** — Nguyên lý 3 "Pulled Automatically": agent tự lấy config, loại bỏ nhu cầu CI
+có credential vào cluster. Nguyên lý 1 (Declarative) nói về ĐỊNH DẠNG khai báo trạng thái,
+không nói về cơ chế lấy config (loại a); đây CHÍNH LÀ một trong 4 nguyên lý OpenGitOps được
+đặt tên rõ ràng, không phải chi tiết implementation (loại c); nguyên lý 4 nói về việc liên
+tục SO SÁNH VÀ ÁP LẠI desired state (reconcile), không phải "PUSH liên tục" — PUSH đi ngược
+lại triết lý GitOps (loại d).
 
-Drift xảy ra khi trạng thái thực của cluster lệch khỏi desired state trong Git (ví dụ: ai đó chạy `kubectl edit` trực tiếp). GitOps agent phát hiện qua bước DIFF trong reconciliation loop, sau đó áp lại desired state từ Git (nguyên lý 4 — Continuously Reconciled).
+---
 
-**3. Tại sao không nên dùng `image: latest` trong manifest GitOps?**
+**Câu 2**: Drift xảy ra khi nào? GitOps phát hiện và xử lý drift như thế nào?
 
-Tag `latest` là mutable — cùng tag có thể trỏ đến image layer khác nhau qua thời gian. Agent GitOps so sánh manifest trong Git với resource trên cluster; nếu tag không đổi, agent không thấy diff nên không reconcile, dù image thực tế đã thay đổi. Dùng digest (`image@sha256:...`) hoặc tag bất biến (`v2.4.1`) để mỗi thay đổi image đều tạo ra diff rõ ràng trong Git.
+a) Drift chỉ xảy ra khi Git repo bị xoá hoàn toàn, GitOps xử lý bằng cách tạo lại repo từ
+   backup
+b) Drift là thuật ngữ chỉ việc commit message không rõ ràng, GitOps xử lý bằng linting
+   commit message
+c) Drift xảy ra khi trạng thái thực của cluster lệch khỏi desired state trong Git (ví dụ: ai
+   đó chạy kubectl edit trực tiếp). GitOps agent phát hiện qua bước DIFF trong reconciliation
+   loop, sau đó áp lại desired state từ Git (nguyên lý 4 — Continuously Reconciled)
+d) Drift chỉ xảy ra một lần duy nhất khi mới cài GitOps agent, sau đó không bao giờ xảy ra
+   lại
 
-**4. Sự khác biệt giữa mô hình Push và Pull trong CI/CD là gì? Mô hình nào an toàn hơn và tại sao?**
+**Đáp án: c** — Drift là khi cluster lệch khỏi Git desired state (ví dụ sửa thủ công). Agent
+phát hiện qua DIFF, áp lại desired state. Drift không liên quan gì tới việc repo bị xoá — đó
+là tình huống khác hoàn toàn (loại a); drift là khái niệm về TRẠNG THÁI HẠ TẦNG lệch nhau,
+không liên quan tới commit message (loại b); drift có thể xảy ra NHIỀU LẦN bất cứ khi nào có
+thay đổi thủ công trên cluster, không chỉ 1 lần khi cài đặt (loại d).
 
-Push: CI pipeline dùng credential để ghi thẳng vào cluster (kubectl apply từ pipeline). Pull: agent trong cluster tự kéo config từ Git, pipeline không có quyền vào cluster. Pull an toàn hơn vì blast radius của credential bị lộ nhỏ hơn — CI chỉ cần quyền đọc/ghi Git, không cần quyền admin cluster.
+---
 
-**5. Trong GitOps, Git đóng vai trò gì khác so với khi chỉ dùng làm version control thông thường?**
+**Câu 3**: Tại sao không nên dùng `image: latest` trong manifest GitOps?
 
-Trong GitOps, Git là "source of truth" cho cả infrastructure lẫn trạng thái mong muốn của hệ thống — không chỉ lưu code mà còn là hệ thống audit trail, trigger cho reconciliation, và cơ chế rollback (revert commit = rollback deployment). Git commit history trở thành lịch sử đầy đủ của mọi thay đổi hạ tầng, bao gồm ai thay đổi và lý do.
+a) Vì image:latest luôn bị Docker Hub rate-limit nặng hơn các tag khác, không liên quan tới
+   GitOps diff
+b) Vì ArgoCD/Flux không hỗ trợ cú pháp image:latest trong manifest, sẽ báo lỗi parse YAML
+c) Vì image:latest chỉ hoạt động được với public registry, không hoạt động với private
+   registry nội bộ
+d) Tag latest là mutable — cùng tag có thể trỏ đến image layer khác nhau qua thời gian.
+   Agent GitOps so sánh manifest trong Git với resource trên cluster; nếu tag không đổi,
+   agent không thấy diff nên không reconcile, dù image thực tế đã thay đổi. Dùng digest
+   (image@sha256:...) hoặc tag bất biến (v2.4.1) để mỗi thay đổi image đều tạo ra diff rõ
+   ràng trong Git
+
+**Đáp án: d** — `latest` mutable; agent không thấy diff nếu tag không đổi dù image đã thay
+đổi thật. Nên dùng digest hoặc tag bất biến. Rate-limit Docker Hub không liên quan tới cơ chế
+diff/reconcile của GitOps — đó là vấn đề khác (loại a); ArgoCD/Flux HOÀN TOÀN hỗ trợ cú pháp
+`image: latest` về mặt parse YAML — vấn đề là hành vi reconcile, không phải lỗi cú pháp (loại
+b); `latest` hoạt động được với cả public và private registry — không có hạn chế đó (loại c).
+
+---
+
+**Câu 4**: Sự khác biệt giữa mô hình Push và Pull trong CI/CD là gì? Mô hình nào an toàn hơn
+và tại sao?
+
+a) Push: CI pipeline dùng credential để ghi thẳng vào cluster (kubectl apply từ pipeline).
+   Pull: agent trong cluster tự kéo config từ Git, pipeline không có quyền vào cluster. Pull
+   an toàn hơn vì blast radius của credential bị lộ nhỏ hơn — CI chỉ cần quyền đọc/ghi Git,
+   không cần quyền admin cluster
+b) Push: agent trong cluster tự kéo config; Pull: CI pipeline ghi thẳng vào cluster
+c) Cả hai mô hình có cùng mức độ an toàn, không có khác biệt thực tế về bảo mật
+d) Push an toàn hơn Pull vì CI pipeline luôn kiểm soát được chính xác thời điểm deploy
+
+**Đáp án: a** — Push: CI ghi thẳng vào cluster bằng credential. Pull: agent tự kéo, CI không
+có quyền cluster. Pull an toàn hơn vì blast radius nhỏ hơn. Vai trò bị đảo ngược hoàn toàn
+trong lựa chọn b (loại b); hai mô hình có RỦI RO BẢO MẬT khác nhau rõ rệt (ai nắm credential
+cluster), không giống nhau (loại c); Push KHÔNG an toàn hơn — việc kiểm soát thời điểm deploy
+không bù được rủi ro credential admin cluster nằm trong CI pipeline (loại d).
+
+---
+
+**Câu 5**: Trong GitOps, Git đóng vai trò gì khác so với khi chỉ dùng làm version control
+thông thường?
+
+a) Git chỉ đóng vai trò lưu code như bình thường, GitOps không thay đổi gì vai trò của Git
+b) Trong GitOps, Git là "source of truth" cho cả infrastructure lẫn trạng thái mong muốn
+   của hệ thống — không chỉ lưu code mà còn là hệ thống audit trail, trigger cho
+   reconciliation, và cơ chế rollback (revert commit = rollback deployment). Git commit
+   history trở thành lịch sử đầy đủ của mọi thay đổi hạ tầng, bao gồm ai thay đổi và lý do
+c) Git trong GitOps chỉ dùng để lưu trữ secret, không liên quan tới trigger hay rollback
+d) Git bị thay thế hoàn toàn bởi database nội bộ của ArgoCD/Flux, không còn vai trò gì quan
+   trọng
+
+**Đáp án: b** — Git là source of truth cho cả infra/desired state, audit trail, trigger
+reconciliation, cơ chế rollback qua revert commit. Vai trò của Git MỞ RỘNG RÕ RỆT trong
+GitOps (source of truth, trigger, rollback), không giữ nguyên như version control thông
+thường (loại a); Git trong GitOps lưu MANIFEST/DESIRED STATE là chính, không phải chủ yếu để
+lưu secret (secret thường quản lý riêng qua Sealed Secrets/Vault — loại c); Git vẫn là nguồn
+chính mà ArgoCD/Flux đọc từ đó — database nội bộ của các tool này chỉ là cache/state, không
+thay thế vai trò source of truth của Git (loại d).
 
 ## 8. Bài liên quan và nguồn
 

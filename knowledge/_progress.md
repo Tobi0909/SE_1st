@@ -160,8 +160,29 @@ idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
 Đã làm 5 module trong lượt này (prometheus-grafana, logging, alerting-design, sli-slo,
 data.redis) — dừng theo quy tắc tối đa 5 module/lượt.
 
-**Còn lại toàn kho**: `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
-`sre.toil-automation` (1 bài) — tổng 3 bài, 3 module cuối cùng của toàn kho.
+`data.message-queue` (1 bài, 5 câu), `sre.capacity-planning` (1 bài, 5 câu),
+`sre.toil-automation` (1 bài, 5 câu) — 3 commit riêng, xem git log.
+
+**Phát hiện khi rà lại toàn kho lần cuối**: 2 module tưởng đã xong từ trước (`devops`) thực ra
+còn essay — ghi chú "rà lại định dạng (2026-10-13)" ở trên đã SAI khi nói domain `devops` đã
+MCQ hết. Soát lại bằng script quét toàn bộ `knowledge/` (không chỉ theo domain đã note) phát
+hiện còn `devops.artifact-management` (1 bài) và `devops.gitops` (2 bài) là essay. Đã chuyển
+cả 3 — `devops.artifact-management` (1 bài, 5 câu), `devops.gitops` (2 bài, 10 câu) — 2 commit
+riêng, xem git log.
+
+Verify qua PGlite cho toàn bộ 6 bài của lượt này (message-queue, capacity-planning,
+toil-automation, artifact-management, gitops×2): `kb:import` → 3 bài cập nhật (script chỉ
+chạy 1 lần import sau khi sửa xong tất cả), `kb:build-quiz` → **625 câu MCQ tổng, 0 bài còn
+essay, 0 bài bị bỏ qua** — toàn bộ 146/146 bài trong kho đã ở định dạng MCQ. idempotent,
+`kb:lint` pass (TODO-VERIFY vẫn đúng 15, không đổi nội dung ngoài mục Tự kiểm tra). Không có
+câu nào phải bỏ qua trong toàn bộ quá trình chuyển đổi.
+
+## TOÀN KHO ĐÃ HOÀN TẤT CHUYỂN ĐỔI MCQ (146/146 bài, 625 câu)
+
+Không còn module nào ở định dạng essay (`<details>` hoặc `**N.** + đoạn văn`). `kb:build-quiz`
+chạy trên toàn bộ kho không còn báo "bài bỏ qua (chưa phải định dạng MCQ)". Mọi thay đổi đều
+giữ nguyên câu hỏi/đáp án đúng/giải thích gốc đã verify trước đó, chỉ thêm 3 lựa chọn nhiễu
+mỗi câu theo đúng quy tắc đã thiết lập từ module thí điểm `linux.boot-systemd`.
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng
