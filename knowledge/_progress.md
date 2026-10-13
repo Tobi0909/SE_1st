@@ -147,9 +147,15 @@ Không có câu nào phải bỏ qua.
 `elk-stack`, `splunk-basics`. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz`
 → 581 câu MCQ tổng (572 cũ + 9 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
 
-**Còn lại toàn kho**: `monitoring` (2 module, 3 bài, toàn bộ essay — alerting-design 1,
-sli-slo 2), `data.redis` (1 bài), `data.message-queue` (1 bài), `sre.capacity-planning`
-(1 bài), `sre.toil-automation` (1 bài).
+`monitoring.alerting-design` (1 bài, 3 câu) và `monitoring.sli-slo` (2 bài, 6 câu) — 2 commit
+riêng, xem git log. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz` → 590 câu
+MCQ tổng (581 cũ + 9 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Domain `monitoring` đã xong hoàn toàn (5/5 module).**
+
+**Còn lại toàn kho**: `data.redis` (1 bài), `data.message-queue` (1 bài),
+`sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài) — tổng 4 bài, 4 module cuối
+cùng của toàn kho.
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

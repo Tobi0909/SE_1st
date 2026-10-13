@@ -276,29 +276,71 @@ Error budget cụ thể hóa "có nên rollback không?" → YES vì budget khô
 
 ## 7. Tự kiểm tra
 
-1. SLO 99.9% trong 30 ngày. Hôm nay có 10 phút downtime. Còn bao nhiêu error budget (phút)?
-   Burn rate trong 10 phút đó là bao nhiêu?
-   <details><summary>Đáp án</summary>Tổng error budget = 0.1% × 30 × 24 × 60 = 43.2 phút.
-   Đã dùng 10 phút → còn 33.2 phút. Burn rate trong 10 phút: error rate trong window = 100%
-   (toàn bộ 10 phút là down). Burn rate = 100% / 0.1% = 1000×. Có nghĩa là trong 10 phút đó
-   budget đang bị tiêu nhanh gấp 1000 lần pace cho phép — cực kỳ cấp bách.</details>
+**Câu 1**: SLO 99.9% trong 30 ngày. Hôm nay có 10 phút downtime. Còn bao nhiêu error budget
+(phút)? Burn rate trong 10 phút đó là bao nhiêu?
 
-2. Tại sao burn rate alert dùng 2 window (ví dụ: 1h VÀ 5m) thay vì chỉ 1 window?
-   <details><summary>Đáp án</summary>Một window: (a) Nếu chỉ dùng window ngắn (5m): nhạy với
-   spike tạm thời, nhiều false positive; (b) Nếu chỉ dùng window dài (1h): ít false positive
-   nhưng chậm phát hiện — incident có thể kéo dài 30+ phút mới fire. Hai window kết hợp (1h
-   AND 5m đều phải cao): window dài đảm bảo đây là sustained problem (không phải spike 5 phút),
-   window ngắn đảm bảo alert fire nhanh khi đủ data để xác nhận. Kết quả: low false positive VÀ
-   fast detection time — đây là tradeoff chính của multi-window approach.</details>
+a) Tổng error budget = 0.1% × 30 × 24 × 60 = 43.2 phút. Đã dùng 10 phút → còn 33.2 phút.
+   Burn rate trong 10 phút: error rate trong window = 100% (toàn bộ 10 phút là down). Burn
+   rate = 100% / 0.1% = 1000×. Có nghĩa là trong 10 phút đó budget đang bị tiêu nhanh gấp 1000
+   lần pace cho phép — cực kỳ cấp bách
+b) Tổng error budget = 43.2 phút, đã dùng 10 phút → còn 33.2 phút, nhưng burn rate chỉ là 10x
+   vì tính theo phút đã dùng chia 1 phút chuẩn
+c) Tổng error budget không tính theo phút mà theo số lần incident, 10 phút downtime tương
+   đương đúng 1 incident
+d) Burn rate luôn là 100% bất kể thời gian downtime, không phụ thuộc vào SLO hay error budget
 
-3. Team product muốn deploy feature mới vào checkout. Error budget còn 15%. Bạn phản hồi thế nào?
-   <details><summary>Đáp án</summary>Theo error budget policy: < 20% = chỉ hotfix + security patch.
-   Phản hồi: "Error budget của checkout còn 15% tháng này — chúng ta đã có đủ downtime/error tháng
-   này. Nếu deploy feature mới và có vấn đề, chúng ta có thể vi phạm SLO (và SLA với khách hàng)
-   trước cuối tháng. Đề xuất: (1) đợi đầu tháng tới khi budget reset; (2) hoặc deploy với feature
-   flag và traffic nhỏ (canary), sẵn sàng rollback ngay. Nếu feature này critical business, cần
-   signoff từ engineering lead và product với rủi ro rõ ràng." SLO policy không phải để block work
-   — để làm rõ tradeoff và đưa ra quyết định có thông tin đầy đủ.</details>
+**Đáp án: a** — Tổng budget 43.2 phút, dùng 10 phút → còn 33.2 phút; burn rate = 100%/0.1% =
+1000×. Burn rate tính theo TỶ LỆ error rate so với target cho phép (100%/0.1%=1000×), không
+phải phút chia phút chuẩn (loại b); error budget tính theo PHẦN TRĂM THỜI GIAN downtime cho
+phép, không theo số lần incident (loại c); burn rate PHỤ THUỘC trực tiếp vào SLO và mức error
+thực tế trong window — không phải hằng số 100% cố định (loại d).
+
+---
+
+**Câu 2**: Tại sao burn rate alert dùng 2 window (ví dụ: 1h VÀ 5m) thay vì chỉ 1 window?
+
+a) Vì Prometheus chỉ cho phép tối đa 1 window mỗi rule, phải tách thành 2 rule riêng mới hoạt
+   động được
+b) Một window: (a) Nếu chỉ dùng window ngắn (5m): nhạy với spike tạm thời, nhiều false
+   positive; (b) Nếu chỉ dùng window dài (1h): ít false positive nhưng chậm phát hiện —
+   incident có thể kéo dài 30+ phút mới fire. Hai window kết hợp (1h AND 5m đều phải cao):
+   window dài đảm bảo đây là sustained problem (không phải spike 5 phút), window ngắn đảm bảo
+   alert fire nhanh khi đủ data để xác nhận. Kết quả: low false positive VÀ fast detection time
+   — đây là tradeoff chính của multi-window approach
+c) Vì 2 window giúp giảm một nửa chi phí tính toán so với dùng 1 window dài duy nhất
+d) Vì window ngắn (5m) dùng để huỷ alert, window dài (1h) dùng để gửi alert, hai window độc
+   lập không liên quan nhau
+
+**Đáp án: b** — 1 window ngắn = nhiều false positive; 1 window dài = chậm phát hiện. Kết hợp
+2 window (AND) cho low false positive VÀ fast detection. Prometheus HOÀN TOÀN hỗ trợ nhiều
+điều kiện trong 1 alert rule (expression kết hợp cả 2 window bằng `and`), không cần tách
+thành 2 rule riêng do giới hạn kỹ thuật (loại a); hai window không nhằm tiết kiệm chi phí tính
+toán — mục đích là tradeoff false positive vs detection speed (loại c); cả 2 window cùng
+tham gia ĐIỀU KIỆN FIRE (AND logic), không phải 1 để huỷ 1 để gửi tách biệt (loại d).
+
+---
+
+**Câu 3**: Team product muốn deploy feature mới vào checkout. Error budget còn 15%. Bạn phản
+hồi thế nào?
+
+a) Đồng ý ngay không cần điều kiện gì, vì 15% vẫn còn budget dương nên không có rủi ro
+b) Từ chối tuyệt đối mọi hình thức deploy, không đưa ra phương án nào khác cho tới khi budget
+   về 100%
+c) Theo error budget policy: < 20% = chỉ hotfix + security patch. Phản hồi: "Error budget của
+   checkout còn 15% tháng này — chúng ta đã có đủ downtime/error tháng này. Nếu deploy feature
+   mới và có vấn đề, chúng ta có thể vi phạm SLO (và SLA với khách hàng) trước cuối tháng. Đề
+   xuất: (1) đợi đầu tháng tới khi budget reset; (2) hoặc deploy với feature flag và traffic
+   nhỏ (canary), sẵn sàng rollback ngay. Nếu feature này critical business, cần signoff từ
+   engineering lead và product với rủi ro rõ ràng." SLO policy không phải để block work — để
+   làm rõ tradeoff và đưa ra quyết định có thông tin đầy đủ
+d) Chuyển quyết định hoàn toàn cho product team quyết, engineering không cần nêu rủi ro gì
+
+**Đáp án: c** — Theo policy <20% = chỉ hotfix/security; đề xuất đợi reset hoặc canary với
+signoff rõ ràng rủi ro. 15% CÓ rủi ro thật theo policy (<20% ngưỡng hạn chế thay đổi), không
+thể "đồng ý ngay không điều kiện" (loại a); từ chối tuyệt đối không đưa phương án nào là quá
+cực đoan — vẫn có lựa chọn canary/signoff hợp lý (loại b); engineering CÓ TRÁCH NHIỆM nêu rõ
+rủi ro kỹ thuật cho product, không chuyển hoàn toàn quyết định mà không cung cấp thông tin
+(loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
