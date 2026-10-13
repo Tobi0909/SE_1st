@@ -143,9 +143,13 @@ monitoring.zabbix) — dừng theo quy tắc tối đa 5 module/lượt.
 cập nhật, `kb:build-quiz` → 572 câu MCQ tổng (563 cũ + 9 mới), idempotent, `kb:lint` pass.
 Không có câu nào phải bỏ qua.
 
-**Còn lại toàn kho**: `monitoring` (3 module, 6 bài, toàn bộ essay — logging 3,
-alerting-design 1, sli-slo 2), `data.redis` (1 bài), `data.message-queue` (1 bài),
-`sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
+`monitoring.logging` (3 bài, 9 câu — xem commit theo sau trong git log): `fundamentals`,
+`elk-stack`, `splunk-basics`. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz`
+→ 581 câu MCQ tổng (572 cũ + 9 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Còn lại toàn kho**: `monitoring` (2 module, 3 bài, toàn bộ essay — alerting-design 1,
+sli-slo 2), `data.redis` (1 bài), `data.message-queue` (1 bài), `sre.capacity-planning`
+(1 bài), `sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

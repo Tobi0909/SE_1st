@@ -285,32 +285,72 @@ index=production service=db-primary earliest=14:28 latest=14:42
 
 ## 7. Tự kiểm tra
 
-1. SPL: `index=production level=error | stats count by service | sort -count`. Command nào
-   làm gì trong pipeline này?
-   <details><summary>Đáp án</summary>(1) `index=production level=error`: lọc events từ index
-   "production" có field level=error — đây là base search, không phải command trong pipe; (2)
-   `stats count by service`: tổng hợp — đếm số events nhóm theo giá trị của field "service",
-   kết quả là bảng 2 cột: service và count; (3) `sort -count`: sắp xếp bảng theo cột "count"
-   giảm dần (dấu `-` = descending). Kết quả cuối: danh sách service kèm số error log, nhiều
-   nhất ở trên.</details>
+**Câu 1**: SPL: `index=production level=error | stats count by service | sort -count`.
+Command nào làm gì trong pipeline này?
 
-2. Splunk schema-on-read vs Elasticsearch schema-on-write — ưu điểm của Splunk trong tình
-   huống nào?
-   <details><summary>Đáp án</summary>Schema-on-read (Splunk) ưu điểm: (1) ingest log ngay mà
-   không cần biết format trước — tốt khi log format thay đổi thường xuyên hoặc chưa biết sẽ
-   cần field nào; (2) có thể "back-fill" extraction — định nghĩa field mới và Splunk sẽ extract
-   từ data cũ khi search (không cần re-index); (3) giảm friction khi onboard log source mới.
-   Nhược điểm: search chậm hơn trên field chưa được index. Schema-on-write (Elasticsearch)
-   nhanh hơn khi field đã được index sẵn, phù hợp khi format stable và cần low-latency search
-   với cardinality cao.</details>
+a) stats count by service sắp xếp kết quả; sort -count mới là bước tổng hợp đếm
+b) index=production level=error là command tổng hợp, không phải base search lọc events
+c) sort -count sắp xếp tăng dần (ascending) theo count, dấu `-` chỉ là ký tự cú pháp không
+   mang nghĩa thứ tự
+d) (1) index=production level=error: lọc events từ index "production" có field level=error —
+   đây là base search, không phải command trong pipe; (2) stats count by service: tổng hợp —
+   đếm số events nhóm theo giá trị của field "service", kết quả là bảng 2 cột: service và
+   count; (3) sort -count: sắp xếp bảng theo cột "count" giảm dần (dấu - = descending). Kết
+   quả cuối: danh sách service kèm số error log, nhiều nhất ở trên
 
-3. Universal Forwarder vs Heavy Forwarder — khi nào dùng Heavy Forwarder thay vì Universal?
-   <details><summary>Đáp án</summary>Universal Forwarder (UF): chỉ forward raw data, chiếm rất
-   ít tài nguyên (~30MB RAM) — dùng cho 99% trường hợp cài trên server để ship log. Heavy
-   Forwarder (HF): dùng khi cần (1) parse/filter/mask data phía nguồn trước khi gửi (ví dụ
-   mask PII như số thẻ tín dụng trong log trước khi gửi ra ngoài data center); (2) routing điều
-   kiện (log security → Splunk A, log app → Splunk B); (3) aggregate từ nhiều UF trước khi gửi
-   (Splunk Intermediate Forwarder pattern cho network có bandwidth hạn chế).</details>
+**Đáp án: d** — Base search lọc events, `stats count by service` tổng hợp đếm, `sort -count`
+sắp xếp giảm dần. Vai trò của `stats` và `sort` bị đảo ngược trong lựa chọn a — `stats` làm
+nhiệm vụ TỔNG HỢP, `sort` làm nhiệm vụ SẮP XẾP (loại a); phần trước dấu `|` đầu tiên LÀ base
+search lọc events, không phải command tổng hợp (loại b); dấu `-` trước `count` trong `sort`
+nghĩa là DESCENDING (giảm dần), có mang nghĩa thứ tự rõ ràng theo cú pháp SPL (loại c).
+
+---
+
+**Câu 2**: Splunk schema-on-read vs Elasticsearch schema-on-write — ưu điểm của Splunk trong
+tình huống nào?
+
+a) Schema-on-read (Splunk) ưu điểm: (1) ingest log ngay mà không cần biết format trước — tốt
+   khi log format thay đổi thường xuyên hoặc chưa biết sẽ cần field nào; (2) có thể "back-fill"
+   extraction — định nghĩa field mới và Splunk sẽ extract từ data cũ khi search (không cần
+   re-index); (3) giảm friction khi onboard log source mới. Nhược điểm: search chậm hơn trên
+   field chưa được index. Schema-on-write (Elasticsearch) nhanh hơn khi field đã được index
+   sẵn, phù hợp khi format stable và cần low-latency search với cardinality cao
+b) Schema-on-read luôn nhanh hơn schema-on-write trong mọi tình huống tìm kiếm, không có
+   nhược điểm nào
+c) Splunk bắt buộc phải biết trước toàn bộ field ngay từ lúc ingest, giống schema-on-write
+d) Schema-on-read chỉ áp dụng được cho dữ liệu dạng JSON, không áp dụng được cho log text
+   thường
+
+**Đáp án: a** — Schema-on-read ưu điểm khi format chưa ổn định, có thể back-fill extraction;
+nhược điểm là search chậm hơn trên field chưa index. Schema-on-read CÓ nhược điểm rõ ràng
+(search chậm hơn trên field chưa index) — không phải "không có nhược điểm nào" (loại b);
+chính đặc trưng của schema-on-read là KHÔNG CẦN biết field trước lúc ingest — ngược lại hoàn
+toàn với mô tả ở lựa chọn c (loại c); schema-on-read áp dụng cho MỌI loại log text, không giới
+hạn JSON — đây chính là lợi thế của nó so với schema-on-write (loại d).
+
+---
+
+**Câu 3**: Universal Forwarder vs Heavy Forwarder — khi nào dùng Heavy Forwarder thay vì
+Universal?
+
+a) Universal Forwarder dùng khi cần mask PII trước khi gửi; Heavy Forwarder chỉ forward raw
+   data
+b) Universal Forwarder (UF): chỉ forward raw data, chiếm rất ít tài nguyên (~30MB RAM) — dùng
+   cho 99% trường hợp cài trên server để ship log. Heavy Forwarder (HF): dùng khi cần (1)
+   parse/filter/mask data phía nguồn trước khi gửi (ví dụ mask PII như số thẻ tín dụng trong
+   log trước khi gửi ra ngoài data center); (2) routing điều kiện (log security → Splunk A,
+   log app → Splunk B); (3) aggregate từ nhiều UF trước khi gửi (Splunk Intermediate Forwarder
+   pattern cho network có bandwidth hạn chế)
+c) Heavy Forwarder chỉ dùng được trên Windows, Universal Forwarder chỉ dùng được trên Linux
+d) Không có khác biệt thực tế, Heavy Forwarder chỉ là tên gọi thương mại khác của Universal
+   Forwarder
+
+**Đáp án: b** — UF chỉ forward raw data, nhẹ, dùng cho 99% trường hợp. HF dùng khi cần parse/
+filter/mask tại nguồn, routing điều kiện, hoặc aggregate từ nhiều UF. Vai trò bị đảo ngược
+hoàn toàn trong lựa chọn a (UF mới chỉ forward raw, HF mới là bên xử lý mask — loại a); cả hai
+forwarder chạy được trên nhiều OS (Windows, Linux...), không giới hạn mỗi bên 1 hệ điều hành
+(loại c); hai loại forwarder có KHẢ NĂNG khác biệt rõ rệt (raw forward vs parse/filter/
+aggregate), không phải chỉ khác tên gọi (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

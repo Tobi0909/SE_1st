@@ -282,27 +282,69 @@ trace ID.
 
 ## 7. Tự kiểm tra
 
-1. Elasticsearch cluster status `yellow` vs `red` nghĩa là gì? Cần hành động gì?
-   <details><summary>Đáp án</summary>Yellow: tất cả primary shard assigned và data OK, nhưng ít
-   nhất 1 replica shard chưa được assigned (thường do không đủ node). Không mất data, nhưng nếu
-   node chứa primary shard chết = mất shard đó (không có replica bù). Red: ít nhất 1 primary
-   shard unassigned — có khả năng mất data. Hành động: yellow = xem có đủ node không, cân nhắc
-   giảm replica nếu chỉ có 1 node; red = điều tra ngay (`GET /_cluster/allocation/explain`).</details>
+**Câu 1**: Elasticsearch cluster status `yellow` vs `red` nghĩa là gì? Cần hành động gì?
 
-2. Cần parse Nginx access log (không phải JSON) bằng ELK. Dùng Filebeat hay Logstash để
-   parse? Tại sao?
-   <details><summary>Đáp án</summary>Logstash — Filebeat rất nhẹ, parse cơ bản (JSON, multiline)
-   nhưng không có grok pattern parser mạnh. Logstash có `grok` filter plugin với hàng trăm
-   pattern dựng sẵn (bao gồm `COMBINEDAPACHELOG` cho Nginx). Filebeat chỉ ship log; Logstash
-   parse và transform trước khi vào Elasticsearch. Alternative: Elasticsearch Ingest Pipeline
-   (có grok processor) — parse phía Elasticsearch, không cần Logstash riêng.</details>
+a) Yellow: tất cả primary shard assigned và data OK, nhưng ít nhất 1 replica shard chưa được
+   assigned (thường do không đủ node). Không mất data, nhưng nếu node chứa primary shard chết
+   = mất shard đó (không có replica bù). Red: ít nhất 1 primary shard unassigned — có khả năng
+   mất data. Hành động: yellow = xem có đủ node không, cân nhắc giảm replica nếu chỉ có 1
+   node; red = điều tra ngay (GET /_cluster/allocation/explain)
+b) Yellow nghĩa là cluster sắp hết dung lượng disk; red nghĩa là cluster đã hết dung lượng
+   hoàn toàn
+c) Red ít nghiêm trọng hơn yellow vì red chỉ là cảnh báo CPU cao tạm thời
+d) Yellow và red đều có nghĩa dữ liệu đã mất, chỉ khác mức độ mất nhiều hay ít
 
-3. Index name `logs-nginx-2026.10.06` — ngày trong tên index có ý nghĩa gì với retention?
-   <details><summary>Đáp án</summary>Tạo điều kiện delete theo ngày. Khi hết 30 ngày retention,
-   chỉ cần `DELETE /logs-nginx-2026.09.06` — xóa nguyên index thay vì phải delete từng document
-   (cực kỳ chậm với Elasticsearch). ILM policy tự động `rollover` sang index mới và delete index
-   cũ theo min_age. Đây là pattern chuẩn cho log data — immutable, append-only, xoá theo thời
-   gian.</details>
+**Đáp án: a** — Yellow: primary OK, replica chưa assigned (chưa mất data nhưng rủi ro). Red:
+primary unassigned — có khả năng mất data. Hành động tương ứng mức độ nghiêm trọng. Trạng thái
+cluster không liên quan tới dung lượng disk — nó liên quan tới shard allocation (loại b); Red
+NGHIÊM TRỌNG HƠN yellow (nguy cơ mất data thật), không phải nhẹ hơn hay chỉ là CPU cao (loại
+c); Yellow KHÔNG mất data — chỉ Red mới có khả năng mất data, hai trạng thái khác mức độ rõ
+rệt (loại d).
+
+---
+
+**Câu 2**: Cần parse Nginx access log (không phải JSON) bằng ELK. Dùng Filebeat hay Logstash
+để parse? Tại sao?
+
+a) Filebeat — vì Filebeat có sẵn grok pattern mạnh hơn Logstash cho mọi loại log web server
+b) Logstash — Filebeat rất nhẹ, parse cơ bản (JSON, multiline) nhưng không có grok pattern
+   parser mạnh. Logstash có grok filter plugin với hàng trăm pattern dựng sẵn (bao gồm
+   COMBINEDAPACHELOG cho Nginx). Filebeat chỉ ship log; Logstash parse và transform trước khi
+   vào Elasticsearch. Alternative: Elasticsearch Ingest Pipeline (có grok processor) — parse
+   phía Elasticsearch, không cần Logstash riêng
+c) Dùng Kibana để parse log trực tiếp, không cần Filebeat hay Logstash cho bước này
+d) Cả hai đều không parse được log không phải JSON, phải tự viết script chuyển đổi trước khi
+   ingest
+
+**Đáp án: b** — Logstash — có `grok` filter plugin mạnh với nhiều pattern dựng sẵn
+(COMBINEDAPACHELOG). Filebeat chỉ ship log, không có grok parser mạnh. Vai trò bị đảo ngược
+trong lựa chọn a (Filebeat THỰC RA nhẹ, ít khả năng parse, không mạnh hơn Logstash — loại a);
+Kibana là công cụ VISUALIZE/search, không phải công cụ ingest/parse log (loại c); Logstash
+(hoặc Elasticsearch Ingest Pipeline) HOÀN TOÀN parse được log không phải JSON qua grok, không
+cần viết script riêng (loại d).
+
+---
+
+**Câu 3**: Index name `logs-nginx-2026.10.06` — ngày trong tên index có ý nghĩa gì với
+retention?
+
+a) Ngày trong tên index chỉ để hiển thị cho dễ đọc trên Kibana, không ảnh hưởng gì tới
+   retention thật
+b) Elasticsearch tự động nén index cũ theo ngày trong tên, không liên quan tới việc xoá dữ
+   liệu
+c) Tạo điều kiện delete theo ngày. Khi hết 30 ngày retention, chỉ cần DELETE
+   /logs-nginx-2026.09.06 — xóa nguyên index thay vì phải delete từng document (cực kỳ chậm
+   với Elasticsearch). ILM policy tự động rollover sang index mới và delete index cũ theo
+   min_age. Đây là pattern chuẩn cho log data — immutable, append-only, xoá theo thời gian
+d) Ngày trong tên index bắt buộc phải khớp đúng ngày hệ thống hiện tại, nếu không
+   Elasticsearch sẽ từ chối ghi
+
+**Đáp án: c** — Ngày trong tên tạo điều kiện xoá nguyên index theo ngày (nhanh hơn xoá từng
+document); ILM tự rollover/delete theo `min_age`. Ngày trong tên có TÁC DỤNG THẬT tới
+retention (xoá nguyên index theo ngày), không chỉ để hiển thị (loại a); Elasticsearch không tự
+nén index theo quy ước tên — việc nén/xoá là do ILM policy cấu hình, không tự động theo tên
+chuỗi (loại b); không có ràng buộc "phải khớp ngày hệ thống hiện tại" — tên index chỉ là chuỗi
+quy ước, Elasticsearch không kiểm tra ngày đó với ngày thật (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
