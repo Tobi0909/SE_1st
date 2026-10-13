@@ -211,28 +211,69 @@ Hardening Kubernetes cluster production theo CIS Benchmark — bước SecurityC
 
 ## 7. Tự kiểm tra
 
-1. `allowPrivilegeEscalation: false` ngăn chặn điều gì cụ thể?
-   <details><summary>Đáp án</summary>Ngăn process trong container thực thi binary có `setuid`/`setgid`
-   bit để thay đổi UID/GID của chính nó (ví dụ `sudo`, `su`, `newgrp`). Cụ thể hơn, nó set Linux
-   `no_new_privs` flag — khi process có flag này, mọi execve() sau đó không thể tăng privilege.
-   Không ảnh hưởng đến UID hiện tại của process (đó là `runAsUser`), chỉ ngăn THAY ĐỔI UID sau
-   khi process đã chạy. Quan trọng cho container chạy root (UID 0): dù chạy root, không thể dùng
-   `su` để switch sang user khác rồi exec process mới với quyền khác.</details>
+**Câu 1**: `allowPrivilegeEscalation: false` ngăn chặn điều gì cụ thể?
 
-2. Tại sao PSP bị xoá khỏi K8s 1.25?
-   <details><summary>Đáp án</summary>PSP có nhiều vấn đề: (1) UX phức tạp — phải tạo PSP + ClusterRole
-   + ClusterRoleBinding, không ai thấy mình đã configure đúng chưa; (2) scope confusing — PSP áp
-   dụng theo SA của Pod, không theo namespace; (3) dễ cấu hình sai dẫn tới over-permissive hoặc
-   block oan; (4) không có mode dry-run/audit. PSA thay thế với model namespace-label đơn giản hơn,
-   có audit/warn mode để migrate dần.</details>
+a) Ngăn container chạy với UID 0 (root) ngay từ đầu, bắt buộc runAsNonRoot
+b) Ngăn process trong container thực thi binary có setuid/setgid bit để thay đổi UID/GID của
+   chính nó (ví dụ sudo, su, newgrp). Cụ thể hơn, nó set Linux no_new_privs flag — khi process
+   có flag này, mọi execve() sau đó không thể tăng privilege. Không ảnh hưởng đến UID hiện tại
+   của process (đó là runAsUser), chỉ ngăn THAY ĐỔI UID sau khi process đã chạy. Quan trọng cho
+   container chạy root (UID 0): dù chạy root, không thể dùng su để switch sang user khác rồi
+   exec process mới với quyền khác
+c) Ngăn container mount bất kỳ volume nào, kể cả volume đọc-ghi thông thường
+d) Ngăn container gọi bất kỳ syscall network nào, tương đương tắt hẳn network namespace
 
-3. Sự khác biệt giữa `drop: [ALL]` + `add: [NET_BIND_SERVICE]` và không khai báo capabilities gì?
-   <details><summary>Đáp án</summary>Không khai báo = container giữ DEFAULT capability set của
-   container runtime (Docker/containerd mặc định cấp ~14 capability: CHOWN, DAC_OVERRIDE, FSETID,
-   FOWNER, MKNOD, NET_RAW, SETGID, SETUID, SETFCAP, SETPCAP, NET_BIND_SERVICE, SYS_CHROOT, KILL,
-   AUDIT_WRITE). `drop: [ALL]` + `add: [NET_BIND_SERVICE]` = chỉ có đúng 1 capability cần thiết.
-   Nguyên tắc least privilege: không cấp capability không dùng — NET_RAW chẳng hạn cho phép tạo
-   raw socket để sniff traffic hoặc làm MITM attack trên cùng network.</details>
+**Đáp án: b** — Ngăn process thực thi binary setuid/setgid để tự thay đổi UID/GID (set
+`no_new_privs` flag). Không ảnh hưởng UID hiện tại (đó là `runAsUser`), chỉ ngăn thay đổi UID
+sau khi chạy. Việc ép UID không-root là vai trò của `runAsNonRoot`/`runAsUser`, không phải
+`allowPrivilegeEscalation` (loại a); field này không liên quan tới volume mount (loại c); nó
+cũng không liên quan tới network namespace hay syscall mạng (loại d).
+
+---
+
+**Câu 2**: Tại sao PSP bị xoá khỏi K8s 1.25?
+
+a) Vì PSP có lỗ hổng bảo mật nghiêm trọng cho phép container luôn tự động chạy privileged bất
+   kể cấu hình
+b) Vì PSP chỉ hoạt động được với Docker runtime, không tương thích containerd nên bị loại bỏ
+c) PSP có nhiều vấn đề: (1) UX phức tạp — phải tạo PSP + ClusterRole + ClusterRoleBinding,
+   không ai thấy mình đã configure đúng chưa; (2) scope confusing — PSP áp dụng theo SA của
+   Pod, không theo namespace; (3) dễ cấu hình sai dẫn tới over-permissive hoặc block oan; (4)
+   không có mode dry-run/audit. PSA thay thế với model namespace-label đơn giản hơn, có
+   audit/warn mode để migrate dần
+d) Vì PSP tốn quá nhiều tài nguyên CPU của control plane khi cluster có trên 100 node
+
+**Đáp án: c** — PSP có UX phức tạp, scope confusing, dễ cấu hình sai, không có dry-run/audit.
+PSA thay thế đơn giản hơn. PSP không có lỗ hổng "tự động chạy privileged mặc định" — vấn đề là
+độ phức tạp và dễ sai cấu hình, không phải lỗ hổng tự động cấp quyền (loại a); PSP không gắn
+riêng với Docker runtime — nó hoạt động ở tầng admission controller, độc lập với
+container runtime cụ thể (loại b); lý do loại bỏ không phải hiệu năng CPU control plane, mà là
+vấn đề UX/thiết kế (loại d).
+
+---
+
+**Câu 3**: Sự khác biệt giữa `drop: [ALL]` + `add: [NET_BIND_SERVICE]` và không khai báo
+capabilities gì?
+
+a) Không khai báo capabilities nghĩa là container không có bất kỳ capability nào, giống hệt
+   drop: [ALL]
+b) drop: [ALL] + add: [NET_BIND_SERVICE] tương đương chạy --privileged, cấp toàn bộ quyền root
+   thật
+c) Cả hai hoàn toàn giống nhau về mặt bảo mật, chỉ khác ở cách viết YAML
+d) Không khai báo = container giữ DEFAULT capability set của container runtime
+   (Docker/containerd mặc định cấp ~14 capability: CHOWN, DAC_OVERRIDE, FSETID, FOWNER, MKNOD,
+   NET_RAW, SETGID, SETUID, SETFCAP, SETPCAP, NET_BIND_SERVICE, SYS_CHROOT, KILL,
+   AUDIT_WRITE). drop: [ALL] + add: [NET_BIND_SERVICE] = chỉ có đúng 1 capability cần thiết.
+   Nguyên tắc least privilege: không cấp capability không dùng — NET_RAW chẳng hạn cho phép
+   tạo raw socket để sniff traffic hoặc làm MITM attack trên cùng network
+
+**Đáp án: d** — Không khai báo = giữ DEFAULT ~14 capability của runtime. `drop: [ALL] + add:
+[NET_BIND_SERVICE]` = chỉ 1 capability cần thiết, theo least privilege. Không khai báo KHÔNG
+có nghĩa là zero capability — container vẫn giữ bộ mặc định ~14 capability của runtime, khác
+hẳn `drop: [ALL]` (loại a); `drop: [ALL] + add: [NET_BIND_SERVICE]` chỉ cấp ĐÚNG 1 capability
+cụ thể, hoàn toàn khác `--privileged` (cấp toàn bộ capability + bỏ namespace isolation — loại
+b); hai cách này khác biệt rõ rệt về số lượng capability được cấp, ảnh hưởng trực tiếp tới mức
+độ bảo mật, không chỉ khác cách viết (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -251,27 +251,63 @@ Thiết kế RBAC cho một K8s cluster multi-team (team A và team B, mỗi tea
 
 ## 7. Tự kiểm tra
 
-1. Sự khác biệt giữa `RoleBinding` và `ClusterRoleBinding`?
-   <details><summary>Đáp án</summary>`RoleBinding` cấp quyền trong 1 namespace — kể cả khi bind
-   `ClusterRole`, scope vẫn bị giới hạn trong namespace của RoleBinding. `ClusterRoleBinding` cấp
-   quyền trên toàn cluster (và non-namespaced resource). Để tái dùng ClusterRole definition nhưng
-   giới hạn xuống namespace: dùng `RoleBinding` + `ClusterRole`.</details>
+**Câu 1**: Sự khác biệt giữa `RoleBinding` và `ClusterRoleBinding`?
 
-2. Tại sao nên dùng `automountServiceAccountToken: false` cho phần lớn Pod?
-   <details><summary>Đáp án</summary>Mặc định K8s mount token của SA `default` vào mọi Pod. Token
-   này có thể bị dùng bởi code độc hại hoặc attacker để authenticate với apiserver và thực hiện
-   các thao tác K8s API. Phần lớn app không cần gọi K8s API — opt-out mount token là defense-in-
-   depth: ngay cả khi Pod bị compromise, attacker không có credential apiserver. Nếu cần gọi API,
-   tạo SA riêng với quyền tối thiểu và enable mount token chỉ cho Pod đó.</details>
+a) RoleBinding luôn cấp quyền toàn cluster; ClusterRoleBinding chỉ giới hạn trong 1 namespace
+b) Cả hai hoàn toàn tương đương, chỉ khác tên gọi API cũ/mới
+c) RoleBinding cấp quyền trong 1 namespace — kể cả khi bind ClusterRole, scope vẫn bị giới
+   hạn trong namespace của RoleBinding. ClusterRoleBinding cấp quyền trên toàn cluster (và
+   non-namespaced resource). Để tái dùng ClusterRole definition nhưng giới hạn xuống namespace:
+   dùng RoleBinding + ClusterRole
+d) RoleBinding chỉ dùng được với Role, không bao giờ bind được ClusterRole
 
-3. `kubectl auth can-i list pods --as=system:serviceaccount:production:api-server-sa` trả về
-   `no`. Nhưng code trong Pod vẫn call được API `GET /api/v1/namespaces/production/pods` thành
-   công. Giải thích được không?
-   <details><summary>Đáp án</summary>Có thể vì: (1) câu lệnh test `-n` thiếu (check ở namespace
-   sai — mặc định test ở namespace `default`, không phải `production` nơi RoleBinding tồn tại);
-   (2) Pod đang chạy với SA khác (không phải `api-server-sa`); (3) có ClusterRoleBinding cấp
-   quyền toàn cluster cho SA đó mà bạn bỏ sót. Debug bằng: thêm `-n production` vào lệnh
-   `can-i`; kiểm tra SA thật của Pod; `kubectl get clusterrolebindings | grep api-server-sa`.</details>
+**Đáp án: c** — RoleBinding cấp quyền trong 1 namespace, kể cả khi bind ClusterRole. 
+ClusterRoleBinding cấp quyền toàn cluster. Vai trò bị đảo ngược hoàn toàn trong lựa chọn a
+(loại a); hai object có scope khác biệt rõ rệt (namespace vs cluster-wide), không chỉ khác tên
+gọi (loại b); RoleBinding HOÀN TOÀN bind được ClusterRole — đây chính là cách tái dùng
+ClusterRole definition nhưng giới hạn xuống namespace, như nội dung câu hỏi gợi ý (loại d).
+
+---
+
+**Câu 2**: Tại sao nên dùng `automountServiceAccountToken: false` cho phần lớn Pod?
+
+a) Vì mount token làm Pod chậm hơn đáng kể do phải load thêm file vào container
+b) Vì automountServiceAccountToken chỉ ảnh hưởng tới log, không liên quan gì tới bảo mật thật
+c) Vì mỗi Pod chỉ được phép mount tối đa 1 token, false là bắt buộc nếu Pod cần mount thêm
+   Secret khác
+d) Mặc định K8s mount token của SA default vào mọi Pod. Token này có thể bị dùng bởi code độc
+   hại hoặc attacker để authenticate với apiserver và thực hiện các thao tác K8s API. Phần lớn
+   app không cần gọi K8s API — opt-out mount token là defense-in-depth: ngay cả khi Pod bị
+   compromise, attacker không có credential apiserver. Nếu cần gọi API, tạo SA riêng với quyền
+   tối thiểu và enable mount token chỉ cho Pod đó
+
+**Đáp án: d** — Mặc định K8s mount token SA default vào mọi Pod, rủi ro nếu Pod bị compromise.
+Opt-out là defense-in-depth. Mount token không gây chậm đáng kể — đây không phải lý do thực tế
+(loại a); token liên quan trực tiếp tới XÁC THỰC với apiserver, đây là vấn đề bảo mật thật, không
+chỉ ảnh hưởng log (loại b); không có giới hạn "tối đa 1 token" buộc phải tắt automount để mount
+Secret khác — Pod mount nhiều Secret/volume độc lập với cơ chế automount token (loại c).
+
+---
+
+**Câu 3**: `kubectl auth can-i list pods --as=system:serviceaccount:production:api-server-sa`
+trả về `no`. Nhưng code trong Pod vẫn call được API `GET /api/v1/namespaces/production/pods`
+thành công. Giải thích được không?
+
+a) Có thể vì: (1) câu lệnh test -n thiếu (check ở namespace sai — mặc định test ở namespace
+   default, không phải production nơi RoleBinding tồn tại); (2) Pod đang chạy với SA khác
+   (không phải api-server-sa); (3) có ClusterRoleBinding cấp quyền toàn cluster cho SA đó mà
+   bạn bỏ sót. Debug bằng: thêm -n production vào lệnh can-i; kiểm tra SA thật của Pod;
+   kubectl get clusterrolebindings | grep api-server-sa
+b) Có, vì kubectl auth can-i luôn trả kết quả sai ngẫu nhiên 50% số lần, không đáng tin
+c) Có, vì RBAC chỉ áp dụng cho user thật, không áp dụng cho request gọi từ trong Pod
+d) Không thể giải thích được, đây chắc chắn là lỗi bug của Kubernetes RBAC engine
+
+**Đáp án: a** — Có thể do: thiếu `-n production` khi test (mặc định check ở `default`), Pod
+chạy SA khác, hoặc có ClusterRoleBinding bị bỏ sót. `kubectl auth can-i` là công cụ xác định
+đáng tin, không trả kết quả sai ngẫu nhiên — chênh lệch này luôn có nguyên nhân cụ thể cần debug
+(loại b); RBAC áp dụng cho MỌI identity gọi API, bao gồm cả ServiceAccount của Pod, không chỉ
+"user thật" (loại c); hiện tượng này có thể giải thích đầy đủ bằng các nguyên nhân cụ thể (sai
+namespace test, sai SA, ClusterRoleBinding bị bỏ sót), không phải bug RBAC engine (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
