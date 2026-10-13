@@ -71,7 +71,19 @@ nào phải bỏ qua.
 `kb:build-quiz` → 458 câu MCQ tổng (443 cũ + 15 mới), idempotent, `kb:lint` pass. Không có câu
 nào phải bỏ qua.
 
-**Còn lại trong `networking`**: 2 module (vpn 1 bài, diagnostic-tools 3 = 4 bài).
+`networking.vpn` (1 bài, 5 câu) và `networking.diagnostic-tools` (3 bài, 15 câu) — 2 commit
+riêng, xem git log. Verify qua PGlite: `kb:import` → 4 bài cập nhật, `kb:build-quiz` → 478 câu
+MCQ tổng (458 cũ + 20 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+**Domain `networking` đã xong hoàn toàn (10/10 module).** Đã làm 5 module trong lượt này
+(nat-firewall, tls-pki, http-lb, vpn, diagnostic-tools) — dừng theo quy tắc tối đa 5 module/
+lượt. Tiếp theo: domain `virt-storage`.
+
+**Còn lại toàn kho**: domain `virt-storage` (vsphere 4 bài, proxmox-kvm 2, san-nas 3, ceph 2,
+backup-dr 2 = 13 bài), `container-k8s` (phần chưa chuyển — cần kiểm tra lại định dạng từng
+module khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — cần rà lại định dạng từng
+module trước khi làm (một số domain này đã viết sẵn dạng MCQ từ đầu theo _progress.md, không
+phải tất cả cần chuyển).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

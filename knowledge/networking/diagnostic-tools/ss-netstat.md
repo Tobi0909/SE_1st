@@ -166,36 +166,99 @@ deploy script đã gọi `systemctl stop myapp` trước khi start lại.
 
 ## 7. Tự kiểm tra
 
-1. `ss -tlnp` không hiện tên process ở một số dòng, chỉ hiện số (PID) hoặc để trống. Nguyên
-   nhân phổ biến nhất là gì?
-   <details><summary>Đáp án</summary>Thiếu quyền (không chạy bằng <code>sudo</code>) để xem
-   thông tin process của user KHÁC — kernel giới hạn hiển thị chi tiết process cho user không
-   sở hữu nó.</details>
+**Câu 1**: `ss -tlnp` không hiện tên process ở một số dòng, chỉ hiện số (PID) hoặc để trống.
+Nguyên nhân phổ biến nhất là gì?
 
-2. Vì sao `ss` thường nhanh hơn `netstat` đáng kể trên server có hàng chục nghìn kết nối?
-   <details><summary>Đáp án</summary><code>ss</code> dùng Netlink socket để truy vấn TRỰC TIẾP
-   và LỌC NGAY tại kernel. <code>netstat</code> đọc toàn bộ file ảo <code>/proc/net/tcp</code>
-   rồi tự lọc ở phía user-space — chậm hơn khi số lượng socket lớn.</details>
+a) Vì process đó đã bị kill ngay sau khi mở socket, chỉ còn socket "ma" không gắn process
+b) Vì cờ -p chỉ hoạt động với giao thức UDP, không hiển thị được cho TCP
+c) Vì tên process quá dài, ss tự động ẩn đi để giữ định dạng cột gọn
+d) Thiếu quyền (không chạy bằng sudo) để xem thông tin process của user KHÁC — kernel giới hạn
+   hiển thị chi tiết process cho user không sở hữu nó
 
-3. Thấy hàng trăm socket ở trạng thái `TIME-WAIT` trên một server xử lý nhiều request ngắn
-   hạn. Đây có phải dấu hiệu rò rỉ kết nối cần xử lý ngay không?
-   <details><summary>Đáp án</summary>Không nhất thiết — <code>TIME-WAIT</code> là trạng thái
-   bình thường sau khi đóng kết nối TCP đúng cách, hệ điều hành giữ một khoảng thời gian để
-   tránh nhận lầm gói trễ. Chỉ đáng lo khi số lượng TĂNG LIÊN TỤC không dừng, không phải chỉ vì
-   số lượng tuyệt đối lớn tại một thời điểm.</details>
+**Đáp án: d** — Thiếu quyền (không chạy bằng sudo) để xem thông tin process của user KHÁC —
+kernel giới hạn hiển thị chi tiết process cho user không sở hữu nó. Socket "ma" không phải
+nguyên nhân phổ biến — socket còn tồn tại nghĩa là vẫn gắn với process thật (loại a); cờ `-p`
+hoạt động với cả TCP và UDP, không giới hạn UDP (loại b); độ dài tên process không phải lý do
+ẩn — vấn đề là QUYỀN xem, không phải định dạng cột (loại c).
 
-4. Một service TCP không có khái niệm "state" rõ ràng như TCP khi xem qua `ss -u`. Vì sao?
-   <details><summary>Đáp án</summary>UDP là connectionless ở tầng giao thức — không có state
-   machine kết nối như TCP (không có bắt tay, không có trạng thái ESTABLISHED thật).
-   <code>ss -u</code> chỉ hiện socket đang tồn tại ở tầng OS, không có cột trạng thái mang ý
-   nghĩa như TCP.</details>
+---
 
-5. Deploy script gọi `systemctl stop myapp` rồi start lại ngay, nhưng port cũ vẫn bị chiếm bởi
-   một process con sót lại. Đây là lỗi của `systemctl stop` hay của cấu hình service?
-   <details><summary>Đáp án</summary>Thường là lỗi CẤU HÌNH service (ví dụ sai
-   <code>Type=</code>, thiếu <code>PIDFile=</code> cho service tự fork) — <code>systemctl
-   stop</code> chỉ dừng đúng những gì systemd BIẾT là thuộc service đó theo cấu hình unit file;
-   process con không được quản lý đúng cgroup có thể "sót lại" ngoài tầm kiểm soát.</details>
+**Câu 2**: Vì sao `ss` thường nhanh hơn `netstat` đáng kể trên server có hàng chục nghìn kết
+nối?
+
+a) ss dùng Netlink socket để truy vấn TRỰC TIẾP và LỌC NGAY tại kernel. netstat đọc toàn bộ
+   file ảo /proc/net/tcp rồi tự lọc ở phía user-space — chậm hơn khi số lượng socket lớn
+b) Vì ss được viết bằng ngôn ngữ biên dịch nhanh hơn, còn netstat là script shell thuần
+c) Vì ss chỉ hiển thị tối đa 100 kết nối đầu tiên nên luôn có vẻ nhanh hơn
+d) Vì netstat luôn phải phân giải DNS ngược cho mỗi kết nối trước khi hiển thị, mặc định không
+   tắt được
+
+**Đáp án: a** — `ss` dùng Netlink socket để truy vấn TRỰC TIẾP và LỌC NGAY tại kernel.
+`netstat` đọc toàn bộ file ảo `/proc/net/tcp` rồi tự lọc ở phía user-space — chậm hơn khi số
+lượng socket lớn. Cả hai đều là binary biên dịch, không phải script shell (loại b); `ss` không
+giới hạn hiển thị cứng 100 kết nối (loại c); `netstat` không bắt buộc phân giải DNS ngược mặc
+định (có cờ `-n` để tắt resolve, và hành vi mặc định không nhất thiết luôn resolve mọi kết nối
+— loại d).
+
+---
+
+**Câu 3**: Thấy hàng trăm socket ở trạng thái `TIME-WAIT` trên một server xử lý nhiều request
+ngắn hạn. Đây có phải dấu hiệu rò rỉ kết nối cần xử lý ngay không?
+
+a) Có, TIME-WAIT luôn là dấu hiệu rò rỉ file descriptor cần restart service ngay
+b) Không nhất thiết — TIME-WAIT là trạng thái bình thường sau khi đóng kết nối TCP đúng cách,
+   hệ điều hành giữ một khoảng thời gian để tránh nhận lầm gói trễ. Chỉ đáng lo khi số lượng
+   TĂNG LIÊN TỤC không dừng, không phải chỉ vì số lượng tuyệt đối lớn tại một thời điểm
+c) Có, vì TIME-WAIT chiếm RAM vĩnh viễn cho tới khi reboot server
+d) Không, vì TIME-WAIT chỉ xuất hiện khi dùng UDP, không liên quan tới TCP request ngắn hạn
+
+**Đáp án: b** — Không nhất thiết — TIME-WAIT là trạng thái bình thường sau khi đóng kết nối TCP
+đúng cách. Chỉ đáng lo khi số lượng TĂNG LIÊN TỤC không dừng. TIME-WAIT không phải rò rỉ file
+descriptor — nó là trạng thái TCP bình thường, tự hết sau một khoảng thời gian (loại a); nó
+không chiếm RAM vĩnh viễn, tự giải phóng sau timeout (thường 60s hoặc theo cấu hình), không cần
+reboot (loại c); TIME-WAIT là trạng thái của TCP (sau khi đóng kết nối có hướng), không áp dụng
+cho UDP connectionless (loại d).
+
+---
+
+**Câu 4**: Một service TCP không có khái niệm "state" rõ ràng như TCP khi xem qua `ss -u`. Vì
+sao?
+
+a) Vì ss -u chỉ hỗ trợ phiên bản kernel cũ, kernel mới đã bỏ tính năng hiển thị state cho UDP
+b) Vì UDP luôn ở trạng thái ESTABLISHED ngay khi mở socket, chỉ không hiển thị rõ do giới hạn
+   cột
+c) UDP là connectionless ở tầng giao thức — không có state machine kết nối như TCP (không có
+   bắt tay, không có trạng thái ESTABLISHED thật). ss -u chỉ hiện socket đang tồn tại ở tầng
+   OS, không có cột trạng thái mang ý nghĩa như TCP
+d) Vì UDP cần chạy kèm thêm module riêng mới hiển thị được trạng thái, mặc định không có
+
+**Đáp án: c** — UDP là connectionless ở tầng giao thức — không có state machine kết nối như
+TCP. `ss -u` chỉ hiện socket đang tồn tại ở tầng OS, không có cột trạng thái mang ý nghĩa như
+TCP. Đây không phải vấn đề phiên bản kernel (loại a); UDP không có trạng thái ESTABLISHED thật
+vì không có handshake, không phải do giới hạn hiển thị (loại b); không cần module riêng nào —
+đây là đặc tính thiết kế của giao thức UDP (loại d).
+
+---
+
+**Câu 5**: Deploy script gọi `systemctl stop myapp` rồi start lại ngay, nhưng port cũ vẫn bị
+chiếm bởi một process con sót lại. Đây là lỗi của `systemctl stop` hay của cấu hình service?
+
+a) Luôn là lỗi của systemctl stop, vì lệnh này chỉ gửi SIGTERM mà không chờ xác nhận tiến trình
+   đã thoát
+b) Luôn là lỗi kernel không giải phóng port đúng cách sau khi process bị kill
+c) Lỗi do port đang ở TIME-WAIT nên bị coi nhầm là "đang chiếm", không liên quan gì tới cấu
+   hình service
+d) Thường là lỗi CẤU HÌNH service (ví dụ sai Type=, thiếu PIDFile= cho service tự fork) —
+   systemctl stop chỉ dừng đúng những gì systemd BIẾT là thuộc service đó theo cấu hình unit
+   file; process con không được quản lý đúng cgroup có thể "sót lại" ngoài tầm kiểm soát
+
+**Đáp án: d** — Thường là lỗi CẤU HÌNH service (sai `Type=`, thiếu `PIDFile=`) — `systemctl
+stop` chỉ dừng đúng những gì systemd BIẾT là thuộc service đó theo cấu hình unit file. `systemctl
+stop` có chờ xác nhận thoát theo cấu hình `TimeoutStopSec`, không chỉ gửi SIGTERM rồi bỏ qua
+(loại a); kernel giải phóng port đúng khi process thật sự thoát — vấn đề là PROCESS CON vẫn
+còn sống, không phải kernel giữ port sai (loại b); đây là kịch bản process con thật còn sống
+chiếm port, khác với TIME-WAIT (trạng thái socket đã đóng, không chiếm port theo cách process
+đang chạy mô tả ở đây — loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -158,37 +158,104 @@ dụng không có thêm chi tiết.
 
 ## 7. Tự kiểm tra
 
-1. Vì sao bắt gói tin cần quyền root/`CAP_NET_RAW`, trong khi xem thông tin socket bằng `ss`
-   (bài trước) không cần?
-   <details><summary>Đáp án</summary><code>ss</code> chỉ đọc thông tin SOCKET CỦA CHÍNH quyền
-   user hiện tại (hoặc cần sudo để xem đủ của user khác). Bắt gói tin đọc được MỌI traffic qua
-   interface, kể cả của người/process khác — đây là đặc quyền nhạy cảm hơn nhiều, kernel giới
-   hạn chỉ cho root/capability đặc biệt.</details>
+**Câu 1**: Vì sao bắt gói tin cần quyền root/`CAP_NET_RAW`, trong khi xem thông tin socket
+bằng `ss` (bài trước) không cần?
 
-2. Vì sao filter BPF (ví dụ `host 1.2.3.4`) hiệu quả hơn việc bắt hết rồi dùng `grep` lọc lại?
-   <details><summary>Đáp án</summary>Filter BPF được áp dụng NGAY TRONG KERNEL, loại bỏ gói
-   không khớp TRƯỚC KHI copy lên user-space — giảm tải CPU/I/O đáng kể so với copy TOÀN BỘ gói
-   lên rồi mới lọc bằng công cụ ở user-space như <code>grep</code>.</details>
+a) ss chỉ đọc thông tin SOCKET CỦA CHÍNH quyền user hiện tại (hoặc cần sudo để xem đủ của user
+   khác). Bắt gói tin đọc được MỌI traffic qua interface, kể cả của người/process khác — đây là
+   đặc quyền nhạy cảm hơn nhiều, kernel giới hạn chỉ cho root/capability đặc biệt
+b) Vì tcpdump cần ghi file .pcap ra đĩa, còn ss chỉ in ra màn hình không cần quyền ghi
+c) Vì ss chỉ hoạt động trên localhost, không cần quyền vì không "nhìn" được traffic mạng thật
+d) Vì tcpdump dùng giao thức mạng riêng (raw socket) nên tốn nhiều băng thông hơn, cần quyền
+   giới hạn tải
 
-3. Trong output `tcpdump`, bạn thấy `Flags [S]` rồi `Flags [S.]` rồi `Flags [.]` giữa 2 địa
-   chỉ. Đây tương ứng với bước nào đã học ở bài TCP?
-   <details><summary>Đáp án</summary>Đúng 3-way handshake: <code>[S]</code> = SYN,
-   <code>[S.]</code> = SYN-ACK (dấu <code>.</code> là ACK kèm theo), <code>[.]</code> (ACK thuần, không còn SYN) =
-   ACK cuối — khớp chính xác 3 bước thiết lập kết nối TCP đã học ở bài
-   <code>networking.tcpip.tcp-udp</code>.</details>
+**Đáp án: a** — `ss` chỉ đọc thông tin SOCKET CỦA CHÍNH quyền user hiện tại. Bắt gói tin đọc
+được MỌI traffic qua interface, kể cả của người/process khác — đặc quyền nhạy cảm hơn nhiều.
+Việc ghi file ra đĩa không phải lý do cần quyền đặc biệt — quyền viết file là chuyện khác với
+quyền đọc raw traffic (loại b); `ss` hoạt động được với cả kết nối mạng thật, không chỉ
+localhost (loại c); raw socket không tốn băng thông mạng thêm — nó chỉ là CÁCH đọc gói tin ở
+tầng thấp, không liên quan tới tải mạng (loại d).
 
-4. Vì sao nên LUÔN giới hạn `-c <số gói>` hoặc dùng filter hẹp khi capture trên server
-   production, thay vì bắt không giới hạn?
-   <details><summary>Đáp án</summary>Bắt không giới hạn trên traffic lớn có thể tự nó gây tải
-   CPU/I/O đáng kể (copy mọi gói lên user-space), làm trầm trọng thêm vấn đề đang điều tra; file
-   kết quả cũng dễ quá lớn khiến Wireshark/công cụ phân tích xử lý chậm hoặc treo.</details>
+---
 
-5. Vì sao bắt gói trên server qua SSH (không GUI) rồi phân tích bằng Wireshark trên máy cá
-   nhân là quy trình phổ biến, thay vì cài Wireshark trực tiếp trên server?
-   <details><summary>Đáp án</summary><code>tcpdump -w</code> ghi ra file <code>.pcap</code> —
-   định dạng chuẩn mà Wireshark đọc được trực tiếp. Server production thường không có GUI/
-   không nên cài thêm phần mềm nặng; tách việc BẮT (tcpdump, nhẹ, dòng lệnh) khỏi việc PHÂN
-   TÍCH (Wireshark, cần giao diện trực quan) là cách làm gọn và an toàn hơn.</details>
+**Câu 2**: Vì sao filter BPF (ví dụ `host 1.2.3.4`) hiệu quả hơn việc bắt hết rồi dùng `grep`
+lọc lại?
+
+a) Vì BPF filter chạy song song đa luồng còn grep chỉ xử lý đơn luồng
+b) Filter BPF được áp dụng NGAY TRONG KERNEL, loại bỏ gói không khớp TRƯỚC KHI copy lên
+   user-space — giảm tải CPU/I/O đáng kể so với copy TOÀN BỘ gói lên rồi mới lọc bằng công cụ
+   ở user-space như grep
+c) Vì grep chỉ hoạt động với file text, không đọc được định dạng nhị phân của gói tin nên luôn
+   thất bại
+d) Vì BPF filter nén dữ liệu gói tin lại trước khi lưu, giảm kích thước file .pcap
+
+**Đáp án: b** — Filter BPF được áp dụng NGAY TRONG KERNEL, loại bỏ gói không khớp TRƯỚC KHI
+copy lên user-space — giảm tải CPU/I/O đáng kể. Lợi thế của BPF không nằm ở đa luồng (loại a);
+vấn đề thực tế là grep chạy SAU khi gói đã lên user-space (tốn tải để copy), không phải grep
+"luôn thất bại" với dữ liệu nhị phân — người dùng vẫn có thể lọc output text của tcpdump bằng
+grep, chỉ là kém hiệu quả hơn lọc ngay ở kernel (loại c); BPF không nén dữ liệu, nó LOẠI BỎ gói
+không khớp (loại d).
+
+---
+
+**Câu 3**: Trong output `tcpdump`, bạn thấy `Flags [S]` rồi `Flags [S.]` rồi `Flags [.]` giữa
+2 địa chỉ. Đây tương ứng với bước nào đã học ở bài TCP?
+
+a) Đây là 3 lần retransmit của cùng một gói SYN do mất gói, không phải 3 bước khác nhau
+b) [S] = SYN, [S.] = ACK đơn thuần, [.] = FIN kết thúc kết nối
+c) Đúng 3-way handshake: [S] = SYN, [S.] = SYN-ACK (dấu . là ACK kèm theo), [.] (ACK thuần,
+   không còn SYN) = ACK cuối — khớp chính xác 3 bước thiết lập kết nối TCP đã học ở bài
+   networking.tcpip.tcp-udp
+d) Đây là dấu hiệu kết nối bị NAT dịch địa chỉ 3 lần liên tiếp, không liên quan tới TCP
+   handshake
+
+**Đáp án: c** — Đúng 3-way handshake: `[S]` = SYN, `[S.]` = SYN-ACK, `[.]` = ACK cuối — khớp
+chính xác 3 bước thiết lập kết nối TCP. Ba cờ KHÁC NHAU (S, S., .) không phải retransmit của
+cùng một gói — retransmit sẽ lặp lại CÙNG một flag (loại a); `[S.]` là SYN-ACK, không phải ACK
+đơn thuần, và `[.]` là ACK cuối, không phải FIN (FIN hiển thị bằng cờ `F` — loại b); đây là
+handshake TCP thông thường, không liên quan tới NAT dịch địa chỉ (loại d).
+
+---
+
+**Câu 4**: Vì sao nên LUÔN giới hạn `-c <số gói>` hoặc dùng filter hẹp khi capture trên server
+production, thay vì bắt không giới hạn?
+
+a) Vì tcpdump mặc định tự dừng sau 60 giây nên không cần giới hạn thêm, chỉ là thói quen không
+   bắt buộc
+b) Vì không giới hạn sẽ khiến tcpdump tự động gửi dữ liệu capture lên server của nhà phát triển
+c) Vì thiếu -c sẽ làm sai định dạng file .pcap, Wireshark không mở được
+d) Bắt không giới hạn trên traffic lớn có thể tự nó gây tải CPU/I/O đáng kể (copy mọi gói lên
+   user-space), làm trầm trọng thêm vấn đề đang điều tra; file kết quả cũng dễ quá lớn khiến
+   Wireshark/công cụ phân tích xử lý chậm hoặc treo
+
+**Đáp án: d** — Bắt không giới hạn trên traffic lớn có thể tự nó gây tải CPU/I/O đáng kể, làm
+trầm trọng thêm vấn đề đang điều tra; file kết quả cũng dễ quá lớn khiến Wireshark xử lý chậm
+hoặc treo. tcpdump KHÔNG tự dừng sau 60 giây mặc định — nó chạy tới khi bị dừng thủ công hoặc
+hết số gói chỉ định (loại a); tcpdump không gửi dữ liệu capture đi đâu cả, nó chỉ ghi cục bộ
+(loại b); thiếu `-c` không làm sai định dạng file — file .pcap vẫn đúng chuẩn, chỉ là có thể
+rất lớn (loại c).
+
+---
+
+**Câu 5**: Vì sao bắt gói trên server qua SSH (không GUI) rồi phân tích bằng Wireshark trên
+máy cá nhân là quy trình phổ biến, thay vì cài Wireshark trực tiếp trên server?
+
+a) tcpdump -w ghi ra file .pcap — định dạng chuẩn mà Wireshark đọc được trực tiếp. Server
+   production thường không có GUI/không nên cài thêm phần mềm nặng; tách việc BẮT (tcpdump,
+   nhẹ, dòng lệnh) khỏi việc PHÂN TÍCH (Wireshark, cần giao diện trực quan) là cách làm gọn và
+   an toàn hơn
+b) Vì Wireshark không tương thích chạy trên hệ điều hành server (Linux), chỉ chạy được trên
+   Windows/macOS
+c) Vì license Wireshark cấm cài trên máy chủ production theo điều khoản sử dụng
+d) Vì tcpdump không thể đọc được gói tin TCP, chỉ Wireshark mới hiểu được giao thức này
+
+**Đáp án: a** — `tcpdump -w` ghi ra file `.pcap` — định dạng chuẩn mà Wireshark đọc được trực
+tiếp. Server production thường không có GUI/không nên cài thêm phần mềm nặng; tách việc BẮT
+khỏi việc PHÂN TÍCH là cách làm gọn và an toàn hơn. Wireshark hoàn toàn chạy được trên Linux
+(bao gồm server), vấn đề là server production thường không có GUI, không phải không tương
+thích (loại b); không có điều khoản license cấm cài Wireshark trên production — đây là phần
+mềm mã nguồn mở (loại c); tcpdump đọc và hiểu được gói tin TCP đầy đủ, bản thân nó đã phân tích
+được header TCP (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
