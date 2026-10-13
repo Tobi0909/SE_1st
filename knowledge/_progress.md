@@ -120,9 +120,14 @@ tổng (530 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào ph�
 `security-context`. Verify qua PGlite: `kb:import` → 2 bài cập nhật, `kb:build-quiz` → 542 câu
 MCQ tổng (536 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
 
-**Còn lại toàn kho**: `container-k8s` (2 module, 5 bài, toàn bộ essay — k8s-troubleshooting 3,
-helm 2), `monitoring` (5 module, 11 bài, toàn bộ essay), `data.redis` (1 bài),
-`data.message-queue` (1 bài), `sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
+`container-k8s.k8s-troubleshooting` (3 bài, 9 câu — xem commit theo sau trong git log):
+`pod-errors`, `oom-resource`, `logs-events`. Verify qua PGlite: `kb:import` → 3 bài cập nhật,
+`kb:build-quiz` → 551 câu MCQ tổng (542 cũ + 9 mới), idempotent, `kb:lint` pass. Không có câu
+nào phải bỏ qua.
+
+**Còn lại toàn kho**: `container-k8s.helm` (2 bài, essay), `monitoring` (5 module, 11 bài, toàn
+bộ essay), `data.redis` (1 bài), `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
+`sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

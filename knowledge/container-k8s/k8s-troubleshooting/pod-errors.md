@@ -234,26 +234,61 @@ Sau khi xác định nguyên nhân (ví dụ: thiếu Secret `db-credentials` tr
 
 ## 7. Tự kiểm tra
 
-1. Khác biệt giữa `kubectl logs` và `kubectl logs --previous`?
-   <details><summary>Đáp án</summary>`kubectl logs` lấy log của container ĐANG CHẠY (hoặc lần
-   chạy gần nhất nếu đang ở CrashLoopBackOff trong giai đoạn backoff-wait). `kubectl logs
-   --previous` lấy log của container ĐÃ EXIT trước đó — quan trọng khi container crash và
-   restart lại vì log của lần crash có thể bị overwrite bởi lần start mới. Khi debug
-   CrashLoopBackOff, luôn dùng `--previous` để thấy lý do crash thật.</details>
+**Câu 1**: Khác biệt giữa `kubectl logs` và `kubectl logs --previous`?
 
-2. Pod ở trạng thái `Running` với `READY 0/1`. Service có route traffic vào Pod này không?
-   <details><summary>Đáp án</summary>Không — Service chỉ route traffic đến Pod trong Endpoints.
-   K8s Endpoints controller chỉ thêm Pod vào Endpoints khi Pod pass readiness probe
-   (`READY 1/1`). Pod `Running` `READY 0/1` = readiness probe fail = Pod không có trong
-   Endpoints = không nhận traffic từ Service. Pod vẫn chạy (process alive) nhưng bị cô lập
-   khỏi traffic cho đến khi probe pass lại.</details>
+a) kubectl logs lấy log của container ĐANG CHẠY (hoặc lần chạy gần nhất nếu đang ở
+   CrashLoopBackOff trong giai đoạn backoff-wait). kubectl logs --previous lấy log của
+   container ĐÃ EXIT trước đó — quan trọng khi container crash và restart lại vì log của lần
+   crash có thể bị overwrite bởi lần start mới. Khi debug CrashLoopBackOff, luôn dùng
+   --previous để thấy lý do crash thật
+b) kubectl logs --previous lấy log của Pod trước đó trong lịch sử Deployment, không liên quan
+   tới crash/restart
+c) Cả hai lệnh trả về y hệt nhau, --previous chỉ là alias cũ giữ lại cho tương thích ngược
+d) kubectl logs lấy log container đã exit; --previous lấy log container đang chạy
 
-3. `CrashLoopBackOff` với exit code 137 — nguyên nhân gì?
-   <details><summary>Đáp án</summary>OOMKilled — exit code 137 là tín hiệu SIGKILL (128 + 9)
-   do kernel gửi khi container vượt `resources.limits.memory`. Xác nhận bằng `kubectl describe
-   pod` → `Last State: Terminated, Reason: OOMKilled`. Cách xử lý: tăng `limits.memory` hoặc
-   profile app để tìm memory leak. Xem thêm `container-k8s.k8s-troubleshooting.oom-resource`
-   cho phân tích chi tiết resource sizing.</details>
+**Đáp án: a** — `kubectl logs` lấy log container ĐANG CHẠY; `--previous` lấy log container ĐÃ
+EXIT trước đó, quan trọng khi debug crash vì log mới có thể overwrite log cũ. `--previous` lấy
+log của CONTAINER trước đó trong cùng Pod, không liên quan tới "lịch sử Deployment" ở cấp
+rollout (loại b); hai lệnh trả kết quả khác nhau rõ rệt (log hiện tại vs log đã exit), không
+phải alias (loại c); vai trò bị đảo ngược hoàn toàn trong lựa chọn d (loại d).
+
+---
+
+**Câu 2**: Pod ở trạng thái `Running` với `READY 0/1`. Service có route traffic vào Pod này
+không?
+
+a) Có, vì Running luôn đồng nghĩa với việc nhận traffic bất kể READY hiển thị gì
+b) Không — Service chỉ route traffic đến Pod trong Endpoints. K8s Endpoints controller chỉ
+   thêm Pod vào Endpoints khi Pod pass readiness probe (READY 1/1). Pod Running READY 0/1 =
+   readiness probe fail = Pod không có trong Endpoints = không nhận traffic từ Service. Pod
+   vẫn chạy (process alive) nhưng bị cô lập khỏi traffic cho đến khi probe pass lại
+c) Có, nhưng chỉ giảm tỉ lệ traffic route vào Pod đó xuống 50% thay vì chặn hoàn toàn
+d) Không thể xác định nếu không biết thêm loại Service (ClusterIP/NodePort/LoadBalancer)
+
+**Đáp án: b** — Không. Service chỉ route tới Pod trong Endpoints, chỉ thêm Pod khi pass
+readiness probe. `READY 0/1` nghĩa là không có trong Endpoints, không nhận traffic. `Running`
+không đồng nghĩa với nhận traffic — READY mới quyết định việc đó (loại a); không có cơ chế
+"giảm 50% traffic" khi readiness fail — Pod bị loại HOÀN TOÀN khỏi Endpoints, không phải giảm
+tỉ lệ (loại c); hành vi này áp dụng CHO MỌI loại Service (ClusterIP/NodePort/LoadBalancer) vì
+tất cả đều dựa trên Endpoints, không cần biết thêm loại Service (loại d).
+
+---
+
+**Câu 3**: `CrashLoopBackOff` với exit code 137 — nguyên nhân gì?
+
+a) Exit code 137 nghĩa là container tự exit thành công với status đặc biệt, không phải bị kill
+b) Exit code 137 là lỗi image không tồn tại (ImagePullBackOff), không liên quan tới memory
+c) OOMKilled — exit code 137 là tín hiệu SIGKILL (128 + 9) do kernel gửi khi container vượt
+   resources.limits.memory. Xác nhận bằng kubectl describe pod → Last State: Terminated,
+   Reason: OOMKilled. Cách xử lý: tăng limits.memory hoặc profile app để tìm memory leak
+d) Exit code 137 nghĩa là liveness probe fail, kubelet chủ động restart container theo policy
+
+**Đáp án: c** — OOMKilled — exit code 137 là SIGKILL (128+9) do kernel gửi khi vượt
+`limits.memory`. Xác nhận bằng `Last State: Terminated, Reason: OOMKilled`. Exit code 137 là
+dấu hiệu bị KILL bởi tín hiệu, không phải exit thành công tự nguyện (loại a); ImagePullBackOff
+là trạng thái KHÁC HẲN, không liên quan tới exit code của container đã chạy (loại b); liveness
+probe fail gây restart nhưng có exit code/reason khác (ví dụ `Error` hoặc theo cách container
+tự xử lý signal), không mang mã 137 cố định theo cơ chế OOM (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

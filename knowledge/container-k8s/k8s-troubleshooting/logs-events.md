@@ -225,26 +225,63 @@ Từ "latency tăng" đến "Secret missing trên 1 node cụ thể" trong 5 bư
 
 ## 7. Tự kiểm tra
 
-1. `kubectl logs` chỉ lấy được log từ đâu? Có lấy được log của container đã bị xoá không?
-   <details><summary>Đáp án</summary>`kubectl logs` đọc stdout/stderr của container từ file trên
-   node (`/var/log/pods/...`). Khi Pod bị xoá, kubelet dọn log file đó — không còn lấy được.
-   Chỉ lấy được log của: (1) container đang chạy; (2) container vừa crash/restart (lần crash ngay
-   trước với `--previous`). Để xem log của Pod đã bị xoá hoàn toàn, cần centralized logging
-   (Loki, Elasticsearch, Cloud Logging) đã ship log ra ngoài trước khi Pod bị xoá.</details>
+**Câu 1**: `kubectl logs` chỉ lấy được log từ đâu? Có lấy được log của container đã bị xoá
+không?
 
-2. Có 10 Pod trong Deployment. `kubectl logs -l app=myapp` chỉ hiện log của 5 Pod. Tại sao và
-   cách lấy tất cả 10?
-   <details><summary>Đáp án</summary>Mặc định `kubectl logs` với label selector giới hạn tối đa
-   5 container (safety limit để tránh apiserver overload). Để lấy log từ tất cả 10 Pod: thêm
-   `--max-log-requests=10` (hoặc số lớn hơn). Hoặc dùng centralized logging để aggregation
-   không qua kubectl.</details>
+a) kubectl logs đọc trực tiếp từ etcd, nơi K8s lưu toàn bộ log của mọi Pod từng tồn tại
+b) Có, luôn lấy được log của Pod đã xoá miễn là cluster còn chạy, không cần công cụ gì thêm
+c) kubectl logs đọc stdout/stderr của container từ file trên node (/var/log/pods/...). Khi
+   Pod bị xoá, kubelet dọn log file đó — không còn lấy được. Chỉ lấy được log của: (1)
+   container đang chạy; (2) container vừa crash/restart (lần crash ngay trước với --previous).
+   Để xem log của Pod đã bị xoá hoàn toàn, cần centralized logging (Loki, Elasticsearch, Cloud
+   Logging) đã ship log ra ngoài trước khi Pod bị xoá
+d) kubectl logs đọc log từ registry image, không liên quan tới runtime thật của container
 
-3. Event TTL mặc định của K8s là bao lâu? Tại sao không nên set TTL quá dài?
-   <details><summary>Đáp án</summary>Mặc định 1 giờ (`--event-ttl=1h` ở kube-apiserver). Không
-   nên set quá dài vì Events được lưu trong etcd — etcd là single-point-of-truth của cả cluster,
-   có giới hạn storage và performance. Nhiều Events tồn tại lâu = etcd lớn hơn = slower watch
-   và backup. Production cần ghi Events ra ngoài (event-exporter, Loki) trước khi hết TTL, rồi
-   giữ TTL ngắn để etcd nhẹ.</details>
+**Đáp án: c** — `kubectl logs` đọc file trên node (`/var/log/pods/...`). Pod bị xoá thì
+kubelet dọn file đó, không lấy được nữa. Cần centralized logging để xem log Pod đã xoá. etcd
+chỉ lưu OBJECT state (metadata), không lưu nội dung log container — log nằm trên disk node
+(loại a); log KHÔNG còn lấy được sau khi Pod bị xoá và kubelet dọn file — cần công cụ
+centralized logging đã ship trước đó (loại b); log đến từ RUNTIME thật của container (stdout/
+stderr khi chạy), không liên quan tới registry image (loại d).
+
+---
+
+**Câu 2**: Có 10 Pod trong Deployment. `kubectl logs -l app=myapp` chỉ hiện log của 5 Pod.
+Tại sao và cách lấy tất cả 10?
+
+a) Vì label selector chỉ khớp được tối đa 5 Pod theo thiết kế, cần chia thành 2 label riêng
+b) Vì 5 Pod còn lại chưa start xong container, chưa có log nào để hiển thị
+c) Vì kubectl logs chỉ hỗ trợ hiển thị log của Pod trong cùng 1 node, 5 Pod kia ở node khác
+d) Mặc định kubectl logs với label selector giới hạn tối đa 5 container (safety limit để
+   tránh apiserver overload). Để lấy log từ tất cả 10 Pod: thêm --max-log-requests=10 (hoặc
+   số lớn hơn). Hoặc dùng centralized logging để aggregation không qua kubectl
+
+**Đáp án: d** — Mặc định giới hạn tối đa 5 container (safety limit). Thêm
+`--max-log-requests=10` để lấy đủ. Label selector không có giới hạn khớp 5 Pod — nó khớp được
+BAO NHIÊU Pod cũng được, giới hạn nằm ở số lượng LOG REQUEST gửi đi, không phải số match (loại
+a); đây không phải vấn đề container chưa start — là giới hạn client-side cố định của `kubectl
+logs` (loại b); `kubectl logs` không giới hạn theo node — nó gọi API tới apiserver, hoạt động
+qua mọi node trong cluster (loại c).
+
+---
+
+**Câu 3**: Event TTL mặc định của K8s là bao lâu? Tại sao không nên set TTL quá dài?
+
+a) Mặc định 1 giờ (--event-ttl=1h ở kube-apiserver). Không nên set quá dài vì Events được
+   lưu trong etcd — etcd là single-point-of-truth của cả cluster, có giới hạn storage và
+   performance. Nhiều Events tồn tại lâu = etcd lớn hơn = slower watch và backup. Production
+   cần ghi Events ra ngoài (event-exporter, Loki) trước khi hết TTL, rồi giữ TTL ngắn để etcd
+   nhẹ
+b) Event TTL mặc định là 24 giờ, không nên set dài hơn vì làm chậm response của kubectl get
+   events
+c) Event TTL mặc định là vô hạn (không tự xoá), nên set ngắn lại để tránh đầy disk trên node
+d) Event TTL không tồn tại, mọi Event được lưu vĩnh viễn trong object Pod tương ứng
+
+**Đáp án: a** — Mặc định 1 giờ (`--event-ttl=1h`). Không nên set dài vì Events lưu trong etcd,
+etcd có giới hạn storage/performance; nhiều Events lâu làm etcd lớn hơn, chậm watch/backup.
+Giá trị mặc định là 1 giờ, không phải 24 giờ (loại b); Events KHÔNG tồn tại vô hạn mặc định —
+chính TTL 1h là cơ chế tự xoá (loại c); Events là OBJECT RIÊNG trong etcd, không lưu bên trong
+object Pod — đây là lý do TTL cần quản lý riêng (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
