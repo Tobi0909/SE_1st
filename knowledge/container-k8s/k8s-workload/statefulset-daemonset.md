@@ -231,25 +231,65 @@ Một team muốn migrate database từ bare metal lên Kubernetes. Điểm quy�
 
 ## 7. Tự kiểm tra
 
-1. Pod `db-1` của StatefulSet bị crash và K8s recreate. Sau khi recreate, data của `db-1` còn hay
-   mất?
-   <details><summary>Đáp án</summary>CÒN. PVC <code>data-mysql-1</code> không bị xoá khi Pod
-   crash/recreate. Pod mới tên <code>mysql-1</code> tự bind lại vào PVC <code>data-mysql-1</code>
-   (vì tên Pod là stable, tên PVC derived từ tên Pod, và K8s tự tìm đúng PVC theo tên). Data trên
-   PVC là persistent storage — không bị ảnh hưởng bởi Pod lifecycle.</details>
+**Câu 1**: Pod `db-1` của StatefulSet bị crash và K8s recreate. Sau khi recreate, data của
+`db-1` còn hay mất?
 
-2. Cluster có 3 worker node. DaemonSet đang chạy 3 Pod. Thêm 2 node mới vào cluster — mấy Pod
-   sẽ được tạo thêm?
-   <details><summary>Đáp án</summary>2 Pod mới, tự động, không cần can thiệp thủ công. DaemonSet
-   controller watch node events — khi node mới join, nó tự schedule Pod lên node đó. Số Pod luôn
-   = số node match selector/toleration của DaemonSet.</details>
+a) MẤT, vì StatefulSet không hỗ trợ persistent storage như Deployment thường
+b) CÒN. PVC data-mysql-1 không bị xoá khi Pod crash/recreate. Pod mới tên mysql-1 tự bind lại
+   vào PVC data-mysql-1 (vì tên Pod là stable, tên PVC derived từ tên Pod, và K8s tự tìm đúng
+   PVC theo tên). Data trên PVC là persistent storage — không bị ảnh hưởng bởi Pod lifecycle
+c) CÒN, nhưng chỉ nếu admin backup PVC thủ công trước khi Pod crash
+d) MẤT, vì PVC tự động bị xoá cùng lúc với Pod khi StatefulSet controller recreate
 
-3. Sự khác biệt cốt lõi giữa headless Service (`clusterIP: None`) và Service thông thường là gì?
-   <details><summary>Đáp án</summary>Service thông thường tạo virtual ClusterIP — khi Pod query
-   DNS tên Service, nhận được ClusterIP (rồi kube-proxy DNAT route đến 1 trong các Pod backend).
-   Headless Service KHÔNG có ClusterIP — DNS trả về trực tiếp list IP của các Pod đang match
-   selector. Với StatefulSet, mỗi Pod có hostname riêng nên DNS resolve thẳng vào đúng Pod IP,
-   cho phép ứng dụng address từng replica bằng tên.</details>
+**Đáp án: b** — CÒN. PVC `data-mysql-1` không bị xoá khi Pod crash/recreate — Pod mới tự bind
+lại vào đúng PVC theo tên. Data trên PVC không bị ảnh hưởng bởi Pod lifecycle. StatefulSet
+chính là công cụ ĐỂ hỗ trợ persistent storage cho workload có state — ngược lại với mô tả ở
+lựa chọn a (loại a); không cần backup thủ công — PVC tồn tại độc lập, bền vững mặc định (loại
+c); PVC KHÔNG tự xoá cùng Pod khi recreate — đây chính là đặc tính persistent được thiết kế
+riêng cho StatefulSet (loại d).
+
+---
+
+**Câu 2**: Cluster có 3 worker node. DaemonSet đang chạy 3 Pod. Thêm 2 node mới vào cluster —
+mấy Pod sẽ được tạo thêm?
+
+a) 0 Pod mới, phải chạy kubectl rollout restart daemonset thủ công để Pod lan ra node mới
+b) 5 Pod mới, vì DaemonSet tạo lại toàn bộ Pod trên mọi node (cũ + mới) mỗi khi topology thay
+   đổi
+c) 2 Pod mới, tự động, không cần can thiệp thủ công. DaemonSet controller watch node events —
+   khi node mới join, nó tự schedule Pod lên node đó. Số Pod luôn = số node match
+   selector/toleration của DaemonSet
+d) Không xác định được, số Pod DaemonSet tạo phụ thuộc hoàn toàn vào resources.requests còn
+   lại trên node
+
+**Đáp án: c** — 2 Pod mới, tự động. DaemonSet controller watch node events, tự schedule Pod lên
+node mới join — số Pod luôn bằng số node match selector/toleration. Không cần can thiệp thủ
+công — đây chính là tính năng tự động của DaemonSet controller (loại a); DaemonSet KHÔNG xoá
+và tạo lại Pod trên node CŨ khi có node mới join — Pod trên node cũ vẫn giữ nguyên, không bị
+restart (loại b); số Pod của DaemonSet quyết định bởi số node MATCH selector/toleration, không
+phụ thuộc resources.requests còn lại (nếu thiếu resource, Pod có thể Pending nhưng vẫn được
+TẠO — loại d).
+
+---
+
+**Câu 3**: Sự khác biệt cốt lõi giữa headless Service (`clusterIP: None`) và Service thông
+thường là gì?
+
+a) Headless Service không hỗ trợ DNS resolve tên Service, chỉ Service thông thường mới có DNS
+b) Cả hai hoàn toàn giống nhau về network, chỉ khác tên gọi trong YAML
+c) Headless Service chỉ dùng được với DaemonSet, không dùng được với StatefulSet
+d) Service thông thường tạo virtual ClusterIP — khi Pod query DNS tên Service, nhận được
+   ClusterIP (rồi kube-proxy DNAT route đến 1 trong các Pod backend). Headless Service KHÔNG
+   có ClusterIP — DNS trả về trực tiếp list IP của các Pod đang match selector. Với
+   StatefulSet, mỗi Pod có hostname riêng nên DNS resolve thẳng vào đúng Pod IP, cho phép ứng
+   dụng address từng replica bằng tên
+
+**Đáp án: d** — Service thông thường tạo ClusterIP + DNAT; headless KHÔNG có ClusterIP, DNS
+trả list IP Pod trực tiếp — hữu ích với StatefulSet để address từng replica bằng tên. Headless
+Service VẪN resolve DNS tên Service — chỉ là trả về IP Pod trực tiếp thay vì ClusterIP (loại
+a); hai loại có hành vi network khác nhau rõ rệt (có/không ClusterIP), không giống nhau (loại
+b); headless Service chính là tính năng dùng NHIỀU cho StatefulSet (để address từng replica
+ổn định), không bị giới hạn chỉ DaemonSet (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -260,30 +260,70 @@ spec:
 
 ## 7. Tự kiểm tra
 
-1. Secret trong Kubernetes "an toàn hơn" ConfigMap ở điểm nào? Và điểm yếu bảo mật nào cần
-   lưu ý?
-   <details><summary>Đáp án</summary>An toàn hơn: K8s không ghi Secret lên disk node (dùng tmpfs
-   trong memory); RBAC có thể giới hạn <code>get</code> Secret chặt hơn ConfigMap; audit log ghi
-   lại mọi access. Điểm yếu: base64 KHÔNG phải mã hoá; etcd mặc định lưu plaintext (phải kích
-   hoạt <code>EncryptionConfiguration</code> riêng); bất kỳ ai có quyền <code>get secret</code>
-   đều đọc được ngay; Secret trong env var có thể xuất hiện trong process listing hoặc log nếu
-   app vô tình in ra.</details>
+**Câu 1**: Secret trong Kubernetes "an toàn hơn" ConfigMap ở điểm nào? Và điểm yếu bảo mật nào
+cần lưu ý?
 
-2. App đọc config từ ConfigMap qua env var. Sau khi update ConfigMap, app vẫn thấy giá trị cũ.
-   Nguyên nhân và cách xử lý?
-   <details><summary>Đáp án</summary>Env var chỉ được đọc khi container start — không có cơ chế
-   tự cập nhật runtime. Container đang chạy không bị ảnh hưởng khi ConfigMap thay đổi. Cách xử
-   lý: <code>kubectl rollout restart deployment/&lt;name&gt;</code> tạo Pod mới với env var mới;
-   hoặc chuyển sang inject qua volume mount (kubelet tự cập nhật file trong ~1 phút mà không
-   cần restart Pod).</details>
+a) An toàn hơn: K8s không ghi Secret lên disk node (dùng tmpfs trong memory); RBAC có thể giới
+   hạn get Secret chặt hơn ConfigMap; audit log ghi lại mọi access. Điểm yếu: base64 KHÔNG phải
+   mã hoá; etcd mặc định lưu plaintext (phải kích hoạt EncryptionConfiguration riêng); bất kỳ
+   ai có quyền get secret đều đọc được ngay; Secret trong env var có thể xuất hiện trong
+   process listing hoặc log nếu app vô tình in ra
+b) An toàn hơn vì Secret được mã hoá AES-256 mặc định ngay khi tạo, không cần cấu hình thêm gì
+c) An toàn hơn vì chỉ user có quyền cluster-admin mới xem được Secret, không ai khác có thể
+   get được dù có RBAC khác
+d) Secret và ConfigMap có mức an toàn giống nhau hoàn toàn, chỉ khác ở tên gọi object
 
-3. `kubectl create secret generic` vs khai báo Secret trong YAML file và `kubectl apply` — cách
-   nào nên dùng trong quy trình CI/CD và tại sao?
-   <details><summary>Đáp án</summary>Không nên commit Secret YAML có plaintext vào git. Trong
-   CI/CD: dùng <code>kubectl create secret</code> với giá trị từ CI secret store (GitHub Actions
-   Secrets, GitLab CI Variables), hoặc dùng External Secrets Operator để K8s tự kéo Secret từ
-   Vault/AWS Secrets Manager — Secret YAML không bao giờ tồn tại trong repo. Nếu dùng GitOps
-   (ArgoCD/Flux), cần thêm bước encrypt Secret (Sealed Secrets, SOPS) trước khi commit.</details>
+**Đáp án: a** — An toàn hơn ở tmpfs, RBAC, audit log; điểm yếu: base64 không phải mã hoá, etcd
+mặc định lưu plaintext, ai có quyền `get secret` đều đọc được ngay. Secret KHÔNG mã hoá
+AES-256 mặc định — chỉ encode base64, phải tự kích hoạt `EncryptionConfiguration` mới mã hoá
+thật trong etcd (loại b); RBAC có thể cấu hình cho nhiều role khác nhau được `get` Secret,
+không giới hạn chỉ `cluster-admin` (loại c); Secret và ConfigMap CÓ khác biệt thật về cách lưu
+trữ (tmpfs vs disk) và mức bảo vệ RBAC, không chỉ khác tên (loại d).
+
+---
+
+**Câu 2**: App đọc config từ ConfigMap qua env var. Sau khi update ConfigMap, app vẫn thấy giá
+trị cũ. Nguyên nhân và cách xử lý?
+
+a) Vì ConfigMap chỉ cập nhật được tối đa 1 lần sau khi tạo, lần sửa thứ 2 không có tác dụng
+b) Env var chỉ được đọc khi container start — không có cơ chế tự cập nhật runtime. Container
+   đang chạy không bị ảnh hưởng khi ConfigMap thay đổi. Cách xử lý: kubectl rollout restart
+   deployment/<name> tạo Pod mới với env var mới; hoặc chuyển sang inject qua volume mount
+   (kubelet tự cập nhật file trong ~1 phút mà không cần restart Pod)
+c) Vì app cần gọi API riêng của Kubernetes để tự fetch giá trị mới, không có cách tự động nào
+   khác
+d) Vì env var tự động cập nhật realtime nhưng app code cache giá trị cũ trong biến toàn cục của
+   riêng app
+
+**Đáp án: b** — Env var chỉ đọc khi container start, không tự cập nhật runtime. Cách xử lý:
+`rollout restart` hoặc chuyển sang volume mount (tự cập nhật ~1 phút). ConfigMap cập nhật được
+NHIỀU lần, không giới hạn 1 lần — vấn đề nằm ở cách env var được đọc (loại a); không cần app tự
+gọi API Kubernetes — giải pháp đơn giản hơn là restart Pod hoặc dùng volume mount (loại c); env
+var KHÔNG tự cập nhật realtime — đây chính là nguyên nhân cốt lõi của vấn đề, không phải do app
+cache (loại d).
+
+---
+
+**Câu 3**: `kubectl create secret generic` vs khai báo Secret trong YAML file và `kubectl
+apply` — cách nào nên dùng trong quy trình CI/CD và tại sao?
+
+a) Luôn dùng YAML + kubectl apply vì đây là cách GitOps chuẩn, commit trực tiếp Secret
+   plaintext vào repo để dễ audit
+b) Cả hai cách đều an toàn như nhau, không có khuyến nghị nào về việc commit Secret vào git
+c) Không nên commit Secret YAML có plaintext vào git. Trong CI/CD: dùng kubectl create secret
+   với giá trị từ CI secret store (GitHub Actions Secrets, GitLab CI Variables), hoặc dùng
+   External Secrets Operator để K8s tự kéo Secret từ Vault/AWS Secrets Manager — Secret YAML
+   không bao giờ tồn tại trong repo. Nếu dùng GitOps (ArgoCD/Flux), cần thêm bước encrypt
+   Secret (Sealed Secrets, SOPS) trước khi commit
+d) Chỉ nên dùng kubectl create secret generic, tuyệt đối không bao giờ dùng YAML cho Secret dù
+   có mã hoá
+
+**Đáp án: c** — Không nên commit Secret YAML plaintext vào git. Dùng `kubectl create secret`
+từ CI secret store hoặc External Secrets Operator; nếu GitOps thì encrypt trước (Sealed
+Secrets, SOPS). Commit plaintext Secret vào repo là RỦI RO bảo mật nghiêm trọng, không phải
+"cách GitOps chuẩn" (loại a); có khuyến nghị RÕ RÀNG — không commit plaintext Secret, đây là
+nguyên tắc quan trọng (loại b); YAML cho Secret vẫn dùng được AN TOÀN nếu đã ENCRYPT (Sealed
+Secrets/SOPS) trước khi commit — không phải "tuyệt đối không bao giờ" (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

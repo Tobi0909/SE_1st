@@ -229,24 +229,61 @@ Deploy phiên bản mới với zero-downtime và có khả năng rollback:
 
 ## 7. Tự kiểm tra
 
-1. Deployment có `replicas: 3`, `maxUnavailable: 1`, `maxSurge: 1`. Trong quá trình rolling
-   update, bao nhiêu Pod có thể cùng tồn tại tại thời điểm bất kỳ?
-   <details><summary>Đáp án</summary>Tối đa 4 Pod (3 + maxSurge 1). Tối thiểu 2 Pod available
-   (3 - maxUnavailable 1). Trong giai đoạn giữa: có thể có 2 Pod cũ + 2 Pod mới = 4 Pod cùng
-   tồn tại, với 2 Pod ready phục vụ traffic.</details>
+**Câu 1**: Deployment có `replicas: 3`, `maxUnavailable: 1`, `maxSurge: 1`. Trong quá trình
+rolling update, bao nhiêu Pod có thể cùng tồn tại tại thời điểm bất kỳ?
 
-2. Khi nào `Recreate` strategy phù hợp hơn `RollingUpdate`?
-   <details><summary>Đáp án</summary>Khi ứng dụng KHÔNG thể chạy cả phiên bản cũ lẫn mới cùng lúc:
-   database schema migration phá vỡ backward compatibility (v2 đổi schema theo cách v1 không
-   đọc được), hoặc ứng dụng dùng lock/singleton không hỗ trợ chạy nhiều instance cùng lúc.
-   Recreate có downtime nhưng đơn giản và tránh vấn đề split-brain.</details>
+a) Tối đa 3 Pod, vì maxSurge chỉ áp dụng khi scale thủ công, không áp dụng cho rolling update
+b) Tối đa 2 Pod, vì maxUnavailable giới hạn tổng số Pod tồn tại cùng lúc xuống còn 2
+c) Tối đa 4 Pod (3 + maxSurge 1). Tối thiểu 2 Pod available (3 - maxUnavailable 1). Trong giai
+   đoạn giữa: có thể có 2 Pod cũ + 2 Pod mới = 4 Pod cùng tồn tại, với 2 Pod ready phục vụ
+   traffic
+d) Tối đa 6 Pod, vì cả Pod cũ (3) và Pod mới (3) tồn tại song song cho tới khi rollout hoàn tất
 
-3. ReplicaSet cũ (rs-v1) bị scale về 0 sau khi rolling update hoàn tất — tại sao K8s không xoá
-   nó luôn?
-   <details><summary>Đáp án</summary>Để phục vụ rollback. Deployment giữ lại N revision cũ (mặc
-   định <code>revisionHistoryLimit: 10</code>) dưới dạng ReplicaSet với 0 replica. Khi
-   <code>kubectl rollout undo</code> được gọi, Deployment chỉ cần scale rs-v1 từ 0 lên và scale
-   rs-v2 về 0 — nhanh hơn tạo lại từ đầu.</details>
+**Đáp án: c** — Tối đa 4 Pod (3 + maxSurge 1). Tối thiểu 2 Pod available (3 - maxUnavailable
+1). `maxSurge` ÁP DỤNG trong rolling update, chính là cơ chế cho phép tạm vượt số replica gốc
+(loại a); `maxUnavailable` giới hạn số Pod KHÔNG SẴN SÀNG, không giới hạn tổng số Pod tồn tại
+(loại b); K8s không tạo toàn bộ 3 Pod mới trước khi xoá Pod cũ — nó tăng/giảm dần theo
+`maxSurge`/`maxUnavailable`, không đạt tới 6 Pod cùng lúc (loại d).
+
+---
+
+**Câu 2**: Khi nào `Recreate` strategy phù hợp hơn `RollingUpdate`?
+
+a) Khi cần rollout nhanh hơn RollingUpdate về tốc độ, không liên quan tới tính tương thích
+   phiên bản
+b) Khi cluster chỉ có đúng 1 node, RollingUpdate không hoạt động được trên cluster 1 node
+c) Khi ứng dụng cần zero-downtime tuyệt đối, Recreate đảm bảo điều này tốt hơn RollingUpdate
+d) Khi ứng dụng KHÔNG thể chạy cả phiên bản cũ lẫn mới cùng lúc: database schema migration phá
+   vỡ backward compatibility (v2 đổi schema theo cách v1 không đọc được), hoặc ứng dụng dùng
+   lock/singleton không hỗ trợ chạy nhiều instance cùng lúc. Recreate có downtime nhưng đơn
+   giản và tránh vấn đề split-brain
+
+**Đáp án: d** — Khi ứng dụng KHÔNG thể chạy cả phiên bản cũ lẫn mới cùng lúc (schema migration
+phá vỡ backward compat, hoặc lock/singleton). Recreate có downtime nhưng tránh split-brain.
+`Recreate` không nhanh hơn `RollingUpdate` về tốc độ — thực tế nó CÓ downtime vì phải dừng hết
+trước khi tạo mới (loại a); `RollingUpdate` vẫn hoạt động được trên cluster 1 node, chỉ là
+giới hạn bởi resource capacity (loại b); `Recreate` có DOWNTIME, hoàn toàn ngược lại với
+"zero-downtime tuyệt đối" (loại c).
+
+---
+
+**Câu 3**: ReplicaSet cũ (rs-v1) bị scale về 0 sau khi rolling update hoàn tất — tại sao K8s
+không xoá nó luôn?
+
+a) Để phục vụ rollback. Deployment giữ lại N revision cũ (mặc định revisionHistoryLimit: 10)
+   dưới dạng ReplicaSet với 0 replica. Khi kubectl rollout undo được gọi, Deployment chỉ cần
+   scale rs-v1 từ 0 lên và scale rs-v2 về 0 — nhanh hơn tạo lại từ đầu
+b) Vì K8s không có quyền xoá ReplicaSet đã từng chạy, chỉ có thể scale về 0
+c) Vì xoá ReplicaSet sẽ làm mất luôn Service đang trỏ tới Pod của ReplicaSet đó
+d) Vì ReplicaSet cũ vẫn cần giữ lại để làm template cho HPA tính toán scale tiếp theo
+
+**Đáp án: a** — Để phục vụ rollback. Deployment giữ lại N revision cũ (`revisionHistoryLimit`)
+dưới dạng ReplicaSet 0 replica, giúp `rollout undo` nhanh hơn tạo lại từ đầu. K8s có đầy đủ
+quyền xoá ReplicaSet — nó CHỦ ĐỘNG CHỌN giữ lại để phục vụ rollback, không phải thiếu quyền
+(loại b); Service dùng label selector trên Pod, không gắn trực tiếp với ReplicaSet — xoá
+ReplicaSet (khi 0 replica, không còn Pod nào) không ảnh hưởng Service (loại c); HPA tính toán
+dựa trên Pod hiện tại đang chạy của Deployment, không cần ReplicaSet cũ làm "template" (loại
+d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

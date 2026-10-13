@@ -224,24 +224,63 @@ cho high traffic service (zone distribution).
 
 ## 7. Tự kiểm tra
 
-1. Deployment có 4 Pod, mỗi Pod dùng 60% CPU, HPA target 50%. Tính số replica mới?
-   <details><summary>Đáp án</summary><code>desiredReplicas = ceil(4 × 60/50) = ceil(4.8) = 5</code>.
-   HPA scale lên 5 replica. Sau khi scale: nếu tổng load không đổi, mỗi Pod xử lý khoảng 60%×4/5
-   = 48% → dưới target 50% → ổn định.</details>
+**Câu 1**: Deployment có 4 Pod, mỗi Pod dùng 60% CPU, HPA target 50%. Tính số replica mới?
 
-2. Tại sao không nên set `resources.limits.cpu` quá thấp so với `requests.cpu`?
-   <details><summary>Đáp án</summary>Khi CPU usage tăng đến <code>limits.cpu</code>, kernel
-   throttle container (không kill, nhưng cho ít CPU hơn). Nếu <code>limits</code> gần bằng
-   <code>requests</code>, container dễ bị throttle ngay cả ở load bình thường, làm app bị chậm
-   khó giải thích. Thực tế: để <code>limits.cpu</code> cao hơn <code>requests.cpu</code> đủ
-   để app burst khi cần (ví dụ requests=250m, limits=500m).</details>
+a) desiredReplicas = 4 × 50/60 = 3.33 → làm tròn xuống 3
+b) desiredReplicas = 60 - 50 = 10 Pod, theo công thức trừ trực tiếp % chênh lệch
+c) desiredReplicas không đổi (vẫn 4) vì 60% chưa vượt ngưỡng 100%
+d) desiredReplicas = ceil(4 × 60/50) = ceil(4.8) = 5. HPA scale lên 5 replica. Sau khi scale:
+   nếu tổng load không đổi, mỗi Pod xử lý khoảng 60%×4/5 = 48% → dưới target 50% → ổn định
 
-3. HPA và VPA có thể cùng quản lý một Deployment không?
-   <details><summary>Đáp án</summary>Không nên dùng cả hai trên cùng metric (CPU). VPA thay đổi
-   <code>requests.cpu</code> → làm thay đổi baseline mà HPA dùng để tính utilization → HPA
-   scale lên/xuống dựa trên baseline mới → VPA lại thay đổi requests → vòng lặp không ổn định.
-   Nếu muốn dùng cả hai: VPA chỉ manage memory (không xung đột với HPA CPU), hoặc VPA ở mode
-   "Off" (chỉ recommend, không tự áp dụng) để không can thiệp vào HPA.</details>
+**Đáp án: d** — `desiredReplicas = ceil(4 × 60/50) = ceil(4.8) = 5`. HPA scale lên 5 replica,
+mỗi Pod sau đó còn khoảng 48% — dưới target, ổn định. Công thức đúng là `current × usage /
+target`, không phải `current × target / usage` (đảo tỉ số cho kết quả 3.33 sai hoàn toàn —
+loại a); không có công thức trừ trực tiếp % trong thuật toán HPA (loại b); HPA scale dựa trên
+SO SÁNH VỚI TARGET (50%), không phải ngưỡng tuyệt đối 100% — 60% đã vượt target 50% nên cần
+scale (loại c).
+
+---
+
+**Câu 2**: Tại sao không nên set `resources.limits.cpu` quá thấp so với `requests.cpu`?
+
+a) Khi CPU usage tăng đến limits.cpu, kernel throttle container (không kill, nhưng cho ít CPU
+   hơn). Nếu limits gần bằng requests, container dễ bị throttle ngay cả ở load bình thường,
+   làm app bị chậm khó giải thích. Thực tế: để limits.cpu cao hơn requests.cpu đủ để app burst
+   khi cần (ví dụ requests=250m, limits=500m)
+b) Vì limits.cpu thấp sẽ khiến scheduler từ chối đặt Pod lên bất kỳ node nào
+c) Vì limits.cpu thấp làm HPA tính sai utilization, luôn báo 100% dù thực tế load thấp
+d) Vì Kubernetes yêu cầu limits.cpu phải gấp đôi requests.cpu theo chuẩn, thấp hơn sẽ bị
+   admission webhook từ chối
+
+**Đáp án: a** — Khi usage tăng đến `limits.cpu`, kernel throttle. Nếu `limits` gần `requests`,
+container dễ bị throttle ở load bình thường. Nên để `limits.cpu` cao hơn `requests.cpu` đủ để
+burst. Scheduler chỉ quan tâm `requests` khi đặt Pod, không quan tâm giá trị `limits` khi
+quyết định node (loại b); HPA tính utilization dựa trên usage thật so với `requests`, không bị
+"luôn báo 100%" chỉ vì limits thấp (loại c); không có yêu cầu bắt buộc tỉ lệ gấp đôi nào trong
+Kubernetes, admission webhook không mặc định chặn tỉ lệ này (loại d).
+
+---
+
+**Câu 3**: HPA và VPA có thể cùng quản lý một Deployment không?
+
+a) Có, hoàn toàn không có xung đột nào vì HPA và VPA hoạt động ở hai tầng Kubernetes hoàn toàn
+   độc lập
+b) Không nên dùng cả hai trên cùng metric (CPU). VPA thay đổi requests.cpu → làm thay đổi
+   baseline mà HPA dùng để tính utilization → HPA scale lên/xuống dựa trên baseline mới → VPA
+   lại thay đổi requests → vòng lặp không ổn định. Nếu muốn dùng cả hai: VPA chỉ manage memory
+   (không xung đột với HPA CPU), hoặc VPA ở mode "Off" (chỉ recommend, không tự áp dụng) để
+   không can thiệp vào HPA
+c) Không, Kubernetes chặn cứng việc gắn cả HPA và VPA vào cùng 1 Deployment ở API level
+d) Có, và đây là cách khuyến nghị chính thức để tối ưu cả 2 chiều scale ngang và scale đứng
+   cùng lúc trên CPU
+
+**Đáp án: b** — Không nên dùng cả hai trên cùng metric CPU, vì VPA thay đổi `requests.cpu` làm
+thay đổi baseline HPA dùng tính utilization, gây vòng lặp không ổn định. Dùng cả hai an toàn
+được nếu tách metric (VPA quản memory, HPA quản CPU) hoặc VPA ở mode "Off". Hai controller CÓ
+tương tác với nhau qua `requests.cpu` chung — không hoàn toàn độc lập (loại a); Kubernetes
+KHÔNG chặn cứng ở API level — về mặt kỹ thuật vẫn gắn được cả hai, vấn đề là RỦI RO vòng lặp
+không ổn định nếu cùng metric, không phải bị chặn hoàn toàn (loại c); dùng cả hai trên CÙNG
+CPU không phải khuyến nghị chính thức — đó chính là kịch bản gây vòng lặp cần tránh (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
