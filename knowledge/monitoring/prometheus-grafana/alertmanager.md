@@ -286,28 +286,69 @@ backend warning → đúng channel Slack; node down → không spam warning về
 
 ## 7. Tự kiểm tra
 
-1. Alert rule có `for: 5m`. Lúc 14:00 expression TRUE. Alert FIRING lúc mấy giờ và
-   notification đến khi nào?
-   <details><summary>Đáp án</summary>Alert PENDING từ 14:00 → FIRING lúc 14:05 (sau 5 phút
-   TRUE liên tục). Alertmanager nhận FIRING tại 14:05 → chờ `group_wait` (ví dụ 30s) → notification
-   đến ~14:05:30. Nếu expression chỉ TRUE một lần rồi FALSE trong 5 phút đó, alert KHÔNG fire
-   (về INACTIVE/UNKNOWN). `for` là safeguard tránh false positive từ spike ngắn.</details>
+**Câu 1**: Alert rule có `for: 5m`. Lúc 14:00 expression TRUE. Alert FIRING lúc mấy giờ và
+notification đến khi nào?
 
-2. Cần tắt alert cho cả namespace `staging` trong 2 giờ bảo trì. Dùng Silence hay Inhibition?
-   Tại sao?
-   <details><summary>Đáp án</summary>Silence — vì cần tắt có thời hạn (2 giờ), không phải logic
-   "suppress B vì A đang xảy ra". Inhibition phù hợp cho quan hệ nhân quả (node down → suppress
-   service alert). Silence phù hợp cho window thời gian (bảo trì, deploy, off-hours). Silence
-   cho staging: matchers `namespace="staging"`, duration 2h. Alertmanager vẫn nhận alert nhưng
-   không gửi notification trong thời gian silence.</details>
+a) FIRING ngay lúc 14:00, notification đến ngay lập tức không cần chờ gì thêm
+b) FIRING lúc 14:05, nhưng notification đến ngay lập tức lúc 14:05 không qua group_wait
+c) Alert PENDING từ 14:00 → FIRING lúc 14:05 (sau 5 phút TRUE liên tục). Alertmanager nhận
+   FIRING tại 14:05 → chờ group_wait (ví dụ 30s) → notification đến ~14:05:30. Nếu expression
+   chỉ TRUE một lần rồi FALSE trong 5 phút đó, alert KHÔNG fire (về INACTIVE/UNKNOWN). for là
+   safeguard tránh false positive từ spike ngắn
+d) Alert không bao giờ fire nếu for: 5m được set, for chỉ dùng để hiển thị thông tin không
+   ảnh hưởng hành vi
 
-3. Routing tree có route A (`severity=critical`) và route B (`team=infrastructure`). Alert có
-   cả 2 label. Alert được gửi cho receiver nào?
-   <details><summary>Đáp án</summary>Phụ thuộc vào thứ tự trong config. Routes được evaluate
-   theo thứ tự, first-match-wins (nếu `continue: false`). Nếu route A viết trước route B:
-   alert match route A → gửi cho A's receiver → dừng. Route B không được check. Để gửi cho cả
-   2 receiver: đặt `continue: true` trên route A. Thứ tự route quan trọng — route cụ thể (nhiều
-   matchers) nên đặt trước route chung.</details>
+**Đáp án: c** — PENDING từ 14:00 → FIRING lúc 14:05 (sau 5 phút TRUE liên tục) → chờ
+`group_wait` → notification ~14:05:30. `for` là safeguard tránh false positive. Alert không
+FIRING ngay ở 14:00 — nó phải TRUE LIÊN TỤC đủ `for` duration trước (loại a); Alertmanager vẫn
+chờ `group_wait` trước khi gửi, không gửi ngay lập tức tại thời điểm FIRING (loại b); `for`
+ẢNH HƯỞNG THẬT tới hành vi — nó quyết định khi nào trạng thái chuyển từ PENDING sang FIRING,
+không chỉ hiển thị thông tin (loại d).
+
+---
+
+**Câu 2**: Cần tắt alert cho cả namespace `staging` trong 2 giờ bảo trì. Dùng Silence hay
+Inhibition? Tại sao?
+
+a) Inhibition, vì inhibition phù hợp cho mọi trường hợp tắt alert tạm thời có giới hạn thời
+   gian
+b) Cả hai đều không phù hợp, cần sửa trực tiếp alert rule để comment out tạm thời
+c) Silence, nhưng chỉ nếu namespace đó không có alert nào đang active tại thời điểm tạo
+   silence
+d) Silence — vì cần tắt có thời hạn (2 giờ), không phải logic "suppress B vì A đang xảy ra".
+   Inhibition phù hợp cho quan hệ nhân quả (node down → suppress service alert). Silence phù
+   hợp cho window thời gian (bảo trì, deploy, off-hours). Silence cho staging: matchers
+   namespace="staging", duration 2h. Alertmanager vẫn nhận alert nhưng không gửi notification
+   trong thời gian silence
+
+**Đáp án: d** — Silence — phù hợp cho window thời gian cố định (bảo trì). Inhibition dành cho
+quan hệ nhân quả giữa alert, không phải khoảng thời gian cố định. Inhibition KHÔNG phù hợp cho
+window thời gian tuỳ ý — nó chỉ hoạt động dựa trên MỐI QUAN HỆ giữa 2 alert đang active, không
+phải lịch bảo trì (loại a); không cần sửa alert rule trực tiếp — Silence chính là công cụ
+được thiết kế cho đúng tình huống này (loại b); Silence hoạt động được bất kể namespace đó có
+alert active hay không tại thời điểm tạo — nó chặn NOTIFICATION của alert khớp matcher trong
+suốt thời gian hiệu lực (loại c).
+
+---
+
+**Câu 3**: Routing tree có route A (`severity=critical`) và route B (`team=infrastructure`).
+Alert có cả 2 label. Alert được gửi cho receiver nào?
+
+a) Phụ thuộc vào thứ tự trong config. Routes được evaluate theo thứ tự, first-match-wins (nếu
+   continue: false). Nếu route A viết trước route B: alert match route A → gửi cho A's
+   receiver → dừng. Route B không được check. Để gửi cho cả 2 receiver: đặt continue: true
+   trên route A. Thứ tự route quan trọng — route cụ thể (nhiều matchers) nên đặt trước route
+   chung
+b) Luôn gửi cho cả 2 receiver đồng thời bất kể cấu hình continue, vì alert khớp cả 2 route
+c) Luôn gửi cho route B vì route theo team luôn được ưu tiên hơn route theo severity
+d) Alertmanager sẽ báo lỗi cấu hình vì 1 alert không được phép khớp nhiều hơn 1 route
+
+**Đáp án: a** — Phụ thuộc thứ tự config, first-match-wins nếu `continue: false`. Để gửi cả 2
+receiver cần đặt `continue: true`. Hành vi mặc định KHÔNG tự gửi cả 2 receiver — phải cấu hình
+`continue: true` mới đạt được điều đó (loại b); không có quy tắc "team luôn ưu tiên hơn
+severity" — thứ tự trong CONFIG mới quyết định, không phải loại matcher (loại c); Alertmanager
+hoàn toàn cho phép 1 alert khớp nhiều route (đó là cơ sở để dùng `continue: true` gửi nhiều
+receiver), không báo lỗi (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

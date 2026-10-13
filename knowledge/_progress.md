@@ -138,8 +138,13 @@ MCQ tổng (557 cũ + 6 mới), idempotent, `kb:lint` pass. Không có câu nào
 Đã làm 5 module trong lượt này (k8s-storage, k8s-rbac-security, k8s-troubleshooting, helm,
 monitoring.zabbix) — dừng theo quy tắc tối đa 5 module/lượt.
 
-**Còn lại toàn kho**: `monitoring` (4 module, 9 bài, toàn bộ essay — prometheus-grafana 3,
-logging 3, alerting-design 1, sli-slo 2), `data.redis` (1 bài), `data.message-queue` (1 bài),
+`monitoring.prometheus-grafana` (3 bài, 9 câu — xem commit theo sau trong git log):
+`fundamentals`, `grafana-dashboards`, `alertmanager`. Verify qua PGlite: `kb:import` → 3 bài
+cập nhật, `kb:build-quiz` → 572 câu MCQ tổng (563 cũ + 9 mới), idempotent, `kb:lint` pass.
+Không có câu nào phải bỏ qua.
+
+**Còn lại toàn kho**: `monitoring` (3 module, 6 bài, toàn bộ essay — logging 3,
+alerting-design 1, sli-slo 2), `data.redis` (1 bài), `data.message-queue` (1 bài),
 `sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa

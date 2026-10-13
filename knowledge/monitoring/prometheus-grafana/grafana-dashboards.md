@@ -225,27 +225,64 @@ Link từ overview → drill-down dashboard per service
 
 ## 7. Tự kiểm tra
 
-1. Variable `$instance` được set multi-value ON. User chọn "host1" và "host2". Query
-   `rate(node_cpu_seconds_total{instance="$instance"}[5m])` có hoạt động đúng không? Tại sao?
-   <details><summary>Đáp án</summary>KHÔNG trực tiếp — `instance="$instance"` dùng exact match.
-   Khi multi-value, Grafana inject `host1|host2` vào `$instance` — cú pháp `="host1|host2"` là
-   exact match cho string `"host1|host2"`, không phải 2 instance riêng biệt. Phải dùng regex
-   match: `instance=~"$instance"`. Khi multi-value, Grafana auto-wrap thành `instance=~"host1|host2"`
-   với cú pháp `=~`. Nếu dùng `="$instance"` = chỉ có 1 giá trị selected mới đúng.</details>
+**Câu 1**: Variable `$instance` được set multi-value ON. User chọn "host1" và "host2". Query
+`rate(node_cpu_seconds_total{instance="$instance"}[5m])` có hoạt động đúng không? Tại sao?
 
-2. Dashboard đang dùng absolute time range (2026-10-01 to 2026-10-06). Vấn đề gì sẽ xảy ra?
-   <details><summary>Đáp án</summary>Dashboard chỉ hiện data cho đúng khoảng thời gian đó —
-   không tự update. Khi ngày 2026-10-07 đến, dashboard vẫn hiện data của 10-01 to 10-06, không
-   có data mới. Dùng relative time ("last 24h", "last 7d") để dashboard luôn hiện real-time.
-   Absolute time chỉ dùng khi cần xem lại một incident cụ thể đã xảy ra trong quá khứ, và
-   không share link cho team dùng hàng ngày.</details>
+a) Có, hoạt động đúng vì Grafana tự convert dấu = thành regex ngầm khi phát hiện multi-value
+b) Không, vì multi-value chỉ hỗ trợ tối đa 1 giá trị được chọn tại 1 thời điểm
+c) Có, nhưng chỉ khi cả 2 instance có cùng giá trị metric tại thời điểm query
+d) KHÔNG trực tiếp — instance="$instance" dùng exact match. Khi multi-value, Grafana inject
+   host1|host2 vào $instance — cú pháp ="host1|host2" là exact match cho string "host1|host2",
+   không phải 2 instance riêng biệt. Phải dùng regex match: instance=~"$instance". Khi
+   multi-value, Grafana auto-wrap thành instance=~"host1|host2" với cú pháp =~. Nếu dùng
+   ="$instance" = chỉ có 1 giá trị selected mới đúng
 
-3. Tại sao cần lưu dashboard JSON vào version control (git)?
-   <details><summary>Đáp án</summary>Grafana lưu dashboard trong database nội bộ (SQLite hoặc
-   PostgreSQL). Nếu database mất, migrate sang instance mới, hoặc ai đó vô tình xoá — mất
-   dashboard. Lưu JSON vào git: (1) có lịch sử thay đổi (ai sửa gì, khi nào); (2) review
-   thay đổi qua PR; (3) restore dễ dàng khi disaster. Grafana Provisioning (file-based
-   configuration) còn cho phép tự động import dashboard từ git khi Grafana start.</details>
+**Đáp án: d** — KHÔNG trực tiếp — `=` là exact match, không match được chuỗi `host1|host2`
+như 2 giá trị riêng. Phải dùng `=~` (regex match). Grafana KHÔNG tự convert `=` thành regex —
+người viết query phải tự chọn đúng toán tử `=~` (loại a); multi-value hỗ trợ CHỌN NHIỀU giá
+trị cùng lúc — đó chính là ý nghĩa của "multi-value" (loại b); vấn đề nằm ở CÚ PHÁP toán tử
+(`=` vs `=~`), không liên quan tới việc 2 instance có cùng giá trị metric hay không (loại c).
+
+---
+
+**Câu 2**: Dashboard đang dùng absolute time range (2026-10-01 to 2026-10-06). Vấn đề gì sẽ
+xảy ra?
+
+a) Dashboard chỉ hiện data cho đúng khoảng thời gian đó — không tự update. Khi ngày 2026-10-07
+   đến, dashboard vẫn hiện data của 10-01 to 10-06, không có data mới. Dùng relative time
+   ("last 24h", "last 7d") để dashboard luôn hiện real-time. Absolute time chỉ dùng khi cần
+   xem lại một incident cụ thể đã xảy ra trong quá khứ, và không share link cho team dùng
+   hàng ngày
+b) Dashboard tự động mở rộng time range thêm mỗi ngày để luôn bao gồm dữ liệu mới nhất
+c) Không có vấn đề gì, absolute time range luôn tương đương relative time về mặt hiển thị
+d) Dashboard sẽ báo lỗi và không load được data nếu dùng absolute time range quá 7 ngày
+
+**Đáp án: a** — Dashboard chỉ hiện đúng khoảng cố định, không tự update. Cần relative time để
+luôn hiện real-time. Absolute time KHÔNG tự mở rộng theo ngày — đây chính là vấn đề nó gây ra
+(loại b); absolute và relative time có hành vi khác biệt rõ rệt (cố định vs theo thời điểm
+hiện tại), không tương đương (loại c); không có giới hạn 7 ngày gây lỗi — absolute time range
+hoạt động với khoảng thời gian bất kỳ, chỉ là không tự cập nhật (loại d).
+
+---
+
+**Câu 3**: Tại sao cần lưu dashboard JSON vào version control (git)?
+
+a) Vì Grafana không có cách lưu dashboard nào khác ngoài git, bắt buộc phải commit để
+   dashboard hoạt động
+b) Grafana lưu dashboard trong database nội bộ (SQLite hoặc PostgreSQL). Nếu database mất,
+   migrate sang instance mới, hoặc ai đó vô tình xoá — mất dashboard. Lưu JSON vào git: (1)
+   có lịch sử thay đổi (ai sửa gì, khi nào); (2) review thay đổi qua PR; (3) restore dễ dàng
+   khi disaster. Grafana Provisioning (file-based configuration) còn cho phép tự động import
+   dashboard từ git khi Grafana start
+c) Vì JSON trong git giúp Grafana render dashboard nhanh hơn so với đọc từ database
+d) Vì git tự động đồng bộ 2 chiều với Grafana, sửa trên UI sẽ tự commit ngược lại repo
+
+**Đáp án: b** — Grafana lưu dashboard trong database nội bộ; mất database/migrate/xoá nhầm sẽ
+mất dashboard. Git cho lịch sử, review qua PR, restore dễ dàng. Dashboard hoạt động bình
+thường mà KHÔNG CẦN git — git là biện pháp bảo vệ/quản lý thêm, không phải yêu cầu bắt buộc để
+hoạt động (loại a); git không ảnh hưởng tốc độ render — Grafana vẫn đọc từ database khi chạy
+(loại c); không có đồng bộ 2 chiều tự động — sửa trên UI KHÔNG tự commit ngược lại repo, đây
+là lý do cần provisioning/quy trình riêng để đồng bộ (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

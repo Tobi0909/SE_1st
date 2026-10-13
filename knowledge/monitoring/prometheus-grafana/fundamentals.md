@@ -245,35 +245,72 @@ Quy trình: xem error rate → xem P95 latency theo endpoint → xem resource us
 
 ## 7. Tự kiểm tra
 
-1. Metric `http_requests_total` là Counter hay Gauge? Tại sao cần `rate()` thay vì dùng
-   value trực tiếp?
-   <details><summary>Đáp án</summary>Counter — tên `_total` suffix là convention đánh dấu
-   counter. Value trực tiếp là tổng cộng từ khi app start (có thể là 5 triệu request) — số
-   này ít hữu ích. `rate(http_requests_total[5m])` trả về số request/giây trong 5 phút gần
-   nhất — con số có ý nghĩa cho monitoring và alert. `rate()` cũng tự xử lý counter reset
-   (khi app restart, counter về 0 nhưng rate không trả về âm).</details>
+**Câu 1**: Metric `http_requests_total` là Counter hay Gauge? Tại sao cần `rate()` thay vì
+dùng value trực tiếp?
 
-2. Tại sao label `user_id` nguy hiểm trong Prometheus, còn label `status` (HTTP 200/400/500)
-   thì ổn?
-   <details><summary>Đáp án</summary>Mỗi unique combination của labels tạo 1 time series riêng
-   trong TSDB. `user_id` có thể có hàng triệu unique values → hàng triệu time series → TSDB
-   phình to, query chậm, memory tăng vô hạn (high cardinality problem). `status` HTTP chỉ có
-   ~5-10 unique values (200, 201, 400, 404, 500, 503...) → ~10 time series — không vấn đề.
-   Nguyên tắc: label nên có cardinality thấp và bounded.</details>
+a) Counter — tên _total suffix là convention đánh dấu counter. Value trực tiếp là tổng cộng
+   từ khi app start (có thể là 5 triệu request) — số này ít hữu ích. rate(http_requests_total[5m])
+   trả về số request/giây trong 5 phút gần nhất — con số có ý nghĩa cho monitoring và alert.
+   rate() cũng tự xử lý counter reset (khi app restart, counter về 0 nhưng rate không trả về
+   âm)
+b) Gauge — tên _total chỉ là quy ước đặt tên tuỳ ý, không liên quan tới loại metric; rate()
+   chỉ dùng để làm đẹp đồ thị
+c) Counter, nhưng dùng rate() chỉ để đổi đơn vị từ giây sang phút, không liên quan tới ý
+   nghĩa số liệu
+d) Gauge, cần rate() vì Gauge luôn cần tính biến đổi theo thời gian để có giá trị hợp lệ
 
-3. Viết PromQL query tính tỷ lệ request lỗi (status 5xx) trong 5 phút gần nhất, theo
-   từng service (`service` label)?
-   <details><summary>Đáp án</summary>
-   ```promql
-   sum by (service) (
-     rate(http_requests_total{status=~"5.."}[5m])
-   ) /
-   sum by (service) (
-     rate(http_requests_total[5m])
-   ) * 100
-   ```
-   `status=~"5.."` dùng regex match (5 + 2 ký tự bất kỳ). `sum by (service)` aggregate theo
-   label service. Chia for cùng dimension `by (service)` để tính ratio đúng theo từng service.</details>
+**Đáp án: a** — Counter (`_total` suffix). Value trực tiếp là tổng từ lúc start, ít hữu ích;
+`rate()` cho số request/giây có ý nghĩa và tự xử lý counter reset. `_total` LÀ convention
+đánh dấu Counter trong Prometheus, không phải tuỳ ý — và `rate()` phục vụ TÍNH NGHĨA của số
+liệu, không chỉ để đẹp đồ thị (loại b); `rate()` tính tốc độ thay đổi/giây, không phải đổi đơn
+vị thời gian hiển thị (loại c); Gauge không cần `rate()` để "có giá trị hợp lệ" — Gauge tự nó
+đã là giá trị hợp lệ tại một thời điểm, không cộng dồn như Counter (loại d).
+
+---
+
+**Câu 2**: Tại sao label `user_id` nguy hiểm trong Prometheus, còn label `status` (HTTP
+200/400/500) thì ổn?
+
+a) Vì user_id chứa dữ liệu nhạy cảm bị luật bảo mật cấm dùng làm label, không liên quan tới
+   cardinality
+b) Mỗi unique combination của labels tạo 1 time series riêng trong TSDB. user_id có thể có
+   hàng triệu unique values → hàng triệu time series → TSDB phình to, query chậm, memory tăng
+   vô hạn (high cardinality problem). status HTTP chỉ có ~5-10 unique values (200, 201, 400,
+   404, 500, 503...) → ~10 time series — không vấn đề. Nguyên tắc: label nên có cardinality
+   thấp và bounded
+c) Cả hai label đều nguy hiểm như nhau, chỉ khác tên gọi
+d) Vì status là số còn user_id là chuỗi, Prometheus chỉ hỗ trợ label dạng số
+
+**Đáp án: b** — Mỗi combination label tạo 1 time series. `user_id` có hàng triệu unique
+values → high cardinality problem. `status` chỉ ~5-10 giá trị → không vấn đề. Vấn đề cốt lõi
+là CARDINALITY (số time series sinh ra), không phải tính nhạy cảm dữ liệu theo luật (loại a);
+hai label có mức độ nguy hiểm KHÁC NHAU rõ rệt do số lượng unique values khác nhau, không
+giống nhau (loại c); Prometheus label luôn là string, không phân biệt số/chuỗi theo cách giới
+hạn đó — `status` cũng được lưu như string (loại d).
+
+---
+
+**Câu 3**: Viết PromQL query tính tỷ lệ request lỗi (status 5xx) trong 5 phút gần nhất, theo
+từng service (`service` label)?
+
+a) `rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100` —
+   thiếu `sum by (service)`, chia theo từng time series lẻ chứ không gộp đúng theo service
+b) `sum(rate(http_requests_total{status=~"5.."}[5m])) by (service) * 100` — thiếu chia cho
+   tổng số request, chỉ tính riêng tốc độ lỗi rồi nhân 100, sai công thức tỷ lệ
+c) `sum by (service) (rate(http_requests_total{status=~"5.."}[5m])) / sum by (service)
+   (rate(http_requests_total[5m])) * 100`. `status=~"5.."` dùng regex match (5 + 2 ký tự bất
+   kỳ). `sum by (service)` aggregate theo label service. Chia cho cùng dimension `by (service)`
+   để tính ratio đúng theo từng service
+d) `count(http_requests_total{status=~"5.."}) / count(http_requests_total) * 100` — dùng
+   count() trên counter tuyệt đối, không dùng rate(), tỷ lệ sai hoàn toàn vì counter chỉ tăng
+
+**Đáp án: c** — `sum by (service) (rate(...5xx...[5m])) / sum by (service) (rate(...[5m])) *
+100`. Đúng cú pháp regex, aggregate và chia theo cùng dimension `service`. Thiếu `sum by
+(service)` khiến phép chia thực hiện giữa từng time series riêng lẻ (theo instance/pod...)
+thay vì gộp đúng theo service (loại a); thiếu mẫu số (tổng request) khiến kết quả chỉ là tốc
+độ lỗi tuyệt đối nhân 100, không phải TỶ LỆ (loại b); `count()` trên counter tuyệt đối đo số
+lượng time series, không phải giá trị số liệu, và không phản ánh tốc độ theo thời gian như
+`rate()` (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
