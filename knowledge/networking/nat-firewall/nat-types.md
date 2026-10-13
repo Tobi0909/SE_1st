@@ -163,35 +163,96 @@ Team cần cho phép một đối tác bên ngoài truy cập một API nội b�
 
 ## 7. Tự kiểm tra
 
-1. Một máy trong mạng nhà (IP private) có thể truy cập Google.com bình thường, nhưng không ai
-   từ ngoài kết nối trực tiếp được vào máy đó. Đây có phải lỗi cấu hình không?
-   <details><summary>Đáp án</summary>Không. Đây là hành vi THIẾT KẾ của PAT/Masquerade (loại
-   NAT phổ biến nhất) — không có ánh xạ cố định cho kết nối ĐẾN, router không biết chuyển cho
-   máy nội bộ nào nên mặc định drop, trừ khi có rule DNAT tường minh.</details>
+**Câu 1**: Một máy trong mạng nhà (IP private) có thể truy cập Google.com bình thường, nhưng
+không ai từ ngoài kết nối trực tiếp được vào máy đó. Đây có phải lỗi cấu hình không?
 
-2. Phân biệt SNAT và DNAT dựa trên CHIỀU của traffic.
-   <details><summary>Đáp án</summary>SNAT đổi địa chỉ NGUỒN, dùng cho traffic đi RA (nội bộ →
-   Internet). DNAT đổi địa chỉ ĐÍCH, dùng cho traffic đi VÀO (Internet → server nội bộ, ví dụ
-   port forwarding).</details>
+a) Không. Đây là hành vi THIẾT KẾ của PAT/Masquerade (loại NAT phổ biến nhất) — không có ánh xạ
+   cố định cho kết nối ĐẾN, router không biết chuyển cho máy nội bộ nào nên mặc định drop, trừ
+   khi có rule DNAT tường minh
+b) Có, đây là lỗi vì NAT đúng chuẩn phải cho phép kết nối đến tự do như kết nối ra
+c) Không, nhưng chỉ vì máy đó đang bị firewall chặn toàn bộ traffic đến, không liên quan tới NAT
+d) Có, lỗi do thiếu cấu hình "static NAT" hai chiều, mặc định NAT luôn hỗ trợ cả hai chiều như
+   nhau
 
-3. Vì sao MASQUERADE phù hợp hơn SNAT tĩnh khi IP public của gateway là IP ĐỘNG (do ISP cấp lại
-   mỗi lần kết nối)?
-   <details><summary>Đáp án</summary>MASQUERADE tự động lấy IP HIỆN TẠI của interface mỗi khi
-   cần NAT, không cần khai báo cứng một IP cụ thể như SNAT tĩnh — phù hợp khi IP có thể đổi mà
-   không cần sửa lại rule.</details>
+**Đáp án: a** — Không. Đây là hành vi THIẾT KẾ của PAT/Masquerade (loại NAT phổ biến nhất) —
+không có ánh xạ cố định cho kết nối ĐẾN, router không biết chuyển cho máy nội bộ nào nên mặc
+định drop, trừ khi có rule DNAT tường minh. NAT không "đúng chuẩn" phải cho phép kết nối đến tự
+do — ngược lại, PAT mặc định chặn (loại b); đây là hành vi của PAT, không cần giả định thêm một
+firewall riêng chặn (loại c); NAT không mặc định hỗ trợ hai chiều như nhau — PAT/Masquerade
+chính là NAT một chiều (loại d).
 
-4. Đã thêm đúng rule DNAT port forwarding nhưng vẫn không kết nối được từ ngoài. Nguyên nhân
-   khả năng cao thứ hai (sau khi xác nhận DNAT rule đúng) là gì?
-   <details><summary>Đáp án</summary>Thiếu rule ACCEPT trong chain FORWARD cho traffic đã được
-   DNAT — DNAT chỉ đổi địa chỉ đích, không tự động cho phép traffic đó đi qua firewall nếu
-   chain FORWARD có policy DROP mặc định.</details>
+---
 
-5. Vì sao không nên coi "PAT tự động chặn kết nối đến" là lớp bảo mật DUY NHẤT cần có cho một
-   mạng nội bộ?
-   <details><summary>Đáp án</summary>Vì đây chỉ là hiệu ứng PHỤ của cách PAT hoạt động, không
-   phải thiết kế bảo mật chính thức — một rule DNAT/port-forwarding (có thể chỉ 1 dòng, thêm
-   bởi bất kỳ ai có quyền) có thể mở toàn bộ bảo vệ đó cho đúng port được forward. Cần firewall
-   riêng kiểm soát rõ ràng traffic nào được phép.</details>
+**Câu 2**: Phân biệt SNAT và DNAT dựa trên CHIỀU của traffic.
+
+a) SNAT đổi đích cho traffic ra, DNAT đổi nguồn cho traffic vào
+b) SNAT đổi địa chỉ NGUỒN, dùng cho traffic đi RA (nội bộ → Internet). DNAT đổi địa chỉ ĐÍCH,
+   dùng cho traffic đi VÀO (Internet → server nội bộ, ví dụ port forwarding)
+c) SNAT và DNAT đều đổi cả nguồn và đích, chỉ khác ở chiều áp dụng port
+d) SNAT chỉ dùng cho UDP, DNAT chỉ dùng cho TCP
+
+**Đáp án: b** — SNAT đổi địa chỉ NGUỒN, dùng cho traffic đi RA (nội bộ → Internet). DNAT đổi
+địa chỉ ĐÍCH, dùng cho traffic đi VÀO (Internet → server nội bộ, ví dụ port forwarding). Vai
+trò SNAT/DNAT bị đảo ngược hoàn toàn (loại a); mỗi loại chỉ đổi MỘT trong hai địa chỉ (nguồn
+hoặc đích), không đổi cả hai (loại c); cả SNAT và DNAT áp dụng được cho cả TCP và UDP, không
+giới hạn theo giao thức (loại d).
+
+---
+
+**Câu 3**: Vì sao MASQUERADE phù hợp hơn SNAT tĩnh khi IP public của gateway là IP ĐỘNG (do ISP
+cấp lại mỗi lần kết nối)?
+
+a) Vì MASQUERADE nhanh hơn SNAT tĩnh về tốc độ xử lý gói tin
+b) Vì SNAT tĩnh không hỗ trợ IPv4, chỉ MASQUERADE mới hỗ trợ
+c) MASQUERADE tự động lấy IP HIỆN TẠI của interface mỗi khi cần NAT, không cần khai báo cứng
+   một IP cụ thể như SNAT tĩnh — phù hợp khi IP có thể đổi mà không cần sửa lại rule
+d) Vì MASQUERADE tự động xin cấp lại IP mới từ ISP mỗi khi cần, còn SNAT tĩnh không làm được
+   điều đó
+
+**Đáp án: c** — MASQUERADE tự động lấy IP HIỆN TẠI của interface mỗi khi cần NAT, không cần
+khai báo cứng một IP cụ thể như SNAT tĩnh — phù hợp khi IP có thể đổi mà không cần sửa lại
+rule. Lý do không nằm ở tốc độ xử lý (loại a); cả hai đều hoạt động với IPv4 bình thường (loại
+b); MASQUERADE không tự xin cấp IP từ ISP — nó chỉ ĐỌC IP hiện tại mà interface đang có, việc
+cấp IP là của DHCP/PPP phía ISP, không phải chức năng của MASQUERADE (loại d).
+
+---
+
+**Câu 4**: Đã thêm đúng rule DNAT port forwarding nhưng vẫn không kết nối được từ ngoài. Nguyên
+nhân khả năng cao thứ hai (sau khi xác nhận DNAT rule đúng) là gì?
+
+a) ISP đang chặn toàn bộ traffic inbound tới IP public của gateway
+b) DNAT chỉ hoạt động với giao thức UDP, cần đổi sang UDP để kiểm tra lại
+c) Server nội bộ chưa khởi động lại sau khi thêm rule, cần reboot để NAT nhận diện
+d) Thiếu rule ACCEPT trong chain FORWARD cho traffic đã được DNAT — DNAT chỉ đổi địa chỉ đích,
+   không tự động cho phép traffic đó đi qua firewall nếu chain FORWARD có policy DROP mặc định
+
+**Đáp án: d** — Thiếu rule ACCEPT trong chain FORWARD cho traffic đã được DNAT — DNAT chỉ đổi
+địa chỉ đích, không tự động cho phép traffic đó đi qua firewall nếu chain FORWARD có policy
+DROP mặc định. ISP chặn inbound là khả năng cần xét nhưng không phải nguyên nhân phổ biến thứ
+hai trong ngữ cảnh bài (vấn đề cấu hình cục bộ mới là trọng tâm — loại a); DNAT hoạt động với cả
+TCP và UDP, không giới hạn UDP (loại b); NAT không cần reboot để nhận diện rule mới, rule có
+hiệu lực ngay (loại c).
+
+---
+
+**Câu 5**: Vì sao không nên coi "PAT tự động chặn kết nối đến" là lớp bảo mật DUY NHẤT cần có
+cho một mạng nội bộ?
+
+a) Vì đây chỉ là hiệu ứng PHỤ của cách PAT hoạt động, không phải thiết kế bảo mật chính thức —
+   một rule DNAT/port-forwarding (có thể chỉ 1 dòng, thêm bởi bất kỳ ai có quyền) có thể mở
+   toàn bộ bảo vệ đó cho đúng port được forward. Cần firewall riêng kiểm soát rõ ràng traffic
+   nào được phép
+b) Vì PAT thực ra không chặn kết nối đến, chỉ làm chậm kết nối đó lại
+c) Vì PAT chỉ hoạt động được với IPv4, không bảo vệ được traffic IPv6
+d) Vì PAT chặn kết nối đến chỉ trong 24 giờ đầu sau khi thiết lập, sau đó tự mở lại
+
+**Đáp án: a** — Vì đây chỉ là hiệu ứng PHỤ của cách PAT hoạt động, không phải thiết kế bảo mật
+chính thức — một rule DNAT/port-forwarding (có thể chỉ 1 dòng, thêm bởi bất kỳ ai có quyền) có
+thể mở toàn bộ bảo vệ đó cho đúng port được forward. Cần firewall riêng kiểm soát rõ ràng
+traffic nào được phép. PAT thực sự chặn (drop) kết nối đến không có ánh xạ, không chỉ làm chậm
+(loại b); đặc tính này đúng với bất kỳ phiên bản IP có NAT dạng PAT, không riêng IPv4 hay IPv6
+(dù IPv6 ít dùng NAT hơn, câu hỏi không nói về IPv6 — loại c lạc đề); không có giới hạn thời
+gian 24 giờ nào trong cơ chế PAT (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

@@ -155,37 +155,96 @@ rule DENY cho dải đó ở Security Group.
 
 ## 7. Tự kiểm tra
 
-1. Bạn muốn thêm một rule "deny" trong Security Group để chặn một IP cụ thể. Điều này có khả
-   thi không?
-   <details><summary>Đáp án</summary>Không. Security Group THEO ĐỊNH NGHĨA chỉ hỗ trợ rule
-   ALLOW (hoạt động theo nguyên lý default-deny — mọi thứ không được allow tường minh đã bị
-   chặn sẵn). Muốn DENY tường minh một nguồn cụ thể, phải dùng Network ACL.</details>
+**Câu 1**: Bạn muốn thêm một rule "deny" trong Security Group để chặn một IP cụ thể. Điều này
+có khả thi không?
 
-2. Traffic từ Internet tới một instance trong subnet phải đi qua Security Group và Network ACL
-   theo thứ tự nào?
-   <details><summary>Đáp án</summary>Network ACL (cấp subnet) TRƯỚC, Security Group (cấp
-   instance) SAU — traffic bị NACL chặn sẽ không bao giờ tới được Security Group để kiểm tra
-   tiếp.</details>
+a) Có, Security Group hỗ trợ cả ALLOW và DENY như tường lửa truyền thống
+b) Có, nhưng chỉ khi Security Group được gắn ở cấp VPC thay vì cấp instance
+c) Không. Security Group THEO ĐỊNH NGHĨA chỉ hỗ trợ rule ALLOW (hoạt động theo nguyên lý
+   default-deny — mọi thứ không được allow tường minh đã bị chặn sẵn). Muốn DENY tường minh
+   một nguồn cụ thể, phải dùng Network ACL
+d) Không, vì Security Group không hỗ trợ lọc theo IP, chỉ lọc theo port
 
-3. Security Group cho phép inbound port 80. Có cần thêm rule outbound riêng để instance trả
-   response cho request đó không?
-   <details><summary>Đáp án</summary>Không cần — Security Group là STATEFUL, tự động cho phép
-   traffic phản hồi của một kết nối đã match rule inbound, không cần khai báo outbound
-   riêng.</details>
+**Đáp án: c** — Không. Security Group THEO ĐỊNH NGHĨA chỉ hỗ trợ rule ALLOW (hoạt động theo
+nguyên lý default-deny — mọi thứ không được allow tường minh đã bị chặn sẵn). Muốn DENY tường
+minh một nguồn cụ thể, phải dùng Network ACL. Security Group không có loại rule DENY, khác với
+tường lửa truyền thống có cả ALLOW/DENY (loại a); Security Group luôn gắn ở cấp instance (ENI),
+không có biến thể gắn cấp VPC (loại b); Security Group hoàn toàn lọc được theo IP nguồn/đích,
+hạn chế nằm ở việc chỉ hỗ trợ ALLOW, không phải không lọc được theo IP (loại d).
 
-4. Network ACL cho phép inbound port 443 nhưng KHÔNG có rule outbound cho dải ephemeral port.
-   Điều gì xảy ra?
-   <details><summary>Đáp án</summary>Request tới được instance, nhưng RESPONSE không gửi ra
-   được cho client — vì Network ACL là STATELESS, không tự nhận biết "đây là response", cần
-   rule outbound riêng cho phép dải ephemeral port (thường client dùng để nhận response).
-   </details>
+---
 
-5. Trong Network ACL, rule số `50 DENY all 0.0.0.0/0` đứng TRƯỚC rule số `100 ALLOW TCP 443
-   0.0.0.0/0`. Traffic HTTPS hợp lệ có qua được không?
-   <details><summary>Đáp án</summary>Không — Network ACL xét rule theo THỨ TỰ SỐ tăng dần,
-   dừng ở rule ĐẦU TIÊN khớp. Rule <code>50 DENY all</code> khớp TRƯỚC (số nhỏ hơn, mọi traffic
-   đều khớp "all") và chặn ngay, traffic không bao giờ được xét tới rule
-   <code>100</code>.</details>
+**Câu 2**: Traffic từ Internet tới một instance trong subnet phải đi qua Security Group và
+Network ACL theo thứ tự nào?
+
+a) Security Group (cấp instance) TRƯỚC, Network ACL (cấp subnet) SAU
+b) Cả hai được kiểm tra đồng thời, traffic chỉ cần qua một trong hai là được phép
+c) Thứ tự phụ thuộc vào cấu hình routing table, không cố định theo cấp subnet/instance
+d) Network ACL (cấp subnet) TRƯỚC, Security Group (cấp instance) SAU — traffic bị NACL chặn sẽ
+   không bao giờ tới được Security Group để kiểm tra tiếp
+
+**Đáp án: d** — Network ACL (cấp subnet) TRƯỚC, Security Group (cấp instance) SAU — traffic bị
+NACL chặn sẽ không bao giờ tới được Security Group để kiểm tra tiếp. Thứ tự thực tế đi từ
+NGOÀI vào TRONG theo cấp độ (subnet trước, instance sau), không phải ngược lại (loại a); cả
+hai đều phải được thông qua, không phải "chỉ cần một trong hai" (loại b); thứ tự này cố định
+theo kiến trúc mạng (subnet bọc ngoài instance), không phụ thuộc routing table (loại c).
+
+---
+
+**Câu 3**: Security Group cho phép inbound port 80. Có cần thêm rule outbound riêng để
+instance trả response cho request đó không?
+
+a) Không cần — Security Group là STATEFUL, tự động cho phép traffic phản hồi của một kết nối
+   đã match rule inbound, không cần khai báo outbound riêng
+b) Có, cần thêm rule outbound riêng cho port ephemeral để response đi ra được
+c) Có, vì Security Group chỉ stateful với UDP, TCP cần khai outbound riêng
+d) Không cần, nhưng chỉ vì port 80 là port đặc biệt được miễn trừ, các port khác vẫn cần
+   outbound
+
+**Đáp án: a** — Không cần — Security Group là STATEFUL, tự động cho phép traffic phản hồi của
+một kết nối đã match rule inbound, không cần khai báo outbound riêng. Đây chính là đặc tính
+stateful của Security Group — không cần rule outbound riêng cho ephemeral port, khác Network
+ACL (loại b); Security Group stateful với CẢ TCP và UDP, không chỉ UDP (loại c); hành vi
+stateful áp dụng cho MỌI port, không chỉ port 80 đặc biệt (loại d).
+
+---
+
+**Câu 4**: Network ACL cho phép inbound port 443 nhưng KHÔNG có rule outbound cho dải
+ephemeral port. Điều gì xảy ra?
+
+a) Request cũng không tới được instance vì thiếu outbound tương ứng ngay từ đầu
+b) Request tới được instance, nhưng RESPONSE không gửi ra được cho client — vì Network ACL là
+   STATELESS, không tự nhận biết "đây là response", cần rule outbound riêng cho phép dải
+   ephemeral port (thường client dùng để nhận response)
+c) Không có gì xảy ra, Network ACL tự động suy ra dải ephemeral cần mở dựa trên rule inbound
+   đã có
+d) Request tới instance và response gửi ra bình thường vì NACL chỉ áp dụng cho chiều inbound
+
+**Đáp án: b** — Request tới được instance, nhưng RESPONSE không gửi ra được cho client — vì
+Network ACL là STATELESS, không tự nhận biết "đây là response", cần rule outbound riêng cho
+phép dải ephemeral port. Rule inbound 443 vẫn cho request VÀO được bình thường, vấn đề chỉ xảy
+ra ở chiều RA (loại a); NACL stateless không tự suy ra được rule outbound nào cần mở — phải
+khai tường minh (loại c); NACL áp dụng cho CẢ hai chiều inbound và outbound, không chỉ inbound
+(loại d).
+
+---
+
+**Câu 5**: Trong Network ACL, rule số `50 DENY all 0.0.0.0/0` đứng TRƯỚC rule số `100 ALLOW TCP
+443 0.0.0.0/0`. Traffic HTTPS hợp lệ có qua được không?
+
+a) Có, vì rule ALLOW luôn được ưu tiên hơn rule DENY bất kể số thứ tự
+b) Có, vì rule số 100 cụ thể hơn (chỉ TCP 443) nên được xét trước rule số 50 (áp dụng "all")
+c) Không — Network ACL xét rule theo THỨ TỰ SỐ tăng dần, dừng ở rule ĐẦU TIÊN khớp. Rule `50
+   DENY all` khớp TRƯỚC (số nhỏ hơn, mọi traffic đều khớp "all") và chặn ngay, traffic không
+   bao giờ được xét tới rule `100`
+d) Không thể xác định nếu không biết thêm rule outbound tương ứng
+
+**Đáp án: c** — Không — Network ACL xét rule theo THỨ TỰ SỐ tăng dần, dừng ở rule ĐẦU TIÊN
+khớp. Rule `50 DENY all` khớp TRƯỚC (số nhỏ hơn, mọi traffic đều khớp "all") và chặn ngay,
+traffic không bao giờ được xét tới rule `100`. ALLOW không có ưu tiên đặc biệt hơn DENY trong
+NACL — thứ tự số quyết định (loại a); NACL không xét theo độ cụ thể của rule, chỉ xét theo số
+thứ tự tăng dần (loại b); rule inbound `50 DENY all` đã đủ để kết luận traffic bị chặn ngay từ
+chiều vào, không cần biết thêm rule outbound (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

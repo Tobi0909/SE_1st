@@ -51,11 +51,18 @@ câu), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
 log. Verify qua PGlite: `kb:import` → 3 bài cập nhật, `kb:build-quiz` → 14 câu mới (tổng 413
 câu), idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
 
-Đã làm 5 module trong lượt này (tcpip, switching, routing, dns, dhcp) — dừng theo quy tắc tối
+Đã làm 5 module trong lượt trước (tcpip, switching, routing, dns, dhcp) — dừng theo quy tắc tối
 đa 5 module/lượt.
 
-**Còn lại trong `networking`**: 5 module (nat-firewall 3 bài, tls-pki 3, http-lb 3, vpn 1,
-diagnostic-tools 3 = 13 bài).
+`networking.nat-firewall` (3 bài, 15 câu — xem commit theo sau trong git log): `nat-types`,
+`firewall-concepts`, `acl-security-groups`. Verify qua PGlite (dựng lại server mới ở scratchpad
+khác do scratchpad phiên trước bị dọn sạch — đây là việc bình thường, scratchpad gắn theo
+session): `kb:import` → 146 bài (full re-import, DB mới), `kb:build-quiz` → 428 câu MCQ tổng
+(= 413 câu cũ + 15 câu mới, khớp đúng số dự kiến), idempotent, `kb:lint` pass. Không có câu nào
+phải bỏ qua.
+
+**Còn lại trong `networking`**: 4 module (tls-pki 3 bài, http-lb 3, vpn 1, diagnostic-tools 3 =
+10 bài).
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

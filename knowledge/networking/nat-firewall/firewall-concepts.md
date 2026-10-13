@@ -176,38 +176,103 @@ Một server mới cấu hình firewall bằng `nftables`, team báo "SSH vẫn 
 
 ## 7. Tự kiểm tra
 
-1. Firewall có 2 rule theo thứ tự: (1) `drop from 10.0.0.0/8`, (2) `accept from 10.0.5.20`.
-   Traffic từ `10.0.5.20` có được accept không?
-   <details><summary>Đáp án</summary>Không — traffic này khớp rule (1) TRƯỚC (vì
-   <code>10.0.5.20</code> thuộc dải <code>10.0.0.0/8</code>) và bị drop ngay, không bao giờ
-   được xét tới rule (2) phía sau.</details>
+**Câu 1**: Firewall có 2 rule theo thứ tự: (1) `drop from 10.0.0.0/8`, (2) `accept from
+10.0.5.20`. Traffic từ `10.0.5.20` có được accept không?
 
-2. Trên firewall STATEFUL, bạn chỉ cần một rule `ct state established,related accept` để cho
-   phép response của MỌI kết nối đã được chấp nhận, không cần khai báo riêng từng chiều. Vì
-   sao điều này KHÔNG áp dụng được cho firewall STATELESS?
-   <details><summary>Đáp án</summary>Stateless không có khái niệm "connection tracking" — mỗi
-   gói được xét ĐỘC LẬP, không nhớ gói nào thuộc kết nối nào. Phải khai báo tường minh rule cho
-   CẢ hai chiều (vào và ra) vì không có cơ chế tự động nhận biết "đây là response của một kết
-   nối đã cho phép".</details>
+a) Có, vì rule cụ thể hơn (accept 1 IP) luôn được ưu tiên hơn rule dải rộng hơn bất kể thứ tự
+b) Không — traffic này khớp rule (1) TRƯỚC (vì `10.0.5.20` thuộc dải `10.0.0.0/8`) và bị drop
+   ngay, không bao giờ được xét tới rule (2) phía sau
+c) Có, vì firewall luôn xét rule ACCEPT trước rule DROP để tránh chặn nhầm
+d) Không thể xác định nếu không biết thêm loại firewall đang dùng là gì
 
-3. Chain firewall có `policy drop` và KHÔNG có rule nào khớp một loại traffic cụ thể. Traffic
-   đó bị xử lý thế nào?
-   <details><summary>Đáp án</summary>Bị DROP — khi không rule nào khớp, traffic rơi vào
-   POLICY MẶC ĐỊNH của chain (ở đây là <code>drop</code>). Đây không phải "không có rule nên
-   được phép", mà ngược lại.</details>
+**Đáp án: b** — Không — traffic này khớp rule (1) TRƯỚC (vì 10.0.5.20 thuộc dải 10.0.0.0/8) và
+bị drop ngay, không bao giờ được xét tới rule (2) phía sau. Firewall không tự ưu tiên rule cụ
+thể hơn — thứ tự khai báo mới quyết định (loại a); firewall không mặc định xét ACCEPT trước
+DROP, nó xét theo đúng thứ tự rule được khai (loại c); kết luận này đúng với mọi loại firewall
+xử lý rule theo thứ tự tuần tự first-match-wins, không cần biết thêm chi tiết loại firewall
+(loại d).
 
-4. Vì sao firewalld dùng khái niệm "zone" thay vì chỉ một bộ rule chung cho mọi interface?
-   <details><summary>Đáp án</summary>Một máy có thể có nhiều interface với MỨC ĐỘ TIN CẬY khác
-   nhau (ví dụ interface nội bộ vs interface ra Internet) — zone cho phép gán mỗi interface
-   vào một mức tin cậy riêng, mỗi zone có bộ rule độc lập, tránh phải viết rule phức tạp dựa
-   theo interface trong một bộ rule chung.</details>
+---
 
-5. Một rule ACCEPT mới thêm cho port 443 "không có tác dụng" dù cú pháp đúng. Hai hướng kiểm
-   tra ĐẦU TIÊN hợp lý nhất là gì?
-   <details><summary>Đáp án</summary>(1) Kiểm tra THỨ TỰ — có rule nào đứng TRƯỚC đã chặn/xử lý
-   traffic đó trước khi tới được rule mới thêm không; (2) kiểm tra rule mới có được thêm vào
-   ĐÚNG chain/table (ví dụ đúng hướng input/output/forward) không — một rule đúng cú pháp nhưng
-   ở sai chain không có tác dụng cho traffic mong muốn.</details>
+**Câu 2**: Trên firewall STATEFUL, bạn chỉ cần một rule `ct state established,related accept`
+để cho phép response của MỌI kết nối đã được chấp nhận, không cần khai báo riêng từng chiều. Vì
+sao điều này KHÔNG áp dụng được cho firewall STATELESS?
+
+a) Vì stateless không hỗ trợ cú pháp "accept", chỉ hỗ trợ "allow"
+b) Vì stateless chỉ áp dụng được cho UDP, TCP cần stateful mới hoạt động đúng
+c) Stateless không có khái niệm "connection tracking" — mỗi gói được xét ĐỘC LẬP, không nhớ gói
+   nào thuộc kết nối nào. Phải khai báo tường minh rule cho CẢ hai chiều (vào và ra) vì không có
+   cơ chế tự động nhận biết "đây là response của một kết nối đã cho phép"
+d) Vì stateless luôn mặc định cho phép mọi response, không cần khai rule nào thêm
+
+**Đáp án: c** — Stateless không có khái niệm "connection tracking" — mỗi gói được xét ĐỘC LẬP,
+không nhớ gói nào thuộc kết nối nào. Phải khai báo tường minh rule cho CẢ hai chiều (vào và ra)
+vì không có cơ chế tự động nhận biết "đây là response của một kết nối đã cho phép". Đây không
+phải vấn đề cú pháp "accept"/"allow" — khác biệt là về CƠ CHẾ connection tracking (loại a);
+stateless/stateful áp dụng cho cả TCP và UDP, không giới hạn theo giao thức (loại b); stateless
+hoàn toàn KHÔNG tự động cho phép response — ngược lại, đó chính là lý do phải khai cả hai chiều
+tường minh (loại d).
+
+---
+
+**Câu 3**: Chain firewall có `policy drop` và KHÔNG có rule nào khớp một loại traffic cụ thể.
+Traffic đó bị xử lý thế nào?
+
+a) Được tự động ACCEPT vì không có rule nào khớp nghĩa là không có gì để chặn
+b) Bị đưa vào hàng chờ (queue) cho tới khi admin xử lý thủ công
+c) Firewall sẽ log cảnh báo nhưng vẫn forward traffic đó như bình thường
+d) Bị DROP — khi không rule nào khớp, traffic rơi vào POLICY MẶC ĐỊNH của chain (ở đây là drop).
+   Đây không phải "không có rule nên được phép", mà ngược lại
+
+**Đáp án: d** — Bị DROP — khi không rule nào khớp, traffic rơi vào POLICY MẶC ĐỊNH của chain
+(ở đây là drop). Đây không phải "không có rule nên được phép", mà ngược lại. Không rule khớp
+không đồng nghĩa với ACCEPT — nó rơi vào policy mặc định của chain, ở đây là drop (loại a);
+không có cơ chế hàng chờ chờ admin xử lý thủ công trong netfilter/firewalld (loại b); không có
+hành vi "log nhưng vẫn forward" mặc định — traffic bị drop thật, không chỉ cảnh báo (loại c).
+
+---
+
+**Câu 4**: Vì sao firewalld dùng khái niệm "zone" thay vì chỉ một bộ rule chung cho mọi
+interface?
+
+a) Một máy có thể có nhiều interface với MỨC ĐỘ TIN CẬY khác nhau (ví dụ interface nội bộ vs
+   interface ra Internet) — zone cho phép gán mỗi interface vào một mức tin cậy riêng, mỗi
+   zone có bộ rule độc lập, tránh phải viết rule phức tạp dựa theo interface trong một bộ rule
+   chung
+b) Vì mỗi interface vật lý bắt buộc phải thuộc một zone riêng theo chuẩn kernel Linux
+c) Vì zone giúp tăng tốc độ xử lý rule bằng cách chia nhỏ bảng rule theo interface
+d) Vì firewalld không hỗ trợ áp dụng một bộ rule chung, buộc phải chia zone dù chỉ có 1
+   interface
+
+**Đáp án: a** — Một máy có thể có nhiều interface với MỨC ĐỘ TIN CẬY khác nhau (ví dụ interface
+nội bộ vs interface ra Internet) — zone cho phép gán mỗi interface vào một mức tin cậy riêng,
+mỗi zone có bộ rule độc lập, tránh phải viết rule phức tạp dựa theo interface trong một bộ rule
+chung. Kernel Linux không có khái niệm "zone" bắt buộc — đó là khái niệm riêng của firewalld
+(loại b); lý do zone không phải để tăng tốc xử lý, mà để tổ chức rule theo mức tin cậy (loại
+c); firewalld hoàn toàn có thể dùng 1 zone cho mọi interface nếu không cần phân biệt mức tin
+cậy — zone là linh hoạt, không bắt buộc chia nhiều (loại d).
+
+---
+
+**Câu 5**: Một rule ACCEPT mới thêm cho port 443 "không có tác dụng" dù cú pháp đúng. Hai
+hướng kiểm tra ĐẦU TIÊN hợp lý nhất là gì?
+
+a) (1) Kiểm tra lại cú pháp dấu ngoặc của rule; (2) kiểm tra phiên bản firewall đang chạy có hỗ
+   trợ port 443 không
+b) (1) Kiểm tra THỨ TỰ — có rule nào đứng TRƯỚC đã chặn/xử lý traffic đó trước khi tới được rule
+   mới thêm không; (2) kiểm tra rule mới có được thêm vào ĐÚNG chain/table (ví dụ đúng hướng
+   input/output/forward) không — một rule đúng cú pháp nhưng ở sai chain không có tác dụng cho
+   traffic mong muốn
+c) (1) Restart toàn bộ dịch vụ firewall; (2) xoá hết rule cũ rồi thêm lại từ đầu
+d) (1) Kiểm tra port 443 có đang bị ISP chặn từ ngoài không; (2) kiểm tra DNS có trỏ đúng không
+
+**Đáp án: b** — (1) Kiểm tra THỨ TỰ — có rule nào đứng TRƯỚC đã chặn/xử lý traffic đó trước khi
+tới được rule mới thêm không; (2) kiểm tra rule mới có được thêm vào ĐÚNG chain/table (ví dụ
+đúng hướng input/output/forward) không — một rule đúng cú pháp nhưng ở sai chain không có tác
+dụng cho traffic mong muốn. Đề bài đã xác nhận cú pháp đúng, nên không cần kiểm tra lại cú pháp
+hay hỗ trợ phiên bản (loại a); restart/xoá hết rule là hành động phá huỷ không cần thiết, không
+phải bước chẩn đoán đầu tiên hợp lý (loại c); ISP/DNS không giải thích được vì sao MỘT RULE cụ
+thể "không có tác dụng" trên chính firewall đó (loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
