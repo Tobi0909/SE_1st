@@ -153,9 +153,15 @@ MCQ tổng (581 cũ + 9 mới), idempotent, `kb:lint` pass. Không có câu nào
 
 **Domain `monitoring` đã xong hoàn toàn (5/5 module).**
 
-**Còn lại toàn kho**: `data.redis` (1 bài), `data.message-queue` (1 bài),
-`sre.capacity-planning` (1 bài), `sre.toil-automation` (1 bài) — tổng 4 bài, 4 module cuối
-cùng của toàn kho.
+`data.redis` (1 bài, 5 câu — xem commit theo sau trong git log): `fundamentals`. Verify qua
+PGlite: `kb:import` → 1 bài cập nhật, `kb:build-quiz` → 595 câu MCQ tổng (590 cũ + 5 mới),
+idempotent, `kb:lint` pass. Không có câu nào phải bỏ qua.
+
+Đã làm 5 module trong lượt này (prometheus-grafana, logging, alerting-design, sli-slo,
+data.redis) — dừng theo quy tắc tối đa 5 module/lượt.
+
+**Còn lại toàn kho**: `data.message-queue` (1 bài), `sre.capacity-planning` (1 bài),
+`sre.toil-automation` (1 bài) — tổng 3 bài, 3 module cuối cùng của toàn kho.
 
 **Còn lại toàn kho sau networking**: domain `virt-storage`, `container-k8s` (phần còn lại chưa
 rõ — kiểm tra lại khi tới), `monitoring`, `devops`, `security`, `data`, `sre` — ước tính tổng

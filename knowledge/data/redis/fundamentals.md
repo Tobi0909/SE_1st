@@ -226,25 +226,103 @@ Sau 1 giờ: `evicted_keys` trở về 0, latency về bình thường.
 
 ## 7. Tự kiểm tra
 
-**1. Redis có phải là in-memory database thuần túy không? Dữ liệu có mất khi restart không?**
+**Câu 1**: Redis có phải là in-memory database thuần túy không? Dữ liệu có mất khi restart
+không?
 
-Không hoàn toàn thuần túy — Redis có persistence tùy chọn (RDB và/hoặc AOF). Với cấu hình mặc định RDB, data có thể mất từ lần snapshot cuối đến khi crash (vài phút). Với AOF `everysec`, mất tối đa 1 giây data. Nếu tắt cả hai, data mất hoàn toàn khi restart. Redis thường được dùng như cache (mất data chấp nhận được) hoặc session store (cần AOF).
+a) Không hoàn toàn thuần túy — Redis có persistence tùy chọn (RDB và/hoặc AOF). Với cấu hình
+   mặc định RDB, data có thể mất từ lần snapshot cuối đến khi crash (vài phút). Với AOF
+   everysec, mất tối đa 1 giây data. Nếu tắt cả hai, data mất hoàn toàn khi restart. Redis
+   thường được dùng như cache (mất data chấp nhận được) hoặc session store (cần AOF)
+b) Có, Redis luôn là in-memory thuần túy, không có bất kỳ cơ chế persistence nào, mọi data
+   luôn mất khi restart
+c) Không, Redis luôn ghi mọi write xuống disk đồng bộ ngay lập tức theo mặc định, không bao
+   giờ mất data
+d) Có, nhưng chỉ mất data nếu dùng Redis Cluster, còn Redis instance đơn luôn giữ data qua
+   mọi lần restart
 
-**2. Tại sao không nên dùng `KEYS *` trên Redis production?**
+**Đáp án: a** — Không hoàn toàn thuần túy — có persistence tùy chọn (RDB/AOF). RDB mặc định
+có thể mất vài phút data; AOF everysec mất tối đa 1 giây; tắt cả hai mất hoàn toàn. Redis CÓ
+cơ chế persistence tùy chọn (RDB/AOF), không phải "không có bất kỳ cơ chế nào" (loại b); Redis
+KHÔNG ghi đồng bộ mọi write xuống disk theo mặc định — RDB là snapshot định kỳ, AOF mặc định
+`everysec` chứ không phải mỗi write (loại c); việc dùng Cluster hay instance đơn không quyết
+định có mất data khi restart — yếu tố quyết định là cấu hình persistence (RDB/AOF), không
+phải topology (loại d).
 
-`KEYS` có độ phức tạp `O(n)` — nó phải duyệt toàn bộ keyspace. Redis là single-thread, nên `KEYS *` với 10M key có thể block server hàng chục ms, khiến mọi request khác phải chờ. Thay bằng `SCAN` — trả về cursor và batch nhỏ, không block server.
+---
 
-**3. Sự khác biệt giữa RDB và AOF là gì? Khi nào nên dùng AOF?**
+**Câu 2**: Tại sao không nên dùng `KEYS *` trên Redis production?
 
-RDB snapshot toàn bộ dataset theo định kỳ — ít mất data, nhưng có thể mất từ lần snapshot cuối. AOF log mọi write command — với `appendfsync everysec` chỉ mất tối đa 1 giây data. Dùng AOF khi data quan trọng (session, cart, user state) không thể mất nhiều hơn 1 giây. Cache thuần (HTML rendered, DB query result) không cần AOF.
+a) Vì KEYS * chỉ hoạt động được trên Redis Cluster, không hoạt động trên instance đơn
+b) KEYS có độ phức tạp O(n) — nó phải duyệt toàn bộ keyspace. Redis là single-thread, nên
+   KEYS * với 10M key có thể block server hàng chục ms, khiến mọi request khác phải chờ. Thay
+   bằng SCAN — trả về cursor và batch nhỏ, không block server
+c) Vì KEYS * đã bị loại bỏ hoàn toàn khỏi Redis từ phiên bản mới nhất, lệnh không còn tồn tại
+d) Vì KEYS * yêu cầu quyền admin đặc biệt mà hầu hết client không có, nên luôn báo lỗi
+   permission
 
-**4. `maxmemory-policy allkeys-lru` khác `volatile-lru` thế nào?**
+**Đáp án: b** — `KEYS` là O(n), duyệt toàn keyspace; Redis single-thread nên block server khi
+nhiều key. Dùng `SCAN` (cursor, batch nhỏ) thay thế. `KEYS *` hoạt động trên CẢ instance đơn
+và Cluster, không giới hạn chỉ Cluster (loại a); `KEYS` vẫn tồn tại trong Redis hiện hành,
+không bị loại bỏ — chỉ là KHÔNG NÊN dùng ở production vì lý do hiệu năng (loại c); `KEYS`
+không yêu cầu quyền admin đặc biệt — bất kỳ client có quyền đọc đều gọi được, vấn đề là hiệu
+năng chứ không phải permission (loại d).
 
-`allkeys-lru` áp dụng trên toàn bộ keyspace — key nào ít dùng nhất sẽ bị xoá, kể cả key không có TTL. `volatile-lru` chỉ xoá trong số các key đã set TTL; nếu không còn key có TTL, Redis trả lỗi OOM thay vì xoá key không có TTL. `volatile-lru` an toàn hơn khi mix cache (có TTL) và persistent data (không TTL) trong cùng instance.
+---
 
-**5. Khi nào nên dùng Redis Sentinel, khi nào nên dùng Redis Cluster?**
+**Câu 3**: Sự khác biệt giữa RDB và AOF là gì? Khi nào nên dùng AOF?
 
-Sentinel: khi cần high availability (auto-failover master→replica) mà không cần scale-out — dataset vừa vào 1 master. Cluster: khi dataset quá lớn cho 1 instance, hoặc cần scale write throughput theo chiều ngang — data tự động sharding qua 16384 hash slots. Cluster phức tạp hơn, đặc biệt với multi-key operations (cross-slot bị cấm).
+a) RDB log mọi write command; AOF snapshot định kỳ toàn bộ dataset
+b) Cả hai hoàn toàn giống nhau về cơ chế, chỉ khác định dạng file lưu trên disk
+c) RDB snapshot toàn bộ dataset theo định kỳ — ít mất data, nhưng có thể mất từ lần snapshot
+   cuối. AOF log mọi write command — với appendfsync everysec chỉ mất tối đa 1 giây data.
+   Dùng AOF khi data quan trọng (session, cart, user state) không thể mất nhiều hơn 1 giây.
+   Cache thuần (HTML rendered, DB query result) không cần AOF
+d) Nên luôn dùng cả RDB và AOF cùng lúc cho mọi loại dữ liệu, không có trường hợp nào chỉ cần
+   1 trong 2
+
+**Đáp án: c** — RDB snapshot định kỳ (có thể mất từ lần snapshot cuối); AOF log mọi write
+(mất tối đa 1 giây với everysec). Dùng AOF cho data quan trọng. Vai trò bị đảo ngược hoàn
+toàn trong lựa chọn a (loại a); hai cơ chế có hành vi và mức mất data KHÁC NHAU rõ rệt, không
+giống nhau chỉ khác định dạng file (loại b); không phải lúc nào cũng CẦN cả hai — cache thuần
+không cần AOF theo đúng nội dung bài, dùng 1 trong 2 tuỳ nhu cầu là hợp lý (loại d).
+
+---
+
+**Câu 4**: `maxmemory-policy allkeys-lru` khác `volatile-lru` thế nào?
+
+a) allkeys-lru chỉ xoá key có TTL; volatile-lru xoá cả key không có TTL
+b) Cả hai chính sách hoàn toàn tương đương, chỉ khác tên gọi theo phiên bản Redis cũ/mới
+c) volatile-lru áp dụng cho toàn bộ keyspace kể cả không TTL; allkeys-lru chỉ áp dụng cho key
+   có TTL
+d) allkeys-lru áp dụng trên toàn bộ keyspace — key nào ít dùng nhất sẽ bị xoá, kể cả key
+   không có TTL. volatile-lru chỉ xoá trong số các key đã set TTL; nếu không còn key có TTL,
+   Redis trả lỗi OOM thay vì xoá key không có TTL. volatile-lru an toàn hơn khi mix cache (có
+   TTL) và persistent data (không TTL) trong cùng instance
+
+**Đáp án: d** — `allkeys-lru` áp dụng toàn keyspace (kể cả không TTL); `volatile-lru` chỉ xoá
+key có TTL, nếu hết thì OOM error. Vai trò bị đảo ngược hoàn toàn trong lựa chọn a (loại a);
+hai policy có phạm vi áp dụng khác nhau rõ rệt (toàn keyspace vs chỉ TTL), không tương đương
+(loại b); vai trò bị đảo ngược trong lựa chọn c tương tự lựa chọn a (loại c).
+
+---
+
+**Câu 5**: Khi nào nên dùng Redis Sentinel, khi nào nên dùng Redis Cluster?
+
+a) Sentinel: khi cần high availability (auto-failover master→replica) mà không cần scale-out
+   — dataset vừa vào 1 master. Cluster: khi dataset quá lớn cho 1 instance, hoặc cần scale
+   write throughput theo chiều ngang — data tự động sharding qua 16384 hash slots. Cluster
+   phức tạp hơn, đặc biệt với multi-key operations (cross-slot bị cấm)
+b) Sentinel dùng khi cần sharding dữ liệu qua nhiều node; Cluster dùng khi chỉ cần
+   auto-failover đơn giản
+c) Cả hai hoàn toàn thay thế được cho nhau trong mọi tình huống, chọn cái nào cũng được
+d) Luôn nên dùng Cluster cho mọi trường hợp vì Cluster bao gồm luôn cả tính năng của Sentinel
+
+**Đáp án: a** — Sentinel cho HA không cần scale-out; Cluster cho dataset lớn/scale write qua
+sharding 16384 hash slot. Vai trò bị đảo ngược hoàn toàn trong lựa chọn b (loại b); hai công
+cụ phục vụ mục đích khác nhau (HA đơn giản vs scale-out phức tạp), không thay thế hoàn toàn
+cho nhau trong mọi tình huống (loại c); Cluster KHÔNG đơn giản bao gồm Sentinel — nó phức tạp
+hơn và có hạn chế riêng (cross-slot operation bị cấm), không phải lựa chọn "luôn tốt hơn" cho
+mọi trường hợp (loại d).
 
 ## 8. Bài liên quan và nguồn
 
