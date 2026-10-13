@@ -212,25 +212,58 @@ Thiết kế networking cho một app 3 tier (frontend, backend API, database) t
 
 ## 7. Tự kiểm tra
 
-1. Service `clusterIP: None` (headless) khác Service ClusterIP thông thường ở điểm gì khi Pod
-   query DNS?
-   <details><summary>Đáp án</summary>Service thông thường: DNS trả về một ClusterIP duy nhất
-   (virtual IP), kube-proxy DNAT route đến 1 trong các Pod. Headless: DNS trả về LIST tất cả
-   IP của Pod match selector (A record cho mỗi Pod). Client tự chọn Pod để kết nối. Với
-   StatefulSet: mỗi Pod còn có DNS riêng <code>&lt;pod-name&gt;.&lt;service&gt;</code> trỏ đúng
-   vào Pod đó.</details>
+**Câu 1**: Service `clusterIP: None` (headless) khác Service ClusterIP thông thường ở điểm gì
+khi Pod query DNS?
 
-2. Endpoint của Service bị xoá một IP — lý do có thể là gì?
-   <details><summary>Đáp án</summary>Pod tương ứng fail readiness probe (Pod vẫn <code>Running</code>
-   nhưng app chưa/không còn ready nhận traffic). K8s Endpoints controller tự động remove IP của
-   Pod không ready khỏi Endpoints — Service ngừng route traffic vào Pod đó cho đến khi readiness
-   probe pass lại.</details>
+a) Service thông thường trả list toàn bộ Pod IP; headless trả 1 ClusterIP duy nhất
+b) Cả hai đều trả về cùng 1 ClusterIP, chỉ khác ở cách kube-proxy route traffic phía sau
+c) Service thông thường: DNS trả về một ClusterIP duy nhất (virtual IP), kube-proxy DNAT route
+   đến 1 trong các Pod. Headless: DNS trả về LIST tất cả IP của Pod match selector (A record
+   cho mỗi Pod). Client tự chọn Pod để kết nối. Với StatefulSet: mỗi Pod còn có DNS riêng
+   <pod-name>.<service> trỏ đúng vào Pod đó
+d) Headless Service không trả kết quả DNS nào cả, phải dùng kubectl get pods -o wide để lấy IP
 
-3. Tại sao cần Service thay vì gọi thẳng vào Pod IP?
-   <details><summary>Đáp án</summary>Pod IP thay đổi mỗi khi Pod bị recreate (crash, rolling
-   update, eviction). Service cung cấp ClusterIP cố định và DNS name ổn định, luôn trỏ vào tập
-   Pod đang ready. Service cũng làm load balancing — phân phối request vào nhiều replica tự động,
-   client không cần biết có bao nhiêu Pod hay IP của Pod là gì.</details>
+**Đáp án: c** — Service thông thường trả 1 ClusterIP (DNAT tới 1 Pod); headless trả LIST tất
+cả IP Pod (client tự chọn); StatefulSet còn có DNS riêng từng Pod. Vai trò bị đảo ngược hoàn
+toàn trong lựa chọn a (loại a); hai loại Service có ClusterIP KHÁC NHAU rõ rệt (có vs không
+có) — không chỉ khác cách route phía sau (loại b); headless Service VẪN trả kết quả DNS (list
+IP trực tiếp), không phải "không trả gì" (loại d).
+
+---
+
+**Câu 2**: Endpoint của Service bị xoá một IP — lý do có thể là gì?
+
+a) Pod đó đã bị xoá hoàn toàn khỏi cluster, không còn tồn tại dưới bất kỳ hình thức nào
+b) Service tự động xoay vòng loại bỏ IP theo lịch cố định để load balance đều hơn
+c) Admin đã thủ công sửa YAML của Service để loại IP đó ra khỏi danh sách
+d) Pod tương ứng fail readiness probe (Pod vẫn Running nhưng app chưa/không còn ready nhận
+   traffic). K8s Endpoints controller tự động remove IP của Pod không ready khỏi Endpoints —
+   Service ngừng route traffic vào Pod đó cho đến khi readiness probe pass lại
+
+**Đáp án: d** — Pod fail readiness probe (vẫn Running nhưng không ready). Endpoints controller
+tự remove IP của Pod không ready. Nguyên nhân phổ biến này không yêu cầu Pod biến mất hoàn
+toàn — Pod vẫn tồn tại, chỉ không ready (loại a); không có cơ chế "xoay vòng theo lịch cố định"
+nào trong Endpoints controller — việc remove IP gắn với readiness probe, không phải lịch trình
+(loại b); Endpoints là object K8s TỰ ĐỘNG quản lý bởi controller, admin thường không trực tiếp
+sửa thủ công theo cách đó (loại c).
+
+---
+
+**Câu 3**: Tại sao cần Service thay vì gọi thẳng vào Pod IP?
+
+a) Pod IP thay đổi mỗi khi Pod bị recreate (crash, rolling update, eviction). Service cung cấp
+   ClusterIP cố định và DNS name ổn định, luôn trỏ vào tập Pod đang ready. Service cũng làm
+   load balancing — phân phối request vào nhiều replica tự động, client không cần biết có bao
+   nhiêu Pod hay IP của Pod là gì
+b) Vì Pod IP không hỗ trợ giao thức TCP, chỉ Service mới route được TCP traffic
+c) Vì gọi trực tiếp Pod IP vi phạm RBAC mặc định của Kubernetes
+d) Vì Pod chỉ có IP nội bộ container, không có địa chỉ mạng thật nào để gọi tới
+
+**Đáp án: a** — Pod IP thay đổi khi recreate. Service cung cấp ClusterIP/DNS ổn định và load
+balancing tự động. Pod IP hỗ trợ TCP hoàn toàn bình thường — vấn đề không phải giao thức (loại
+b); gọi trực tiếp Pod IP không vi phạm RBAC — RBAC kiểm soát quyền gọi API Kubernetes, không
+kiểm soát network traffic tới Pod (loại c); Pod có địa chỉ IP thật trong cluster network, có
+thể gọi tới trực tiếp (dù không nên vì không ổn định — loại d).
 
 ## 8. Bài liên quan và nguồn tham khảo
 

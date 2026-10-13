@@ -236,26 +236,61 @@ Kết quả: 3 khoản phí LB giảm còn 1, routing vẫn hoạt động đún
 
 ## 7. Tự kiểm tra
 
-1. Khác biệt giữa Ingress resource và Ingress controller là gì?
-   <details><summary>Đáp án</summary>Ingress resource là K8s API object (YAML khai báo rules) —
-   nó CHỈ là config, không làm gì nếu không có controller. Ingress controller là Pod thực sự chạy
-   proxy (nginx, traefik...) và watch Ingress objects để cấu hình routing. Nếu không cài controller,
-   apply Ingress resource không gây lỗi nhưng traffic không được route — không có gì xử lý rules đó
-   cả.</details>
+**Câu 1**: Khác biệt giữa Ingress resource và Ingress controller là gì?
 
-2. Vì sao nên dùng Ingress thay vì nhiều LoadBalancer Service?
-   <details><summary>Đáp án</summary>Mỗi LoadBalancer Service cần 1 external IP từ cloud provider =
-   1 khoản phí riêng. Với 10 service cần expose, đó là 10 cloud LB. Ingress gom toàn bộ HTTP/HTTPS
-   traffic qua 1 điểm vào (1 LB, 1 IP), routing theo hostname/path — giảm chi phí đáng kể. Ingress
-   còn tập trung TLS termination và cert management thay vì phân tán vào từng Pod.</details>
+a) Ingress resource và Ingress controller là hai tên gọi của cùng một thành phần, chỉ khác
+   version API
+b) Ingress resource là K8s API object (YAML khai báo rules) — nó CHỈ là config, không làm gì
+   nếu không có controller. Ingress controller là Pod thực sự chạy proxy (nginx, traefik...) và
+   watch Ingress objects để cấu hình routing. Nếu không cài controller, apply Ingress resource
+   không gây lỗi nhưng traffic không được route — không có gì xử lý rules đó cả
+c) Ingress resource là Pod proxy chạy thật; Ingress controller chỉ là file YAML khai báo rule
+d) Ingress controller luôn được cài sẵn mặc định trong mọi cluster K8s, không cần cài thêm
 
-3. Ingress rule có 2 path: `/api` (Prefix) và `/` (Prefix). Request đến `/api/users` sẽ route vào
-   backend nào?
-   <details><summary>Đáp án</summary>Backend của `/api` — Ingress controller (nginx) ưu tiên match
-   path DÀI HƠN trước, không phải thứ tự khai báo trong YAML. `/api/users` match `/api` (7 ký tự
-   prefix) tốt hơn `/` (1 ký tự prefix) nên route vào backend `/api`. Đây là lý do rule catch-all
-   `/` phải đặt sau nhưng thực ra thứ tự trong YAML không quan trọng — controller tự chọn match
-   cụ thể nhất.</details>
+**Đáp án: b** — Ingress resource chỉ là config (YAML); Ingress controller là Pod thực sự chạy
+proxy và watch resource để cấu hình routing. Không cài controller thì resource vô tác dụng.
+Hai thành phần có vai trò khác hẳn nhau (config vs thực thi), không phải cùng một thứ khác
+version (loại a); vai trò bị đảo ngược hoàn toàn trong lựa chọn c (loại c); Ingress controller
+KHÔNG được cài sẵn mặc định — hầu hết cluster (kể cả managed) yêu cầu cài riêng (nginx-ingress,
+traefik...) (loại d).
+
+---
+
+**Câu 2**: Vì sao nên dùng Ingress thay vì nhiều LoadBalancer Service?
+
+a) Vì LoadBalancer Service không hỗ trợ HTTPS, chỉ Ingress mới hỗ trợ TLS
+b) Vì mỗi cluster chỉ được phép tạo tối đa 1 LoadBalancer Service theo giới hạn của Kubernetes
+c) Mỗi LoadBalancer Service cần 1 external IP từ cloud provider = 1 khoản phí riêng. Với 10
+   service cần expose, đó là 10 cloud LB. Ingress gom toàn bộ HTTP/HTTPS traffic qua 1 điểm vào
+   (1 LB, 1 IP), routing theo hostname/path — giảm chi phí đáng kể. Ingress còn tập trung TLS
+   termination và cert management thay vì phân tán vào từng Pod
+d) Vì LoadBalancer Service chỉ hoạt động trên cloud AWS, Ingress hoạt động trên mọi hạ tầng
+
+**Đáp án: c** — Mỗi LoadBalancer Service cần 1 external IP = 1 khoản phí; Ingress gom qua 1
+điểm vào, giảm chi phí và tập trung TLS. LoadBalancer Service VẪN hỗ trợ TLS nếu cấu hình đúng
+(dù phân tán hơn) — không phải "không hỗ trợ HTTPS" (loại a); không có giới hạn 1
+LoadBalancer Service duy nhất mỗi cluster — có thể tạo nhiều, chỉ là tốn chi phí (loại b);
+LoadBalancer Service hoạt động trên nhiều cloud provider (AWS, GCP, Azure...), không giới hạn
+chỉ AWS (loại d).
+
+---
+
+**Câu 3**: Ingress rule có 2 path: `/api` (Prefix) và `/` (Prefix). Request đến `/api/users` sẽ
+route vào backend nào?
+
+a) Backend của /, vì rule khai báo trước trong YAML luôn được match trước
+b) Cả hai backend cùng xử lý request này song song rồi gộp kết quả trả về client
+c) Request bị từ chối với lỗi 404 vì có 2 path trùng khớp gây xung đột không xác định được
+d) Backend của /api — Ingress controller (nginx) ưu tiên match path DÀI HƠN trước, không phải
+   thứ tự khai báo trong YAML. /api/users match /api (7 ký tự prefix) tốt hơn / (1 ký tự
+   prefix) nên route vào backend /api. Đây là lý do rule catch-all / phải đặt sau nhưng thực ra
+   thứ tự trong YAML không quan trọng — controller tự chọn match cụ thể nhất
+
+**Đáp án: d** — Backend của `/api` — controller ưu tiên match path DÀI HƠN, không phải thứ tự
+khai báo. Thứ tự trong YAML KHÔNG quyết định — controller tự chọn match cụ thể nhất (dài hơn),
+không phải rule khai trước (loại a); chỉ MỘT backend xử lý request, không chạy song song cả
+hai (loại b); đây không phải xung đột không xác định — có quy tắc rõ ràng (match dài hơn
+thắng), không trả lỗi 404 (loại c).
 
 ## 8. Bài liên quan và nguồn tham khảo
 
