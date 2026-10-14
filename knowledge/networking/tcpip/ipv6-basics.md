@@ -207,9 +207,7 @@ chung một lần (loại c).
 **Câu 3**: Vì sao IPv6 về thiết kế KHÔNG cần NAT như IPv4, dù một số tổ chức vẫn dùng kỹ thuật
 tương tự (NPTv6)?
 
-a) Không gian địa chỉ IPv6 (128 bit) đủ lớn để cấp một địa chỉ global unicast riêng cho mỗi
-   thiết bị, không cần "giả lập nhiều máy dùng chung 1 IP" như NAT IPv4 giải quyết; NPTv6 (nếu
-   dùng) phục vụ mục đích khác (ẩn cấu trúc mạng, dễ đổi ISP), không phải vì thiếu địa chỉ
+a) Không gian địa chỉ IPv6 (128 bit) đủ lớn để cấp một địa chỉ global unicast riêng cho mỗi thiết bị, không cần "giả lập nhiều máy dùng chung 1 IP" như NAT IPv4 giải quyết
 b) Vì IPv6 cấm hoàn toàn việc dùng NAT ở mức giao thức, thiết bị hỗ trợ NAT sẽ không tương
    thích chuẩn
 c) Vì NPTv6 thực chất là một dạng NAT bắt buộc để IPv6 hoạt động được qua Internet công khai
@@ -229,9 +227,7 @@ mỗi thiết bị IPv6 thường có địa chỉ global unicast riêng, không
 nhiều network interface?
 
 a) Vì lệnh `ping -6` không hỗ trợ địa chỉ link-local, phải luôn dùng global unicast
-b) Địa chỉ link-local chỉ duy nhất trong phạm vi một segment mạng, không duy nhất trên toàn máy
-   nếu có nhiều interface — hệ thống cần biết gửi qua interface nào (chỉ định qua cú pháp
-   `%<interface>`), thiếu thông tin này gây lỗi hoặc không rõ hành vi
+b) Địa chỉ link-local chỉ duy nhất trong phạm vi một segment mạng, không duy nhất trên toàn máy nếu có nhiều interface
 c) Vì `fe80::1` là địa chỉ dự trữ không được gán cho interface thực tế nào
 d) Vì hệ thống luôn ưu tiên route IPv4 trước, gây xung đột khi ping một địa chỉ IPv6 link-local
 
@@ -249,9 +245,7 @@ AAAA cho nó. Điều gì có thể xảy ra với client ưu tiên thử IPv6 t
 
 a) Client sẽ tự động fallback sang IPv4 ngay lập tức mà không có lỗi nào xuất hiện
 b) DNS sẽ tự động loại bỏ bản ghi AAAA khi phát hiện service không lắng nghe IPv6
-c) Client thử kết nối qua địa chỉ IPv6 (từ bản ghi AAAA) nhưng service không lắng nghe ở đó —
-   nhận "connection refused" ngay, dù dịch vụ vẫn hoạt động tốt qua IPv4 nếu được thử; giải pháp
-   đúng là bind cả hai họ địa chỉ, không chỉ xoá bản ghi AAAA
+c) Client thử kết nối qua địa chỉ IPv6 (từ bản ghi AAAA) nhưng service không lắng nghe ở đó — nhận "connection refused" ngay, dù dịch vụ vẫn hoạt động tốt qua IPv4 nếu được thử
 d) Client sẽ treo vô thời hạn chờ phản hồi từ địa chỉ IPv6 vì không có timeout mặc định
 
 **Đáp án: c** — Client thử kết nối qua địa chỉ IPv6 (từ bản ghi AAAA) nhưng service KHÔNG lắng

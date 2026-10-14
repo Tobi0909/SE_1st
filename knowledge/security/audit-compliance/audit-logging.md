@@ -241,8 +241,7 @@ làm gì trước khi query.
 **Câu 1**: Sự khác biệt cốt lõi giữa application log và audit log là gì?
 
 a) Application log dùng JSON, audit log dùng plain text  
-b) Application log ghi hành vi phần mềm (request, error); audit log ghi hành vi con người/tiến
-   trình (ai làm gì, khi nào, trên tài nguyên nào) — phục vụ điều tra và compliance  
+b) Application log ghi hành vi phần mềm (request, error); audit log ghi hành vi con người/tiến trình
 c) Application log lưu ở `/var/log/app/`, audit log lưu ở `/var/log/audit/`  
 d) Không có sự khác biệt, chỉ là tên gọi khác nhau
 
@@ -302,8 +301,7 @@ ngay sau khi vào. Cơ chế nào giúp vẫn có evidence để điều tra?
 
 a) auditd tự backup log trước khi bị xóa  
 b) `chattr +a` nếu đã bật từ trước sẽ chặn lệnh rm  
-c) Remote syslog đã forward log sang central server trước khi bị xóa — server đó vẫn có
-   toàn bộ audit trail  
+c) Remote syslog đã forward log sang central server trước khi bị xóa
 d) Kernel lưu bản sao audit log trong `/proc/audit/`
 
 **Đáp án: c** — Nếu rsyslog/Filebeat đang forward log sang server khác theo thời gian thực

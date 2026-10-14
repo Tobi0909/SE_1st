@@ -330,7 +330,7 @@ Managed node vẫn cần Python 3 (không cần Ansible). Control node mới c�
 **Câu 2**: Task với `state: present` trong module `apt` có gì khác so với `state: latest`?
 
 a) `present` cài package, `latest` chỉ kiểm tra phiên bản  
-b) `present` chỉ cài nếu chưa có (giữ phiên bản cũ nếu đã cài); `latest` cài hoặc upgrade lên mới nhất  
+b) `present` chỉ cài nếu chưa có (giữ phiên bản cũ nếu đã cài)
 c) `present` và `latest` hoàn toàn giống nhau  
 d) `latest` chỉ hoạt động với `yum`, không hoạt động với `apt`
 
@@ -358,7 +358,7 @@ thay đổi (`changed`) trong play.
 
 a) Chỉ kiểm tra cú pháp YAML, không kết nối tới host  
 b) Chạy playbook thật nhưng ghi log vào file thay vì stdout  
-c) Kết nối tới host, kiểm tra trạng thái, báo cáo gì sẽ thay đổi — nhưng KHÔNG thực sự thay đổi  
+c) Kết nối tới host, kiểm tra trạng thái, báo cáo gì sẽ thay đổi
 d) Chạy playbook và tự động rollback nếu có lỗi
 
 **Đáp án: c** — `--check` (dry-run mode): Ansible thực sự kết nối SSH, thu thập facts, kiểm tra
@@ -371,7 +371,7 @@ Hữu ích để xem "nếu chạy thật thì sẽ thay đổi những gì". L�
 **Câu 5**: Tại sao nên dùng `loop:` thay vì nhiều task riêng biệt khi cần cài nhiều user?
 
 a) `loop:` nhanh hơn vì chạy song song  
-b) `loop:` giảm số dòng YAML và tập trung logic vào 1 task; module được gọi 1 lần/item nhưng cùng cấu hình  
+b) `loop:` giảm số dòng YAML và tập trung logic vào 1 task
 c) `loop:` là cách duy nhất module `user` chấp nhận nhiều tên cùng lúc  
 d) `loop:` tự retry nếu 1 item thất bại
 

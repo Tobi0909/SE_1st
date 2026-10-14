@@ -187,7 +187,7 @@ production. Cả hai không phụ thuộc tool hay kiến trúc.
 **Câu 2**: Tại sao artifact từ CI không nên build lại ở mỗi môi trường (dev/staging/prod)?
 
 a) Vì build lại tốn thêm thời gian  
-b) Vì build lại có thể tạo ra artifact khác (khác dependency version, khác git state) dù từ cùng source  
+b) Vì build lại có thể tạo ra artifact khác
 c) Vì Docker image không thể build 2 lần  
 d) Vì pipeline không có quyền truy cập source code ở bước deploy
 

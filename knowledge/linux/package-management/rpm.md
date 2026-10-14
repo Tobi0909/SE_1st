@@ -218,10 +218,7 @@ a) Giống nhau hoàn toàn — cả hai chỉ tải metadata, không đổi gì
 b) Khác nhau, nhưng ngược lại — `apt update` mới là lệnh nâng cấp thật, `dnf update` chỉ tải
    metadata
 c) Giống nhau, chỉ khác tên gọi giữa 2 hệ sinh thái package khác nhau
-d) KHÔNG giống — đây là cạm bẫy quan trọng nhất của module này. `apt update` chỉ tải
-   metadata, an toàn, không đổi gì trên máy. `dnf update` (không tham số) THỰC SỰ nâng cấp
-   mọi package có bản mới — tương đương `apt upgrade`. Muốn chỉ kiểm tra trên RHEL phải dùng
-   `dnf check-update`
+d) KHÔNG giống — đây là cạm bẫy quan trọng nhất của module này. `apt update` chỉ tải metadata, an toàn, không đổi gì trên máy. `dnf update`
 
 **Đáp án: d** — KHÔNG giống — đây là cạm bẫy quan trọng nhất của module này. `apt update`
 chỉ tải metadata, an toàn, không đổi gì trên máy. `dnf update` (không tham số) THỰC SỰ nâng
@@ -233,9 +230,7 @@ dùng `dnf check-update`.
 **Câu 2**: `rpm -ivh file.rpm` báo lỗi thiếu dependency. Lệnh nào nên dùng thay thế để tự
 động xử lý dependency còn thiếu?
 
-a) `dnf install ./file.rpm` — giống nguyên lý `apt install ./file.deb` thay cho `dpkg -i`
-   bên Debian: dùng công cụ tầng CAO (biết repository) để xử lý file cụ thể, tự tải
-   dependency còn thiếu
+a) `dnf install ./file.rpm` — giống nguyên lý `apt install ./file.deb` thay cho `dpkg -i` bên Debian: dùng công cụ tầng CAO
 b) `rpm -Uvh --force file.rpm` — thêm cờ `--force` sẽ tự tải dependency còn thiếu
 c) `yum localinstall --nodeps file.rpm` — cờ `--nodeps` giúp tự động cài đặt dependency còn
    thiếu
@@ -252,9 +247,7 @@ cơ chế tương đương tích hợp sẵn?
 
 a) `apt-get rollback <ID>` — `apt` thực ra có lệnh rollback tích hợp tương đương
    `dnf history undo`
-b) `dnf history` (xem lịch sử giao dịch) kèm `dnf history undo <ID>` (rollback một giao
-   dịch cụ thể theo ID) — `apt` không có cơ chế rollback tích hợp tương đương, phải tự quản
-   lý qua công cụ khác
+b) `dnf history` (xem lịch sử giao dịch) kèm `dnf history undo <ID>` (rollback một giao dịch cụ thể theo ID)
 c) `dnf cache clean` — lệnh này cho phép hoàn tác nâng cấp bằng cách xoá cache package cũ
 d) `dnf downgrade --all` — lệnh này tự động hoàn tác MỌI thay đổi của lần nâng cấp gần nhất
    về đúng trạng thái cũ

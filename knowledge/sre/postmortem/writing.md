@@ -251,7 +251,7 @@ còn lại vẫn đang chờ incident tiếp theo với lỗi code khác kích h
 **Câu 3**: Timeline trong postmortem nên phản ánh điều gì?
 
 a) Trình tự đúng nhất theo phân tích sau sự kiện (hindsight)  
-b) Information available at each moment — quyết định được đưa ra dựa trên thông tin có lúc đó, không phải kiến thức biết sau  
+b) Information available at each moment
 c) Chỉ các sự kiện kỹ thuật khách quan, không bao gồm quyết định con người  
 d) Tóm tắt ngắn gọn để dễ đọc, bỏ bớt chi tiết không quan trọng
 
@@ -265,7 +265,7 @@ trung thực là nền tảng của blameless culture.
 **Câu 4**: Action item nào trong postmortem là đủ tốt?
 
 a) "Cải thiện monitoring để phát hiện sự cố sớm hơn" — Owner: Team Ops  
-b) "Viết alert rule error_rate > 1% cho payment-service, test với alertmanager-rules linter" — Owner: C — Due: 2026-10-10 — Ticket: MON-234  
+b) "Viết alert rule error_rate > 1% cho payment-service, test với alertmanager-rules linter"
 c) "Fix memory leak trong payment-service" — đã xong qua rollback  
 d) "Xem xét thêm integration test" — Owner: Tech Lead
 

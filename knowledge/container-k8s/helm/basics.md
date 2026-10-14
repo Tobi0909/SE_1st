@@ -260,11 +260,7 @@ kubectl get svc -n ingress-nginx    # xem LoadBalancer IP/hostname
 **Câu 1**: Sự khác biệt quan trọng nhất giữa Helm 2 và Helm 3 là gì?
 
 a) Helm 3 thêm Tiller làm server-side component mạnh hơn Helm 2 để quản lý tập trung
-b) Helm 3 loại bỏ Tiller (server-side component của Helm 2). Tiller phải chạy trong cluster
-   với ClusterRoleBinding cluster-admin — đây là security issue nghiêm trọng (mọi người dùng
-   Helm 2 thực ra có quyền cluster-admin thông qua Tiller). Helm 3 là thuần CLI client, dùng
-   trực tiếp kubeconfig + RBAC của user — bảo mật hơn và đơn giản hơn nhiều. Release metadata
-   không còn lưu trong Tiller pod mà lưu dưới dạng K8s Secret trong namespace của release
+b) Helm 3 loại bỏ Tiller (server-side component của Helm 2). Tiller phải chạy trong cluster với ClusterRoleBinding cluster-admin
 c) Helm 2 và Helm 3 hoàn toàn giống nhau về kiến trúc, chỉ khác số phiên bản
 d) Helm 3 lưu release metadata trong database riêng bên ngoài cluster, không còn trong K8s
    Secret
@@ -282,12 +278,7 @@ dùng cùng 1 chart không? Làm thế nào?
 
 a) Không thể, Helm chỉ cho phép 1 release duy nhất cho mỗi chart trên toàn cluster
 b) Có, nhưng phải sửa trực tiếp file chart gốc thành 2 bản riêng cho từng namespace
-c) Được — đây chính xác là use case Helm sinh ra để phục vụ. Chạy helm install 2 lần với TÊN
-   RELEASE khác nhau và namespace khác nhau, ví dụ: helm install ingress-prod
-   ingress-nginx/ingress-nginx -n production -f prod-values.yaml và helm install
-   ingress-staging ingress-nginx/ingress-nginx -n staging -f staging-values.yaml. Mỗi lần
-   install tạo 1 release độc lập với revision history riêng — upgrade/rollback release này
-   không ảnh hưởng release kia
+c) Được — đây chính xác là use case Helm sinh ra để phục vụ
 d) Không thể, vì chart chỉ bind cố định với đúng 1 namespace được định nghĩa sẵn trong
    Chart.yaml
 
@@ -306,11 +297,7 @@ a) helm install cũng tự động upgrade nếu release đã tồn tại, hai l
 b) helm upgrade --install chỉ dùng được ở lần đầu tiên, các lần sau phải đổi sang helm upgrade
    thường
 c) helm upgrade --install sẽ xoá release cũ hoàn toàn rồi tạo lại từ đầu mỗi lần gọi
-d) helm upgrade --install install nếu release chưa tồn tại, upgrade nếu đã tồn tại — không
-   bao giờ lỗi vì "release đã tồn tại" hay "chưa tồn tại". Mỗi lần gọi đều tạo revision mới
-   (không phải truly idempotent — 2 lần gọi với cùng values tạo revision 1 và 2). helm install
-   thất bại nếu release đã tồn tại. Dùng upgrade --install trong CI/CD pipeline để không cần
-   kiểm tra trước; helm install cho lần đầu interactive khi biết chắc chưa có release
+d) helm upgrade --install install nếu release chưa tồn tại, upgrade nếu đã tồn tại — không bao giờ lỗi vì "release đã tồn tại" hay "chưa tồn tại"
 
 **Đáp án: d** — `helm upgrade --install` install nếu chưa tồn tại, upgrade nếu đã tồn tại;
 `helm install` thất bại nếu release đã tồn tại. Dùng `upgrade --install` trong CI/CD. `helm

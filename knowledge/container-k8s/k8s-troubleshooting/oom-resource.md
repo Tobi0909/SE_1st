@@ -223,11 +223,7 @@ a) Vì CPU limit chỉ là gợi ý không bắt buộc, còn memory limit là r
 b) Vì cả hai đều throttle giống nhau, chỉ khác tên hiển thị trong kubectl describe
 c) Vì memory limit chỉ áp dụng cho container chạy trên cloud, không áp dụng khi chạy
    on-premise
-d) CPU và memory dùng cơ chế kernel khác nhau. CPU được quản lý bởi CFS scheduler — khi
-   process muốn dùng nhiều hơn limit, kernel throttle (cho process ít CPU time hơn). Process
-   vẫn tiếp tục chạy, chỉ chậm hơn. Memory không có cơ chế throttle — khi container vượt
-   limit, kernel OOM killer phải kill ngay lập tức để giải phóng memory (không thể "cho dùng
-   ít hơn" với memory đã được allocate). Do đó: CPU limit → latency tăng; memory limit → SIGKILL
+d) CPU và memory dùng cơ chế kernel khác nhau. CPU được quản lý bởi CFS scheduler — khi process muốn dùng nhiều hơn limit, kernel throttle
 
 **Đáp án: d** — CPU dùng CFS scheduler throttle (process chậm lại, không bị kill); memory
 không có cơ chế throttle, OOM killer phải kill ngay. CPU limit cũng là ràng buộc THẬT (kernel
@@ -240,11 +236,7 @@ tầng chạy Linux cgroup, không giới hạn chỉ cloud (loại c).
 
 **Câu 2**: QoS class `BestEffort` vs `Guaranteed` ảnh hưởng gì đến eviction?
 
-a) BestEffort (không có requests/limits) bị evict đầu tiên khi node memory pressure.
-   Guaranteed (requests=limits) bị evict cuối cùng — kubelet ưu tiên giữ Pod đã được "đảm
-   bảo" tài nguyên. Burstable ở giữa. Với production database hoặc critical service: dùng
-   Guaranteed để tránh bị evict bất ngờ trong lúc load cao. BestEffort chỉ thích hợp cho batch
-   job không quan trọng về uptime
+a) BestEffort (không có requests/limits) bị evict đầu tiên khi node memory pressure. Guaranteed
 b) Guaranteed bị evict đầu tiên vì chiếm nhiều tài nguyên nhất; BestEffort được giữ lại lâu
    nhất
 c) QoS class không ảnh hưởng gì tới thứ tự eviction, kubelet evict ngẫu nhiên khi memory
@@ -263,12 +255,7 @@ không phải ngẫu nhiên (loại c); ba QoS class có mức độ ưu tiên k
 xảy ra?
 
 a) Container bị OOMKill ngay lập tức vì vượt quá requests.memory đã khai báo
-b) Container KHÔNG bị OOMKill bởi requests — requests chỉ ảnh hưởng scheduling. Container
-   dùng được 200Mi miễn là (1) không vượt limits.memory và (2) node còn memory vật lý. Vấn đề:
-   scheduler thấy node "chỉ mất 64Mi" cho container này nhưng thực tế mất 200Mi → node
-   overcommit → khi tất cả container burst cùng lúc, node thiếu memory → kubelet evict
-   BestEffort/Burstable Pod và OOM killer có thể kill process bất kỳ. Đây là lý do requests
-   phải phản ánh actual usage thật
+b) Container KHÔNG bị OOMKill bởi requests — requests chỉ ảnh hưởng scheduling
 c) Container bị giới hạn cứng ở 64Mi, mọi request vượt quá bị kernel từ chối cấp thêm memory
 d) Scheduler sẽ tự động cập nhật requests.memory lên 200Mi ngay khi phát hiện usage thực tế
    cao hơn

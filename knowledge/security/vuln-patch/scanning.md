@@ -222,8 +222,7 @@ nội bộ kín ít nguy hiểm hơn CVE 7.0 trên web server public. CVSS Envir
 scanner khác báo `FIXED`. Mâu thuẫn này giải thích thế nào?
 
 a) Hai scanner dùng database CVE khác nhau nên kết quả không nhất quán  
-b) Ubuntu backport patch về version cũ (e.g., `3.0.2-0ubuntu1.18`) — NVD không track backport
-   nên báo affected, nhưng scanner biết Ubuntu advisory (USN) biết đã vá  
+b) Ubuntu backport patch về version cũ (e.g., `3.0.2-0ubuntu1.18`)
 c) Trivy báo sai, nên dùng scanner Ubuntu  
 d) Fixed Version trong Trivy là upstream version, không phải distro package version
 
@@ -240,8 +239,7 @@ cột "Status" trong kết quả.
 điểm cao như vậy?
 
 a) Scope Changed (thoát khỏi sandbox) kết hợp với C:H/I:H/A:H  
-b) Attack Vector là Network, Attack Complexity thấp, không cần Privileges và User Interaction,
-   Impact cao — nghĩa là exploit từ internet, dễ thực hiện, không cần điều kiện gì  
+b) Attack Vector là Network, Attack Complexity thấp, không cần Privileges và User Interaction, Impact cao
 c) CVSS 9.x chỉ có thể đạt được khi lỗ hổng là Remote Code Execution  
 d) Điểm cao vì CVE mới được công bố, chưa có patch
 
@@ -270,8 +268,7 @@ update. Để xem chi tiết hơn: `apt-get -s upgrade | grep "^Inst.*security"`
 **Câu 5**: Tại sao nên thêm `--exit-code 1 --severity CRITICAL` khi chạy Trivy trong CI/CD?
 
 a) Để Trivy chạy nhanh hơn bằng cách bỏ qua LOW/MEDIUM  
-b) Để pipeline fail và chặn deploy khi phát hiện lỗ hổng Critical — bắt buộc team xử lý
-   thay vì chỉ xem kết quả rồi bỏ qua  
+b) Để pipeline fail và chặn deploy khi phát hiện lỗ hổng Critical
 c) Vì Trivy mặc định không quét CRITICAL, cần flag này để bật  
 d) Để tạo report riêng cho CRITICAL thay vì in ra stdout
 

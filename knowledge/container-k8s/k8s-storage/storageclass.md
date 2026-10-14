@@ -236,11 +236,7 @@ a) Vì EBS mặc định replicate dữ liệu qua nhiều AZ, WaitForFirstConsu
    không liên quan AZ mismatch
 b) Vì Immediate mode không tạo được volume nào cả, luôn báo lỗi ngay khi PVC được tạo
 c) Vì WaitForFirstConsumer là bắt buộc theo chuẩn CSI, không áp dụng riêng gì cho EBS hay GCE PD
-d) EBS volume là zone-specific — một volume chỉ attach được vào EC2 instance trong cùng
-   Availability Zone. Nếu dùng Immediate, K8s tạo EBS volume ngay khi PVC được tạo, chọn zone
-   theo default hoặc ngẫu nhiên; Pod có thể schedule vào AZ khác → mount fail.
-   WaitForFirstConsumer đợi scheduler quyết định node/AZ cho Pod trước, rồi provisioner tạo
-   EBS ở đúng AZ đó — đảm bảo Pod và volume luôn cùng AZ
+d) EBS volume là zone-specific — một volume chỉ attach được vào EC2 instance trong cùng Availability Zone
 
 **Đáp án: d** — EBS là zone-specific; `Immediate` có thể tạo volume ở AZ khác với Pod, gây
 mount fail. `WaitForFirstConsumer` đợi scheduler quyết định trước, đảm bảo Pod và volume cùng
@@ -254,9 +250,7 @@ storage có ràng buộc zone như EBS/GCE PD (loại c).
 
 **Câu 2**: Có thể đổi `storageClassName` của PVC sau khi đã bound không?
 
-a) Không — storageClassName của PVC là immutable sau khi bound. Cũng không thể resize xuống
-   (chỉ tăng). Để đổi StorageClass: phải backup data, xoá PVC/PV, tạo PVC mới với StorageClass
-   mới, restore data — đây là thao tác có downtime nếu không có snapshot mechanism
+a) Không — storageClassName của PVC là immutable sau khi bound. Cũng không thể resize xuống (chỉ tăng)
 b) Có, chỉ cần kubectl patch pvc --type merge để đổi storageClassName bất kỳ lúc nào
 c) Có, nhưng chỉ nếu PVC đang trong namespace kube-system, các namespace khác không đổi được
 d) Không, nhưng storageClassName có thể giảm dung lượng PVC bất kỳ lúc nào bù lại
@@ -274,11 +268,7 @@ PVC ở MỌI namespace, không có ngoại lệ cho `kube-system` (loại c); d
 
 a) reclaimPolicy ở StorageClass chỉ là giá trị gợi ý hiển thị, PV luôn tự đặt Delete mặc định
    bất kể StorageClass nói gì
-b) PV tạo bởi dynamic provisioning kế thừa reclaimPolicy từ StorageClass — nếu StorageClass
-   có Retain, PV được tạo ra sẽ có Retain. PV tạo thủ công (static) có reclaimPolicy khai báo
-   trực tiếp trong spec, không liên quan đến StorageClass. Với dynamic provisioning,
-   StorageClass là nguồn sự thật cho reclaimPolicy — đổi policy ở StorageClass chỉ ảnh hưởng
-   PV MỚI tạo ra sau đó, không ảnh hưởng PV đã tồn tại
+b) PV tạo bởi dynamic provisioning kế thừa reclaimPolicy từ StorageClass — nếu StorageClass có Retain, PV được tạo ra sẽ có Retain. PV tạo thủ công
 c) Cả hai hoàn toàn độc lập, đổi reclaimPolicy ở StorageClass tự động áp dụng lại cho mọi PV
    đã tạo trước đó
 d) reclaimPolicy chỉ tồn tại ở cấp PV, StorageClass không có trường này

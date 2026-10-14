@@ -246,10 +246,7 @@ a) Utilization, Availability, Efficiency — ba chiều này đo trực tiếp S
    tới Saturation/Errors
 b) Usage, Scalability, Efficiency — USE là viết tắt của 3 từ này, không phải
    Utilization/Saturation/Errors
-c) Utilization (% bận), Saturation (queue depth / wait time), Errors. Utilization 50% có thể
-   vẫn là bottleneck nếu Saturation cao (run queue dài) — nghĩa là requests đang chờ mặc dù
-   CPU không đầy. Saturation phản ánh "đang bị nghẽn" còn Utilization chỉ phản ánh "đang
-   bận". Ví dụ: disk Utilization 60% nhưng await 500ms = I/O đang bị queued, service chậm
+c) Utilization (% bận), Saturation (queue depth / wait time), Errors. Utilization 50% có thể vẫn là bottleneck nếu Saturation cao (run queue dài)
 d) Chỉ cần đo Utilization là đủ, Saturation và Errors chỉ là chỉ số phụ không cần theo dõi
    riêng
 
@@ -268,10 +265,7 @@ b) Vì hệ điều hành tự động chặn mọi write khi đạt đúng 80%,
    kỹ thuật
 c) Vì 95% khiến Prometheus tính toán predict_linear sai hoàn toàn, chỉ 80% mới cho kết quả
    đúng
-d) Disk 95% → chỉ còn 5% buffer. Log file, core dump, hay swap có thể tạo file lớn đột ngột —
-   5% biến mất trong vài phút. Lead time để phản ứng (dọn log, extend volume) thường cần
-   10-30 phút. Ngoài ra disk đầy ở OS có thể cắm ngang service vì không ghi được file nào (kể
-   cả PID file, socket). Alert ở 80% cho 20% buffer và đủ thời gian phản ứng không khẩn cấp
+d) Disk 95% → chỉ còn 5% buffer. Log file, core dump, hay swap có thể tạo file lớn đột ngột — 5% biến mất trong vài phút
 
 **Đáp án: d** — 95% chỉ còn 5% buffer, dễ cạn trong vài phút; lead time phản ứng cần 10-30
 phút. 80% cho buffer đủ. Không có quy ước "95% riêng cho RAM" — đây là vấn đề chung về buffer
@@ -283,10 +277,7 @@ việc chọn ngưỡng alert 80% hay 95% — đây là hai vấn đề độc l
 
 **Câu 3**: Hàm `predict_linear` trong Prometheus làm gì? Ưu điểm so với threshold tĩnh?
 
-a) predict_linear(metric[window], seconds) thực hiện linear regression trên chuỗi metric
-   trong window và dự báo giá trị sau seconds giây. Ưu điểm: alert khi dự báo sắp hết (ví dụ:
-   "disk đầy trong 7 ngày") thay vì khi đã hết 80% — phù hợp với hệ thống tăng trưởng nhanh
-   và tránh alert fatigue
+a) predict_linear(metric[window], seconds) thực hiện linear regression trên chuỗi metric trong window và dự báo giá trị sau seconds giây
 b) predict_linear tính trung bình động (moving average) của metric, không liên quan gì tới
    dự báo tương lai
 c) predict_linear chỉ hoạt động với metric kiểu Counter, không áp dụng được cho Gauge như
@@ -307,10 +298,7 @@ khi nào nếu lead time expand là 14 ngày?
 
 a) 90%-65%=25%, 25%/0.5%=50 ngày tới ngưỡng 90%; cần alert ngay lập tức ở 65% vì đã quá hạn
    lead time 14 ngày
-b) Alert threshold cần kích hoạt 14 ngày trước khi đạt 90% (critical threshold). 90% - 65% =
-   25% còn lại. 25% / 0.5% per day = 50 ngày. Alert cần bắn khi còn 50 - 14 = 36 ngày nữa →
-   tức là khi disk đạt 65% + 14×0.5% = 72%. Đặt alert: disk > 72% hoặc dùng
-   predict_linear(..., 14*24*3600) < 0.1 * total_size
+b) Alert threshold cần kích hoạt 14 ngày trước khi đạt 90% (critical threshold). 90% - 65% = 25% còn lại. 25% / 0.5% per day = 50 ngày
 c) Cần hành động khi disk đạt 86%, vì 100% - 14 ngày × 1%/ngày = 86% là ngưỡng an toàn duy
    nhất
 d) Không cần hành động nào vì growth rate 0.5%/ngày quá chậm để gây nguy hiểm trong bất kỳ
@@ -331,10 +319,7 @@ a) Mean loại bỏ được outlier tốt hơn P95 vì mean tính trên toàn b
    điểm nào
 b) P95 và mean cho kết quả giống nhau khi dữ liệu tăng trưởng tuyến tính đều, không có khác
    biệt thực tế
-c) Mean bị kéo bởi spike — nếu có 1 ngày usage đột tăng gấp đôi do migration data, mean sẽ
-   overestimate growth rate, dẫn đến alert sớm không cần thiết. P95 loại bỏ 5% outlier cao
-   nhất — phản ánh đúng xu hướng tăng trưởng thực sự, bỏ qua spike bất thường. Dùng
-   quantile_over_time(0.95, ...) trong PromQL thay vì avg_over_time
+c) Mean bị kéo bởi spike — nếu có 1 ngày usage đột tăng gấp đôi do migration data, mean sẽ overestimate growth rate, dẫn đến alert sớm không cần thiết
 d) P95 luôn thấp hơn mean nên dùng P95 sẽ làm alert fire muộn hơn, tránh báo động giả
 
 **Đáp án: c** — Mean bị kéo bởi spike, overestimate growth rate; P95 loại bỏ outlier, phản

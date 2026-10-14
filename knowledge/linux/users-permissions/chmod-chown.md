@@ -179,8 +179,7 @@ nhưng liên tục gặp lỗi "Permission denied" khi người này cố xoá/s
 
 a) Không, numeric mode (`640`) chỉ ảnh hưởng tới owner, còn symbolic mode ảnh hưởng tới cả 3
    nhóm owner/group/other
-b) Có — cả hai đều ĐẶT TUYỆT ĐỐI thành `rw-r-----`, chỉ khác cách viết (numeric vs symbolic
-   với dấu `=`, đặt tuyệt đối từng nhóm thay vì chỉ thêm/bớt bit)
+b) Có — cả hai đều ĐẶT TUYỆT ĐỐI thành `rw-r-----`, chỉ khác cách viết
 c) Không, `chmod 640` cộng thêm quyền vào mode hiện có của file, còn symbolic mode đặt tuyệt
    đối từ đầu
 d) Có, nhưng chỉ đúng trên filesystem ext4 — các filesystem khác (XFS, Btrfs) xử lý hai cú
@@ -216,8 +215,7 @@ b) Vì SUID chỉ hoạt động với file có đuôi `.sh` được đặt tê
    shebang
 c) Vì bash tự động bỏ SUID khi parse script, nhưng các shell khác như `dash` vẫn tôn trọng
    SUID bình thường
-d) Kernel Linux không áp dụng SUID cho file có shebang (script văn bản), chỉ áp dụng cho
-   BINARY thực thi thật, vì lý do bảo mật (tránh race condition khi kernel đọc shebang)
+d) Kernel Linux không áp dụng SUID cho file có shebang (script văn bản), chỉ áp dụng cho BINARY thực thi thật, vì lý do bảo mật
 
 **Đáp án: d** — Kernel Linux không áp dụng SUID cho file có shebang (script văn bản), chỉ áp
 dụng cho BINARY thực thi thật, vì lý do bảo mật (tránh race condition khi kernel đọc shebang).
@@ -228,8 +226,7 @@ Muốn nâng quyền có kiểm soát cho một script, phải dùng cơ chế k
 **Câu 4**: Một thư mục chia sẻ có SGID bật TỪ HÔM NAY. Các file ĐÃ TẠO TRƯỚC KHI bật SGID có
 tự động đổi group theo thư mục không?
 
-a) Không. SGID chỉ ảnh hưởng tới file/thư mục TẠO MỚI sau khi bật — file cũ giữ nguyên group
-   như lúc tạo, cần `chgrp` tay (hoặc `chgrp -R`) một lần để đồng bộ nếu cần
+a) Không. SGID chỉ ảnh hưởng tới file/thư mục TẠO MỚI sau khi bật — file cũ giữ nguyên group như lúc tạo, cần `chgrp` tay
 b) Có, SGID áp dụng ngược cho mọi file đã có trong thư mục ngay khi bật
 c) Có, nhưng chỉ với file có owner là root — file của user thường thì không bị ảnh hưởng
 d) Không áp dụng cho bất kỳ file nào, kể cả file tạo mới sau khi bật — luôn phải `chgrp` tay

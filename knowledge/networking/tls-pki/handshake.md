@@ -189,9 +189,7 @@ thường, không giới hạn chỉ PSK (loại d).
 bại ở bước `CertificateVerify`. Nguyên nhân khả năng cao nhất là gì?
 
 a) Server gửi sai thứ tự chứng chỉ trong chain, cần sắp lại theo đúng thứ tự
-b) Server không có ĐÚNG private key tương ứng với certificate đó — CertificateVerify là bước
-   server phải TỰ KÝ bằng private key để chứng minh sở hữu, chỉ có certificate (public) không
-   đủ để qua bước này
+b) Server không có ĐÚNG private key tương ứng với certificate đó — CertificateVerify là bước server phải TỰ KÝ bằng private key để chứng minh sở hữu, chỉ có certificate
 c) Client chưa cập nhật danh sách CA root mới nhất
 d) Certificate dùng thuật toán ký đã bị deprecated (ví dụ SHA-1), không liên quan tới private
    key
@@ -213,9 +211,7 @@ a) Vì root CA chỉ tin cậy chứng chỉ ký trực tiếp bởi nó, không
    intermediate
 b) Vì client tự động tải intermediate còn thiếu từ Internet nhưng việc này luôn thất bại do
    timeout
-c) Client không tự "tìm" được chứng chỉ intermediate thiếu — nó chỉ lần theo CHUỖI mà server
-   GỬI KÈM. Thiếu một cấp trung gian khiến client không lần được tới root dù root đó có tin
-   cậy, vì "đường đi" trong chuỗi bị đứt đoạn
+c) Client không tự "tìm" được chứng chỉ intermediate thiếu — nó chỉ lần theo CHUỖI mà server GỬI KÈM
 d) Vì thiếu intermediate chỉ gây cảnh báo nhẹ, không phải lỗi chuỗi tin cậy nghiêm trọng
 
 **Đáp án: c** — Client không tự "tìm" được chứng chỉ intermediate thiếu — nó chỉ lần theo CHUỖI
@@ -234,9 +230,7 @@ xác nhận gì?
 a) Xác nhận riêng server đang dùng TLS 1.3, không liên quan tới chain of trust
 b) Xác nhận cipher suite được chọn là an toàn nhất hiện có
 c) Xác nhận domain trong chứng chỉ khớp chính xác với hostname đang kết nối
-d) Chuỗi tin cậy (chain of trust) đã được xác thực thành công — chứng chỉ server lần theo được
-   tới một CA root nằm trong danh sách tin cậy sẵn có trên máy đang chạy lệnh. Khác 0 nghĩa là
-   có vấn đề với chuỗi tin cậy
+d) Chuỗi tin cậy (chain of trust) đã được xác thực thành công
 
 **Đáp án: d** — Chuỗi tin cậy (chain of trust) đã được xác thực thành công — chứng chỉ server
 lần theo được tới một CA root nằm trong danh sách tin cậy sẵn có trên máy đang chạy lệnh. Khác
@@ -249,9 +243,7 @@ là một lỗi RIÊNG (error 62), độc lập với verify return code của c
 **Câu 5**: Một client cũ chỉ hỗ trợ cipher suite đã bị server tắt (vì lý do an toàn). Có cách
 nào "ép" hai bên thống nhất được cipher chung mà không đổi cấu hình bên nào không?
 
-a) Không — hai bên PHẢI có ít nhất một cipher suite CHUNG để thống nhất trong
-   ClientHello/ServerHello. Không có cách ép buộc nếu không có giao điểm; phải đổi cấu hình MỘT
-   trong hai bên (mở lại cipher cũ ở server, hoặc nâng cấp client) để có cipher chung
+a) Không — hai bên PHẢI có ít nhất một cipher suite CHUNG để thống nhất trong ClientHello/ServerHello
 b) Có, TLS tự động fallback xuống SSL 3.0 để tìm cipher chung nếu không khớp ở TLS
 c) Có, nếu dùng chế độ "cipher negotiation bypass" có sẵn trong hầu hết thư viện TLS hiện đại
 d) Không, nhưng nếu cả hai bên cùng tin tưởng một CA chung, TLS sẽ tự bỏ qua việc so khớp

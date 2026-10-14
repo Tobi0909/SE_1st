@@ -188,9 +188,7 @@ mất kết nối", nhưng `ping` tới server trụ sở vẫn trả lời (ch�
 gì?
 
 a) Kết luận chắc chắn đường truyền thật đang có vấn đề nghiêm trọng ở hop 5, cần báo ISP ngay
-b) Nhiều khả năng là rate-limiting ICMP tại hop 5 (router đó cố tình giới hạn trả lời gói dò),
-   KHÔNG phải vấn đề đường truyền thật — vì loss không lan sang các hop sau, traffic thật qua
-   đó vẫn có thể hoàn toàn bình thường
+b) Nhiều khả năng là rate-limiting ICMP tại hop 5
 c) Hop 5 chắc chắn đang bị DDoS, cần chặn địa chỉ IP đó ngay lập tức
 d) Dữ liệu không đáng tin, mtr luôn báo sai ở các hop giữa đường, chỉ tin kết quả ở hop đích
 
@@ -210,9 +208,7 @@ a) Vì mtr dùng giao thức khác hoàn toàn với traceroute (TCP thay vì IC
    tuyệt đối
 b) Vì traceroute đã bị loại bỏ khỏi các bản Linux hiện đại, mtr là công cụ thay thế duy nhất
    còn hoạt động
-c) mtr đo LẶP LẠI liên tục, tích luỹ thống kê qua nhiều chu kỳ cho mỗi hop — một hop có loss
-   cao ỔN ĐỊNH qua nhiều lần đo đáng tin hơn một lần traceroute chỉ gửi vài gói, dễ bị nhiễu
-   tạm thời đánh lạc hướng
+c) mtr đo LẶP LẠI liên tục, tích luỹ thống kê qua nhiều chu kỳ cho mỗi hop
 d) Vì mtr luôn chạy với quyền root nên có độ chính xác cao hơn traceroute chạy quyền thường
 
 **Đáp án: c** — `mtr` đo LẶP LẠI liên tục, tích luỹ thống kê qua nhiều chu kỳ cho mỗi hop — một
@@ -230,8 +226,7 @@ Sửa thế nào?
 a) Thêm -n để tắt phân giải DNS, đây là nguyên nhân chính gây treo
 b) Đổi sang dùng ping thay vì mtr vì mtr không hỗ trợ chạy trong script
 c) Tăng timeout hệ thống lên mức tối đa, mtr sẽ tự thoát khi hết timeout
-d) Thêm cờ -r (report mode) kèm -c <số chu kỳ> — chế độ mặc định của mtr là tương tác, chạy
-   liên tục không tự thoát, không phù hợp gọi từ script
+d) Thêm cờ -r (report mode) kèm -c <số chu kỳ>
 
 **Đáp án: d** — Thêm cờ `-r` (report mode) kèm `-c <số chu kỳ>` — chế độ mặc định của `mtr` là
 tương tác, chạy liên tục không tự thoát, không phù hợp gọi từ script. `-n` chỉ tắt phân giải
@@ -244,8 +239,7 @@ giúp gì — bản chất là `mtr` không tự thoát ở mode tương tác b�
 **Câu 4**: Dấu hiệu nào phân biệt "loss do rate-limit ICMP tại một router" với "loss do vấn đề
 đường truyền thật"?
 
-a) Rate-limit: loss cao CHỈ ở đúng hop đó, các hop SAU (bao gồm đích) vẫn khoẻ (0% hoặc thấp).
-   Vấn đề thật: loss LAN RA tất cả hop từ điểm đó trở đi, bao gồm cả hop đích
+a) Rate-limit: loss cao CHỈ ở đúng hop đó, các hop SAU (bao gồm đích) vẫn khoẻ (0% hoặc thấp)
 b) Rate-limit: loss xuất hiện ngẫu nhiên không theo hop nào cụ thể; vấn đề thật: loss luôn cố
    định ở hop đầu tiên
 c) Rate-limit: chỉ xảy ra với ICMP; vấn đề thật: chỉ xảy ra với TCP, không thể phân biệt qua
@@ -264,9 +258,7 @@ này qua nhiều hop, không cần `tcpdump` (loại d).
 chỉ nói "mạng chậm"?
 
 a) Vì ISP chỉ chấp nhận báo cáo sự cố có kèm file mtr theo quy định hợp đồng dịch vụ chuẩn
-b) Kết quả mtr chỉ ra CHÍNH XÁC hop nào (địa chỉ IP router cụ thể) đang có vấn đề và mức độ (%
-   loss, RTT) — giúp ISP xác định đúng đoạn hạ tầng cần kiểm tra ngay, nhanh hơn nhiều so với
-   việc tự điều tra lại từ đầu dựa trên báo cáo mơ hồ
+b) Kết quả mtr chỉ ra CHÍNH XÁC hop nào (địa chỉ IP router cụ thể) đang có vấn đề và mức độ (% loss, RTT)
 c) Vì mtr -r tự động gửi báo cáo trực tiếp tới hệ thống giám sát của ISP, không cần gửi thủ
    công
 d) Vì "mạng chậm" là thông tin đã đủ chi tiết, cung cấp thêm mtr chỉ làm phức tạp báo cáo không

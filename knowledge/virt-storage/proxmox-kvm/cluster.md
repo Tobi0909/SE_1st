@@ -320,7 +320,7 @@ toàn cluster. Với 2-node, bất kỳ downtime nào của 1 node đều làm c
 
 a) 3 node nhanh hơn 2 node vì parallel processing  
 b) 2 node không hỗ trợ LXC container  
-c) Với 3 node, quorum = 2/3, cluster vẫn hoạt động bình thường khi 1 node down; với 2 node, quorum = 2/2, mất 1 node là mất quorum và cluster chuyển sang read-only mode  
+c) Với 3 node, quorum = 2/3, cluster vẫn hoạt động bình thường khi 1 node down
 d) Proxmox license yêu cầu tối thiểu 3 node
 
 **Đáp án: c** — Quorum = `floor(n/2) + 1`. Với 2 node: quorum=2, không chịu được bất kỳ node failure nào. Với 3 node: quorum=2, chịu được 1 node failure. Đây là lý do 3 node là minimum thực tế để cluster có khả năng chịu lỗi.
@@ -330,7 +330,7 @@ d) Proxmox license yêu cầu tối thiểu 3 node
 **Câu 2**: Khi nào nên dùng LXC container thay vì VM trong Proxmox?
 
 a) Khi cần chạy Windows Server  
-b) Khi workload là Linux và cần mật độ cao (nhiều instance trên cùng phần cứng) với overhead thấp nhất — LXC dùng chung kernel host, overhead ~1-3% so với VM ~5-15%  
+b) Khi workload là Linux và cần mật độ cao
 c) Khi cần isolation mạnh nhất giữa các tenant  
 d) Khi cần live migration đầy đủ
 
@@ -342,7 +342,7 @@ d) Khi cần live migration đầy đủ
 
 a) Hoàn toàn giống nhau  
 b) `shutdown` cần password, `stop` không  
-c) `shutdown` gửi ACPI power button signal để OS guest gracefully shutdown (tắt đúng cách, flush disk, chạy shutdown hooks); `stop` ngắt nguồn ngay lập tức như rút điện — có thể gây filesystem corruption nếu OS không được tắt đúng cách  
+c) `shutdown` gửi ACPI power button signal để OS guest gracefully shutdown
 d) `shutdown` chỉ dùng được khi VM đang paused
 
 **Đáp án: c** — Luôn dùng `qm shutdown` cho VM production. `qm stop` dùng khi VM bị hang và không phản hồi ACPI signal.
@@ -353,7 +353,7 @@ d) `shutdown` chỉ dùng được khi VM đang paused
 
 a) VM đang bị tấn công, cần reboot ngay lập tức  
 b) Disk của VM đầy  
-c) Một tác vụ nền (backup/migration/snapshot) bị gián đoạn giữa chừng, lock chưa được giải phóng — xử lý: `qm unlock <vmid>` sau khi xác nhận không còn tác vụ nào thật sự đang chạy  
+c) Một tác vụ nền (backup/migration/snapshot) bị gián đoạn giữa chừng, lock chưa được giải phóng
 d) VM đang trong quá trình live migration bình thường
 
 **Đáp án: c** — Proxmox đặt lock khi chạy backup/snapshot/migrate để ngăn xung đột. Nếu tác vụ bị gián đoạn (mất điện, network drop), lock còn lại. `qm unlock` chỉ nên dùng sau khi chắc chắn không có tác vụ thật đang chạy — giải phóng lock của tác vụ đang chạy có thể gây data corruption.
@@ -364,7 +364,7 @@ d) VM đang trong quá trình live migration bình thường
 
 a) `dir` (Directory) — luôn hỗ trợ snapshot và đơn giản nhất  
 b) `nfs` — NFS share hỗ trợ snapshot natively  
-c) `lvmthin` (LVM-Thin) — hỗ trợ snapshot VM disk bằng LVM thin provisioning; là default `local-lvm` sau khi cài Proxmox  
+c) `lvmthin` (LVM-Thin) — hỗ trợ snapshot VM disk bằng LVM thin provisioning
 d) `iscsi` — iSCSI target hỗ trợ snapshot theo chuẩn SCSI T10
 
 **Đáp án: c** — `dir` (local) không hỗ trợ snapshot cho VM disk dùng qcow2 qua Proxmox API (chỉ hỗ trợ qua qemu internal snapshot, không tích hợp với Proxmox backup). `lvmthin` hỗ trợ snapshot native qua LVM và được dùng làm `local-lvm` default — phù hợp nhất cho VM disk trên local storage.

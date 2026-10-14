@@ -186,9 +186,7 @@ gateway cố xử lý request mới (`fork()` thất bại).
 **Câu 1**: Bạn thấy 500 process ở trạng thái `Z`, tất cả cùng `PPID = 4210`. Hành động ĐẦU TIÊN
 hợp lý nhất là gì?
 
-a) Kiểm tra process 4210 là gì (`ps -p 4210 -o comm,args`) để xác định đúng service/code nào
-   đang có bug không gọi `wait()`, TRƯỚC khi quyết định restart hay sửa code — không có hành
-   động nào tác động trực tiếp lên 500 zombie đó được
+a) Kiểm tra process 4210 là gì (`ps -p 4210 -o comm,args`) để xác định đúng service/code nào đang có bug không gọi `wait()`, TRƯỚC khi quyết định restart hay sửa code
 b) Chạy `kill -9` lần lượt cho cả 500 process đó để dọn ngay, vì zombie vẫn phản hồi tín hiệu
    kill
 c) Restart toàn bộ server ngay, vì đây là cách nhanh nhất đảm bảo dọn sạch mọi zombie
@@ -203,8 +201,7 @@ service/code nào đang có bug không gọi `wait()`, TRƯỚC khi quyết đ�
 **Câu 2**: Một script dò "orphan process nguy hiểm" chỉ coi process có `PPID == 1` là orphan
 cần cảnh báo. Script này có đáng tin cậy trên một hệ thống dùng systemd user session không?
 
-a) Không đáng tin cậy hoàn toàn — orphan trên hệ thống như vậy thường được nhận nuôi bởi
-   `systemd --user` (một PID khác, không phải 1), script sẽ bỏ lọt những trường hợp này
+a) Không đáng tin cậy hoàn toàn — orphan trên hệ thống như vậy thường được nhận nuôi bởi `systemd --user`
 b) Đáng tin cậy hoàn toàn, vì mọi orphan process trên Linux luôn và chỉ được nhận nuôi bởi
    PID 1
 c) Không đáng tin, nhưng chỉ vì PPID của orphan process luôn đổi liên tục mỗi giây nên không
@@ -222,9 +219,7 @@ giờ. Đây là dấu hiệu gì, và restart có phải giải pháp đúng kh
 
 a) Dấu hiệu một lần sự cố ngẫu nhiên do tải cao, restart là giải pháp đúng và đủ
 b) Dấu hiệu process cha bị memory leak, cần tăng RAM thay vì sửa code
-c) Dấu hiệu lỗi code LẶP LẠI trong chính process cha (không gọi `wait()` cho con mới mỗi lần
-   nó tạo ra) — không phải sự cố một lần. Restart chỉ xử lý TRIỆU CHỨNG, không phải giải pháp
-   đúng; phải sửa code gốc
+c) Dấu hiệu lỗi code LẶP LẠI trong chính process cha (không gọi `wait()` cho con mới mỗi lần nó tạo ra)
 d) Dấu hiệu kernel panic nhẹ, cần cập nhật kernel lên bản mới nhất để khắc phục
 
 **Đáp án: c** — Dấu hiệu lỗi code LẶP LẠI trong chính process cha (không gọi `wait()` cho con
@@ -236,9 +231,7 @@ hiện có), không phải giải pháp đúng; phải sửa code gốc.
 **Câu 4**: Một zombie process có đang chiếm CPU không? Có đang chiếm RAM đáng kể không? Vậy
 tại sao nó vẫn là một vấn đề cần xử lý?
 
-a) Không chiếm CPU (không chạy code gì), RAM chiếm gần như không đáng kể. Vấn đề là nó vẫn
-   chiếm MỘT SLOT trong bảng process có giới hạn tổng số — tích tụ đủ nhiều sẽ làm hết slot,
-   khiến `fork()` cho MỌI chương trình trên máy thất bại
+a) Không chiếm CPU (không chạy code gì), RAM chiếm gần như không đáng kể. Vấn đề là nó vẫn chiếm MỘT SLOT trong bảng process có giới hạn tổng số
 b) Có chiếm CPU đáng kể vì kernel phải liên tục kiểm tra trạng thái của nó
 c) Có chiếm RAM đáng kể vì toàn bộ heap/stack cũ của process vẫn được giữ lại
 d) Không chiếm CPU/RAM và cũng không phải vấn đề thật — chỉ là hiển thị tạm thời trong `ps`,
@@ -257,8 +250,6 @@ của một số script giám sát cẩu thả) có thể gây báo động sai 
 a) Không, vì mọi process không phản hồi quá 5 phút chắc chắn là zombie, cách lọc này an toàn
 b) Có, nhưng chỉ vì 5 phút là ngưỡng quá ngắn, cần tăng lên 30 phút để an toàn hơn
 c) "Không phản hồi" không phân biệt được `Z` (zombie — đã chết, vô hại về tải) với `D`
-   (uninterruptible sleep — còn sống, có thể là vấn đề I/O nghiêm trọng). Cách lọc đúng phải
-   dựa trực tiếp vào cột `STAT`, không đoán qua "có phản hồi hay không"
 d) Có, nhưng chỉ vì zombie process đôi khi vẫn phản hồi lệnh `kill -0` trong vài giây đầu
 
 **Đáp án: c** — "Không phản hồi" không phân biệt được `Z` (zombie — đã chết, luôn "không phản

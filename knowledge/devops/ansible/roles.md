@@ -286,7 +286,7 @@ Kết quả: mỗi role là unit độc lập, test được riêng, tái dùng 
 **Câu 1**: Sự khác biệt chính giữa `defaults/main.yml` và `vars/main.yml` trong một role là?
 
 a) `defaults` dành cho production, `vars` cho development  
-b) `defaults` có độ ưu tiên thấp hơn — dễ override từ inventory/playbook; `vars` có độ ưu tiên cao hơn, khó override  
+b) `defaults` có độ ưu tiên thấp hơn — dễ override từ inventory/playbook
 c) `vars` chạy trước `defaults` trong thứ tự task  
 d) `defaults` chỉ dùng được với loop, `vars` dùng cho task thường
 

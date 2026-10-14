@@ -196,8 +196,7 @@ permission `644` (đọc được cho mọi người) và owner đúng là user 
 service vẫn báo "Permission denied" khi truy cập nó trên server RHEL. Giả thuyết cần kiểm tra
 ngay là gì?
 
-a) SELinux đang ở chế độ `Enforcing` và chặn qua lớp MAC (label/context), độc lập hoàn toàn
-   với permission DAC đã mở hết. Kiểm tra bằng `getenforce` rồi tìm log qua `ausearch -m avc`
+a) SELinux đang ở chế độ `Enforcing` và chặn qua lớp MAC (label/context), độc lập hoàn toàn với permission DAC đã mở hết
 b) Giả thuyết là file thực ra chưa được ghi đủ quyền thực thi `x` cho service user cụ thể
 c) Giả thuyết là NFS mount đang stale, cần remount lại filesystem chứa file đó
 d) Giả thuyết là service đang chạy trong container không chia sẻ namespace user với host
@@ -213,9 +212,7 @@ lập hoàn toàn với permission DAC đã mở hết. Kiểm tra bằng `geten
 
 a) permissive/complain chặn ít nghiêm ngặt hơn nhưng vẫn chặn một phần truy cập, còn
    disabled không chặn gì cả
-b) `permissive`/`complain` vẫn GHI LOG những gì SẼ bị chặn nhưng KHÔNG thực sự chặn — giữ
-   được thông tin chẩn đoán. `disabled`/tắt hẳn xoá bỏ HOÀN TOÀN lớp bảo vệ, không ghi log gì
-   nữa, và dễ bị quên bật lại
+b) `permissive`/`complain` vẫn GHI LOG những gì SẼ bị chặn nhưng KHÔNG thực sự chặn
 c) Không có khác biệt thực tế — cả hai đều tắt hoàn toàn MAC, chỉ khác tên gọi giữa
    SELinux/AppArmor
 d) `disabled` vẫn ghi log đầy đủ như `permissive`, chỉ khác là không chặn truy cập nào
@@ -232,9 +229,7 @@ thống SELinux. Context của file này sau khi `mv` là gì?
 a) Tự động đổi thành context đúng cho `/var/www/html`, vì SELinux luôn relabel khi file đổi
    vị trí
 b) Mất hoàn toàn context — file trở thành `unlabeled_t` cho tới khi chạy `restorecon`
-c) Giữ NGUYÊN context cũ (gắn với thư mục home gốc), KHÔNG tự đổi thành context mong đợi cho
-   vị trí mới — vì `mv` trong cùng filesystem chỉ đổi tên entry, không tạo inode mới để
-   trigger relabel tự động
+c) Giữ NGUYÊN context cũ (gắn với thư mục home gốc), KHÔNG tự đổi thành context mong đợi cho vị trí mới
 d) Tự động đổi context đúng, nhưng chỉ khi dùng `mv -Z` thay vì `mv` thường
 
 **Đáp án: c** — Giữ NGUYÊN context cũ (gắn với thư mục home gốc), KHÔNG tự đổi thành context
@@ -250,10 +245,7 @@ a) Vì AppArmor không hỗ trợ chế độ Enforcing, chỉ có complain, nê
 b) Vì SELinux yêu cầu biên dịch lại kernel cho mỗi profile mới, còn AppArmor không cần,
    khiến AppArmor lỏng hơn
 c) Vì AppArmor chỉ bảo vệ được file có đuôi `.conf`, còn SELinux bảo vệ mọi loại file
-d) AppArmor xác định quyền DỰA THEO ĐƯỜNG DẪN (path-based) — nếu một chương trình truy cập
-   cùng dữ liệu qua một đường dẫn khác (hard link/bind mount) không nằm trong phạm vi profile,
-   kiểm soát có thể bị bỏ qua. SELinux gắn label THEO INODE (label-based) — label đi theo
-   chính file, không quan tâm truy cập qua đường dẫn nào
+d) AppArmor xác định quyền DỰA THEO ĐƯỜNG DẪN (path-based) — nếu một chương trình truy cập cùng dữ liệu qua một đường dẫn khác
 
 **Đáp án: d** — AppArmor xác định quyền DỰA THEO ĐƯỜNG DẪN (path-based) — nếu một chương
 trình truy cập cùng dữ liệu qua một đường dẫn khác (hard link/bind mount) không nằm trong
@@ -266,8 +258,7 @@ hổng kiểu này.
 **Câu 5**: Log lỗi của chính ứng dụng web server chỉ ghi "403 Forbidden" chung, không nói rõ
 nguyên nhân. Nên tìm thông tin chi tiết về việc MAC có chặn hay không ở đâu?
 
-a) Trong log RIÊNG của hệ thống MAC, không phải log ứng dụng — SELinux: `ausearch -m
-   avc`/`dmesg | grep avc`; AppArmor: `journalctl`/`dmesg` tìm `apparmor="DENIED"`
+a) Trong log RIÊNG của hệ thống MAC, không phải log ứng dụng — SELinux: `ausearch -m avc`/`dmesg | grep avc`
 b) Trong chính log ứng dụng, chỉ cần tăng log level lên DEBUG là sẽ thấy chi tiết MAC
 c) Trong `/var/log/auth.log`, vì MAC được coi là một phần của hệ thống xác thực
 d) Không có cách nào xem chi tiết — chỉ có thể đoán qua việc thử tắt SELinux/AppArmor để so

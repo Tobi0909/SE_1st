@@ -197,8 +197,7 @@ xuất hiện. Lệnh nào nên thử trước khi nghĩ tới việc reboot?
 a) `mount -a` — thử mount lại mọi filesystem khai báo trong `/etc/fstab`
 b) `udevadm trigger --reload` — chỉ reload rule udev, không liên quan tới bảng phân vùng
 c) `fdisk -l <tên đĩa>` lại một lần nữa để fdisk tự ghi lại bảng phân vùng
-d) `partprobe <tên đĩa>` (hoặc `partx -a <tên đĩa>`) — báo cho kernel đọc lại bảng phân vùng,
-   thường giải quyết được mà không cần reboot
+d) `partprobe <tên đĩa>` (hoặc `partx -a <tên đĩa>`)
 
 **Đáp án: d** — `partprobe <tên đĩa>` (hoặc `partx -a <tên đĩa>`) — báo cho kernel đọc lại
 bảng phân vùng, thường giải quyết được mà không cần reboot.
@@ -209,9 +208,7 @@ bảng phân vùng, thường giải quyết được mà không cần reboot.
 trên `/dev/sdb` (nhầm với `/dev/sdc`, đĩa đáng lẽ cần xoá). Dữ liệu còn khả năng cứu được
 không? Dựa vào đâu?
 
-a) Có khả năng (không chắc chắn) — xoá partition chỉ sửa BẢNG PHÂN VÙNG, không trực tiếp xoá
-   dữ liệu thật trên đĩa. Nếu chưa có gì ghi đè lên vùng đó, công cụ phục hồi (ví dụ
-   `testdisk`) có thể tái tạo lại
+a) Có khả năng (không chắc chắn) — xoá partition chỉ sửa BẢNG PHÂN VÙNG, không trực tiếp xoá dữ liệu thật trên đĩa
 b) Không, mất vĩnh viễn ngay khi `w` — xoá partition đồng nghĩa dữ liệu bị ghi đè bằng 0 ngay
    lập tức
 c) Có, chắc chắn 100% khôi phục được miễn là chạy `testdisk` trong vòng 24 giờ
@@ -229,9 +226,7 @@ phục hồi (ví dụ `testdisk`) có thể tái tạo lại bảng phân vùng
 để xác nhận đúng đĩa cần thao tác trên server nhiều đĩa?
 
 a) Vì `/dev/sdX` chỉ dùng được để đặt tên đĩa SSD, không áp dụng cho đĩa HDD
-b) Tên `/dev/sdX` có thể đổi thứ tự giữa các lần boot (phụ thuộc thứ tự kernel phát hiện
-   thiết bị) — không đáng tin cậy để nhận diện đĩa chắc chắn. FSTYPE/label/UUID gắn với chính
-   dữ liệu trên đĩa, không đổi theo thứ tự phát hiện, đáng tin cậy hơn
+b) Tên `/dev/sdX` có thể đổi thứ tự giữa các lần boot (phụ thuộc thứ tự kernel phát hiện thiết bị) — không đáng tin cậy để nhận diện đĩa chắc chắn
 c) Vì `lsblk -f` hiển thị thêm thông tin nhiệt độ đĩa, giúp phát hiện đĩa sắp hỏng
 d) Vì tên `/dev/sdX` luôn cố định giữa các lần boot, nhưng `lsblk -f` giúp xác nhận thêm đĩa
    còn hoạt động tốt hay không

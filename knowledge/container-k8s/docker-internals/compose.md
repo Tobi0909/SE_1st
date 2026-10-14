@@ -216,9 +216,7 @@ Onboard một dự án open source mới chạy local để debug, dự án có 
 
 **Câu 1**: Sự khác biệt giữa `docker compose up` và `docker compose start` là gì?
 
-a) docker compose up tạo container nếu chưa có (từ định nghĩa trong YAML), rồi start. docker
-   compose start chỉ start container ĐÃ TỒN TẠI (từ lần up trước) — không tạo mới nếu container
-   đã bị rm. Thực tế gần như luôn dùng up
+a) docker compose up tạo container nếu chưa có (từ định nghĩa trong YAML), rồi start. docker compose start chỉ start container ĐÃ TỒN TẠI (từ lần up trước)
 b) start tạo container mới mỗi lần gọi; up chỉ start container đã tồn tại từ trước
 c) Cả hai hoàn toàn giống nhau, chỉ là alias khác tên cho cùng một hành động
 d) up chỉ dùng được lần đầu tiên của project, các lần sau phải dùng start
@@ -236,11 +234,7 @@ dù đã dùng tên service. Nguyên nhân có thể là gì?
 
 a) Vì Compose chỉ cho phép tối đa 1 service gọi tên service khác trong cùng file, không hỗ trợ
    gọi 2 chiều
-b) Hai service được khai báo trong networks: KHÁC NHAU — chỉ service trong cùng network mới
-   resolve được tên nhau qua Docker DNS nội bộ. Cách xác nhận: docker network inspect
-   <network> xem Containers section — chỉ liệt kê container trong network đó. Cách xử lý: đảm
-   bảo cả hai service khai báo cùng network, hoặc bỏ networks: riêng để dùng mặc định của
-   Compose (<project>_default)
+b) Hai service được khai báo trong networks: KHÁC NHAU — chỉ service trong cùng network mới resolve được tên nhau qua Docker DNS nội bộ
 c) Vì tên service trùng với tên một biến môi trường hệ thống, gây xung đột DNS resolve
 d) Vì cả hai service chưa khai báo depends_on lẫn nhau, Docker DNS chỉ hoạt động khi có
    depends_on
@@ -259,11 +253,7 @@ trên network, không dựa trên depends_on (loại d).
 a) Vì Compose yêu cầu bắt buộc mọi service phải có healthcheck, nếu không sẽ không start được
 b) Healthcheck chỉ dùng để hiển thị trạng thái đẹp hơn trên docker ps, không ảnh hưởng tới thứ
    tự start thật
-c) Container Postgres có thể START (process chạy) nhưng chưa READY (accept connection — cần
-   vài giây để init). Nếu app service chỉ dùng depends_on: condition: service_started, app
-   start khi container DB đang khởi động, gặp "connection refused", crash. Healthcheck (ví dụ
-   pg_isready) test xem DB thực sự accept connection — service_healthy condition đảm bảo app
-   chỉ start sau khi DB sẵn sàng thực sự
+c) Container Postgres có thể START (process chạy) nhưng chưa READY (accept connection — cần vài giây để init)
 d) Vì database luôn start chậm hơn app service đúng 10 giây cố định, healthcheck dùng để chờ
    đủ 10 giây đó
 

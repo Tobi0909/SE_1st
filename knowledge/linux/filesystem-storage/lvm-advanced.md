@@ -191,9 +191,7 @@ cắt mất dữ liệu ở cuối LV trước khi filesystem kịp dồn dữ l
 **Câu 2**: Một LV dùng filesystem XFS. Có thể shrink LV đó an toàn bằng cách `xfs_growfs`
 theo chiều ngược không?
 
-a) Không. XFS không hỗ trợ shrink filesystem dưới bất kỳ hình thức nào (`xfs_growfs` chỉ mở
-   rộng, không có thao tác ngược) — muốn "thu nhỏ" một LV chứa XFS, cách duy nhất an toàn là
-   tạo LV mới nhỏ hơn, copy dữ liệu sang, rồi xoá LV cũ
+a) Không. XFS không hỗ trợ shrink filesystem dưới bất kỳ hình thức nào
 b) Có, chỉ cần chạy `xfs_growfs -D <size-nhỏ-hơn>` để thu nhỏ trực tiếp
 c) Có, nhưng filesystem phải được unmount trước khi chạy `xfs_growfs` theo chiều ngược
 d) Không, nhưng XFS hỗ trợ shrink qua một công cụ riêng là `xfs_shrink` đi kèm `xfsprogs`
@@ -209,8 +207,7 @@ gian giữ snapshot (vượt xa 50MB dữ liệu gốc bị ghi đè). Điều g
 có bị ảnh hưởng không?
 
 a) Snapshot tự động mở rộng thêm dung lượng để chứa hết thay đổi, không bao giờ invalidate
-b) Snapshot tự "invalidate" khi vùng COW đầy — không còn dùng được để rollback. LV GỐC hoàn
-   toàn không bị ảnh hưởng, vẫn hoạt động bình thường
+b) Snapshot tự "invalidate" khi vùng COW đầy — không còn dùng được để rollback
 c) Snapshot vẫn hoạt động bình thường, nhưng LV gốc bị chuyển sang chế độ chỉ đọc cho tới khi
    snapshot bị xoá
 d) Cả snapshot và LV gốc đều bị hỏng ngay khi vùng COW đầy, cần restore từ backup
@@ -228,9 +225,7 @@ a) Không hợp lệ — `lvcreate` sẽ từ chối tạo thin LV thứ 5 vì t
    dung lượng pool
 b) Hợp lệ, nhưng rủi ro chính là mỗi thin LV riêng lẻ phải tự theo dõi `Data%` của chính nó,
    không liên quan tới pool chung
-c) Hợp lệ — đây chính là overcommit, một tính năng thiết kế của thin provisioning, không phải
-   lỗi. Rủi ro cần giám sát: TỔNG DỮ LIỆU THẬT ghi vào cả 5 LV cộng lại không được vượt quá
-   2TB dung lượng vật lý của pool — phải theo dõi `Data%` của chính POOL
+c) Hợp lệ — đây chính là overcommit, một tính năng thiết kế của thin provisioning, không phải lỗi
 d) Không hợp lệ trên các phiên bản LVM hiện tại — overcommit chỉ được hỗ trợ từ kernel 6.x
    trở lên
 
@@ -247,8 +242,7 @@ backup định kỳ off-host?
 a) Vì snapshot LVM chỉ lưu được tối đa 24 giờ trước khi tự xoá, không đủ thời gian an toàn
 b) Vì snapshot chiếm quá nhiều CPU khi tạo, làm migration chậm hơn hẳn so với backup off-host
 c) Vì snapshot chỉ backup được metadata của LV, không backup được dữ liệu thật bên trong
-d) Snapshot nằm CÙNG VG/đĩa vật lý với LV gốc — nếu toàn bộ đĩa/VG gặp sự cố phần cứng, cả LV
-   gốc lẫn snapshot đều mất cùng lúc. Backup off-host mới bảo vệ được khỏi loại sự cố này
+d) Snapshot nằm CÙNG VG/đĩa vật lý với LV gốc — nếu toàn bộ đĩa/VG gặp sự cố phần cứng, cả LV gốc lẫn snapshot đều mất cùng lúc
 
 **Đáp án: d** — Snapshot nằm CÙNG VG/đĩa vật lý với LV gốc — nếu toàn bộ đĩa/VG gặp sự cố
 phần cứng (hỏng đĩa, mất server), cả LV gốc lẫn snapshot đều mất cùng lúc. Backup off-host

@@ -161,9 +161,7 @@ dụng không có thêm chi tiết.
 **Câu 1**: Vì sao bắt gói tin cần quyền root/`CAP_NET_RAW`, trong khi xem thông tin socket
 bằng `ss` (bài trước) không cần?
 
-a) ss chỉ đọc thông tin SOCKET CỦA CHÍNH quyền user hiện tại (hoặc cần sudo để xem đủ của user
-   khác). Bắt gói tin đọc được MỌI traffic qua interface, kể cả của người/process khác — đây là
-   đặc quyền nhạy cảm hơn nhiều, kernel giới hạn chỉ cho root/capability đặc biệt
+a) ss chỉ đọc thông tin SOCKET CỦA CHÍNH quyền user hiện tại (hoặc cần sudo để xem đủ của user khác)
 b) Vì tcpdump cần ghi file .pcap ra đĩa, còn ss chỉ in ra màn hình không cần quyền ghi
 c) Vì ss chỉ hoạt động trên localhost, không cần quyền vì không "nhìn" được traffic mạng thật
 d) Vì tcpdump dùng giao thức mạng riêng (raw socket) nên tốn nhiều băng thông hơn, cần quyền
@@ -182,9 +180,7 @@ tầng thấp, không liên quan tới tải mạng (loại d).
 lọc lại?
 
 a) Vì BPF filter chạy song song đa luồng còn grep chỉ xử lý đơn luồng
-b) Filter BPF được áp dụng NGAY TRONG KERNEL, loại bỏ gói không khớp TRƯỚC KHI copy lên
-   user-space — giảm tải CPU/I/O đáng kể so với copy TOÀN BỘ gói lên rồi mới lọc bằng công cụ
-   ở user-space như grep
+b) Filter BPF được áp dụng NGAY TRONG KERNEL, loại bỏ gói không khớp TRƯỚC KHI copy lên user-space
 c) Vì grep chỉ hoạt động với file text, không đọc được định dạng nhị phân của gói tin nên luôn
    thất bại
 d) Vì BPF filter nén dữ liệu gói tin lại trước khi lưu, giảm kích thước file .pcap
@@ -203,9 +199,7 @@ không khớp (loại d).
 
 a) Đây là 3 lần retransmit của cùng một gói SYN do mất gói, không phải 3 bước khác nhau
 b) [S] = SYN, [S.] = ACK đơn thuần, [.] = FIN kết thúc kết nối
-c) Đúng 3-way handshake: [S] = SYN, [S.] = SYN-ACK (dấu . là ACK kèm theo), [.] (ACK thuần,
-   không còn SYN) = ACK cuối — khớp chính xác 3 bước thiết lập kết nối TCP đã học ở bài
-   networking.tcpip.tcp-udp
+c) Đúng 3-way handshake: [S] = SYN, [S.] = SYN-ACK (dấu . là ACK kèm theo), [.] (ACK thuần, không còn SYN) = ACK cuối
 d) Đây là dấu hiệu kết nối bị NAT dịch địa chỉ 3 lần liên tiếp, không liên quan tới TCP
    handshake
 
@@ -224,9 +218,7 @@ a) Vì tcpdump mặc định tự dừng sau 60 giây nên không cần giới h
    bắt buộc
 b) Vì không giới hạn sẽ khiến tcpdump tự động gửi dữ liệu capture lên server của nhà phát triển
 c) Vì thiếu -c sẽ làm sai định dạng file .pcap, Wireshark không mở được
-d) Bắt không giới hạn trên traffic lớn có thể tự nó gây tải CPU/I/O đáng kể (copy mọi gói lên
-   user-space), làm trầm trọng thêm vấn đề đang điều tra; file kết quả cũng dễ quá lớn khiến
-   Wireshark/công cụ phân tích xử lý chậm hoặc treo
+d) Bắt không giới hạn trên traffic lớn có thể tự nó gây tải CPU/I/O đáng kể
 
 **Đáp án: d** — Bắt không giới hạn trên traffic lớn có thể tự nó gây tải CPU/I/O đáng kể, làm
 trầm trọng thêm vấn đề đang điều tra; file kết quả cũng dễ quá lớn khiến Wireshark xử lý chậm
@@ -240,10 +232,7 @@ rất lớn (loại c).
 **Câu 5**: Vì sao bắt gói trên server qua SSH (không GUI) rồi phân tích bằng Wireshark trên
 máy cá nhân là quy trình phổ biến, thay vì cài Wireshark trực tiếp trên server?
 
-a) tcpdump -w ghi ra file .pcap — định dạng chuẩn mà Wireshark đọc được trực tiếp. Server
-   production thường không có GUI/không nên cài thêm phần mềm nặng; tách việc BẮT (tcpdump,
-   nhẹ, dòng lệnh) khỏi việc PHÂN TÍCH (Wireshark, cần giao diện trực quan) là cách làm gọn và
-   an toàn hơn
+a) tcpdump -w ghi ra file .pcap — định dạng chuẩn mà Wireshark đọc được trực tiếp
 b) Vì Wireshark không tương thích chạy trên hệ điều hành server (Linux), chỉ chạy được trên
    Windows/macOS
 c) Vì license Wireshark cấm cài trên máy chủ production theo điều khoản sử dụng

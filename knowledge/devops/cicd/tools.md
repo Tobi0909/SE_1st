@@ -373,7 +373,7 @@ d) Thư mục `.ci/`, tên file tùy chọn (khai báo trong Settings)
 **Câu 5**: Tại sao `npm ci` được dùng trong CI thay vì `npm install`?
 
 a) `npm ci` nhanh hơn vì không download package  
-b) `npm ci` cài đúng version từ `package-lock.json`, fail nếu lock file lỗi thời; `npm install` có thể update lock file  
+b) `npm ci` cài đúng version từ `package-lock.json`, fail nếu lock file lỗi thời
 c) `npm install` không hoạt động trên Linux  
 d) `npm ci` tự động chạy tests sau khi install
 

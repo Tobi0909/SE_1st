@@ -268,7 +268,7 @@ trunk đúng trước khi kết thúc maintenance window.
 **Câu 1**: Sự khác biệt giữa Standard vSwitch (vSS) và Distributed vSwitch (vDS) là gì?
 
 a) vDS chỉ hỗ trợ VMFS, vSS hỗ trợ NFS  
-b) vSS cấu hình riêng trên từng host, vDS cấu hình tập trung qua vCenter và đồng bộ xuống toàn bộ host trong cluster — vDS đảm bảo consistency và dễ quản lý hơn ở scale  
+b) vSS cấu hình riêng trên từng host, vDS cấu hình tập trung qua vCenter và đồng bộ xuống toàn bộ host trong cluster
 c) vDS nhanh hơn vSS về mặt throughput  
 d) vSS không hỗ trợ VLAN
 
@@ -279,7 +279,7 @@ d) vSS không hỗ trợ VLAN
 **Câu 2**: Tại sao vMotion và VM production traffic nên ở trên NIC riêng biệt?
 
 a) Vì vMotion chỉ hỗ trợ IPv6, VM traffic hỗ trợ IPv4  
-b) vMotion copy toàn bộ RAM của VM qua network — một VM 32GB RAM migrate = 32GB+ bandwidth; nếu chia sẻ NIC với VM traffic, vMotion làm chậm toàn bộ ứng dụng trên host  
+b) vMotion copy toàn bộ RAM của VM qua network
 c) Vì VMkernel không thể share NIC với VM traffic  
 d) Vì switch không hỗ trợ cả hai loại traffic trên cùng port
 
@@ -291,7 +291,7 @@ d) Vì switch không hỗ trợ cả hai loại traffic trên cùng port
 
 a) Thin provisioning không thể snapshot  
 b) Thin provisioning không hỗ trợ vMotion  
-c) Thin provisioning cho phép overcommit — tổng provisioned size của tất cả VM vượt dung lượng thực của datastore; khi nhiều VM write nhiều cùng lúc, datastore có thể đầy đột ngột, làm tất cả VM trên đó dừng ghi  
+c) Thin provisioning cho phép overcommit
 d) Thin provisioning chậm hơn thick do phải phân bổ block lúc runtime
 
 **Đáp án: c** — Với thick provisioning, bạn biết chính xác bao nhiêu GB datastore còn trống. Với thin, có thể provision tổng 1TB VM trên datastore 500GB — OK nếu thực tế chỉ dùng 400GB. Nhưng nếu tất cả grow lên 600GB → datastore đầy → VM suspend (không thể ghi). Cần monitor "datastore free space" cẩn thận hơn khi dùng thin provision.
@@ -302,7 +302,7 @@ d) Thin provisioning chậm hơn thick do phải phân bổ block lúc runtime
 
 a) Để VM kết nối ra internet  
 b) Để cấu hình VLAN cho port group  
-c) Network interface của ESXi kernel (không phải VM) — dùng cho management, vMotion, iSCSI, vSAN traffic; VM dùng port group, không phải VMkernel  
+c) Network interface của ESXi kernel
 d) Để giám sát bandwidth của từng VM
 
 **Đáp án: c** — VMkernel adapter (vmkN) là IP interface của ESXi OS. `vmk0` thường là management IP mà bạn SSH vào ESXi. `vmk1` có thể là vMotion IP. VM không dùng VMkernel — VM dùng virtual NIC kết nối vào port group. Hiểu rõ phân biệt này quan trọng khi debug "tại sao ESXi management không ping được" (kiểm tra vmk0) vs "tại sao VM không có network" (kiểm tra port group).

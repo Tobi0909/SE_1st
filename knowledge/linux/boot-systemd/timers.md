@@ -224,8 +224,7 @@ theo lịch tiếp theo (2h sáng ngày kế) — mất một kỳ backup mà kh
 giây không? Vì sao điều đó lại là chủ ý thiết kế?
 
 a) Chắc chắn — `AccuracySec=` chỉ là giới hạn log, không ảnh hưởng thời điểm chạy thật
-b) Không chắc — mỗi máy có thể lệch tới 1 giờ so với giờ lý thuyết do `AccuracySec=`; đây là
-   chủ ý để tránh toàn bộ timer dồn vào đúng một thời điểm gây giật tải CPU/I/O đồng loạt
+b) Không chắc — mỗi máy có thể lệch tới 1 giờ so với giờ lý thuyết do `AccuracySec=`
 c) Chắc chắn, vì tất cả server dùng chung một đồng hồ NTP nên luôn đồng bộ tuyệt đối
 d) Không chắc, nhưng chỉ vì lỗi làm tròn số của hệ điều hành, không phải chủ ý thiết kế
 
@@ -255,8 +254,7 @@ file, chưa buộc timer tính lại ngay, cần restart để áp dụng lịch
 khi cần kiểm toán toàn bộ job lập lịch trên một server?
 
 a) Vì cron không có khả năng lập lịch chính xác bằng systemd timer
-b) `list-timers` cho một bảng tổng hợp MỌI timer hệ thống, sắp theo thời điểm chạy kế tiếp,
-   kèm lịch sử lần chạy gần nhất; với cron, mỗi user có crontab riêng, không có lệnh tổng hợp
+b) `list-timers` cho một bảng tổng hợp MỌI timer hệ thống, sắp theo thời điểm chạy kế tiếp, kèm lịch sử lần chạy gần nhất
 c) Vì `crontab -l` đã bị loại bỏ khỏi các distro hiện đại dùng systemd
 d) Vì `list-timers` tự động sửa các lỗi cú pháp trong file cấu hình, còn crontab thì không
 

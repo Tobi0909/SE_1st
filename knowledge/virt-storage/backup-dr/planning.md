@@ -255,7 +255,7 @@ quy trình, reduce panic và mistakes khi real incident xảy ra.
 
 a) Hệ thống phải online lại trong 2 giờ  
 b) Backup phải chạy xong trong 2 giờ  
-c) Tổ chức chấp nhận mất tối đa 2 giờ dữ liệu — vì vậy backup/replication phải xảy ra ít nhất mỗi 2 giờ  
+c) Tổ chức chấp nhận mất tối đa 2 giờ dữ liệu
 d) DR site phải cách primary site tối thiểu 2 giờ di chuyển
 
 **Đáp án: c** — RPO = Recovery Point Objective = điểm dữ liệu cũ nhất chấp nhận được sau disaster. RPO 2 giờ: nếu disaster xảy ra, mất tối đa 2 giờ data (data từ 2 giờ trước vẫn còn). Điều này yêu cầu backup/snapshot chạy ít nhất mỗi 2 giờ. RTO mới là "bao lâu để online lại".
@@ -265,7 +265,7 @@ d) DR site phải cách primary site tối thiểu 2 giờ di chuyển
 **Câu 2**: Vì sao không phải mọi hệ thống đều cần Tier 1 DR (RPO=0, RTO=15 phút)?
 
 a) Vì Tier 1 chỉ dùng được cho database, không dùng cho web server  
-b) Vì Tier 1 yêu cầu synchronous replication và hot standby — chi phí có thể gấp 10-50 lần Tier 4; phần lớn hệ thống không justify chi phí này dựa trên business impact thực tế  
+b) Vì Tier 1 yêu cầu synchronous replication và hot standby
 c) Vì Tier 1 không đảm bảo RPO = 0 trên thực tế  
 d) Vì regulation chỉ cho phép Tier 1 cho ngân hàng
 
@@ -277,7 +277,7 @@ d) Vì regulation chỉ cho phép Tier 1 cho ngân hàng
 
 a) Hot standby dùng SSD, cold standby dùng HDD  
 b) Hot standby là cho database, cold standby cho file server  
-c) Hot standby có infrastructure sẵn sàng 100% với data được replication liên tục, failover trong phút; cold standby chỉ có backup, cần provision infrastructure từ đầu, failover mất ngày — chi phí hot standby cao hơn nhiều  
+c) Hot standby có infrastructure sẵn sàng 100% với data được replication liên tục, failover trong phút
 d) Hot standby chỉ available trong giờ hành chính
 
 **Đáp án: c** — Hot standby: pay full infrastructure cost 24/7, nhưng RTO rất thấp. Cold standby: không tốn gì khi không dùng, nhưng khi cần phải provision server, restore backup, configure network — mất ngày. Cloud DR thường dùng model gần với hot standby nhưng chỉ trả tiền khi cần (provision on-demand).
@@ -289,7 +289,7 @@ d) Hot standby chỉ available trong giờ hành chính
 a) Vì DNS server tại DR site cần warm-up time  
 b) Vì DNS TTL thấp giúp backup nhanh hơn  
 c) Để compliance  
-d) Vì DNS record có TTL cao (ví dụ 24h) sẽ được cache bởi resolver trên toàn internet — sau khi đổi DNS trỏ sang DR IP, user vẫn tiếp tục kết nối vào old IP đến khi cache expire; TTL thấp (60-300s) giảm thời gian chờ này xuống còn vài phút
+d) Vì DNS record có TTL cao
 
 **Đáp án: d** — DNS TTL là thời gian client (browser, resolver) cache record. Nếu TTL = 86400 (1 ngày) và bạn đổi DNS, client vẫn dùng old record thêm 24 giờ. Không thể "flush" cache của mọi client trên internet. Vì vậy: giảm TTL về 60-300s ít nhất 1 TTL period trước failover để đảm bảo khi đổi DNS, propagation xảy ra trong vài phút.
 
@@ -298,7 +298,7 @@ d) Vì DNS record có TTL cao (ví dụ 24h) sẽ được cache bởi resolver 
 **Câu 5**: DR Plan phải được test như thế nào để đảm bảo hiệu quả?
 
 a) Chỉ cần review document hàng năm là đủ  
-b) Test bằng cách simulate disaster trong giờ thấp điểm, thực sự switch traffic sang DR site, đo RTO thực tế và verify data integrity — "paper test" không phát hiện được dependency bị thiếu, certificate hết hạn, hay restore thực tế chậm hơn ước tính  
+b) Test bằng cách simulate disaster trong giờ thấp điểm, thực sự switch traffic sang DR site, đo RTO thực tế và verify data integrity
 c) Chỉ DBA team cần test, không cần app team  
 d) Test 1 lần khi setup xong là đủ
 

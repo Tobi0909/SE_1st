@@ -265,7 +265,7 @@ thúc maintenance window. Template checklist: ping -M do -s 8972 <storage-ip>.
 **Câu 1**: Sự khác biệt giữa iSCSI target và iSCSI initiator là gì?
 
 a) Target là phần mềm, initiator là phần cứng  
-b) Target là phía **cung cấp** storage (storage array, NAS), initiator là phía **sử dụng** storage (server) — initiator kết nối đến target để lấy block storage  
+b) Target là phía **cung cấp** storage
 c) Target và initiator là cùng một thứ nhưng ở hai phía của kết nối  
 d) Initiator chỉ tồn tại trên Windows
 
@@ -277,7 +277,7 @@ d) Initiator chỉ tồn tại trên Windows
 
 a) Vì iSCSI chỉ hoạt động được với MTU 9000  
 b) Vì storage array yêu cầu packet size cố định  
-c) MTU 1500 vẫn hoạt động nhưng mỗi I/O request lớn phải phân mảnh thành nhiều packet → CPU overhead tăng, throughput giảm; MTU 9000 giảm số packet cho cùng lượng data — thực tế tăng throughput và giảm CPU 20-40%  
+c) MTU 1500 vẫn hoạt động nhưng mỗi I/O request lớn phải phân mảnh thành nhiều packet → CPU overhead tăng, throughput giảm
 d) Vì switch iSCSI không hỗ trợ MTU < 9000
 
 **Đáp án: c** — Với block I/O thường 64KB-1MB, MTU 1500 phải chia thành 40-700 packet. MTU 9000 giảm xuống còn 7-110 packet. Ít packet = ít interrupt CPU = throughput cao hơn và CPU usage thấp hơn. MTU 1500 vẫn "works" nhưng suboptimal — nhiều môi trường thực tế cài iSCSI rồi không set jumbo frame và không biết mình đang bỏ phí 30-40% throughput.
@@ -286,7 +286,7 @@ d) Vì switch iSCSI không hỗ trợ MTU < 9000
 
 **Câu 3**: LUN masking trong iSCSI dùng để làm gì?
 
-a) Giới hạn chỉ initiator được phép (theo IQN) mới thấy được LUN cụ thể — bảo mật: server A không thể access storage của server B  
+a) Giới hạn chỉ initiator được phép
 b) Tăng tốc độ đọc bằng cách mask unused LUN  
 c) Giảm latency bằng cách filter packet  
 d) Tạo snapshot cho từng LUN riêng biệt
@@ -298,7 +298,7 @@ d) Tạo snapshot cho từng LUN riêng biệt
 **Câu 4**: Multipath I/O (MPIO) cho iSCSI mang lại lợi ích gì?
 
 a) Tăng dung lượng storage gấp đôi  
-b) Redundancy (failover khi một path down) và load balancing (phân tải I/O giữa nhiều NIC/switch) — mất một NIC không làm mất storage  
+b) Redundancy (failover khi một path down) và load balancing
 c) Giảm latency 50% mà không cần thêm hardware  
 d) Cho phép dùng iSCSI mà không cần jumbo frame
 
@@ -310,7 +310,7 @@ d) Cho phép dùng iSCSI mà không cần jumbo frame
 
 a) Vì iSCSI disk không hỗ trợ standard device naming  
 b) Vì `/dev/sdb` chỉ hoạt động trên RHEL  
-c) Vì `/dev/sdb` có thể thay đổi sau reboot (thứ tự discover SCSI device không deterministc) — nên dùng `/dev/disk/by-path/` (stable path) hoặc multipath alias `/dev/mapper/mpatha`  
+c) Vì `/dev/sdb` có thể thay đổi sau reboot
 d) Vì `/dev/sdb` bị reserved cho CD-ROM trong iSCSI
 
 **Đáp án: c** — SCSI device naming phụ thuộc vào thứ tự kernel discover thiết bị khi boot. Nếu thêm một disk mới hoặc đổi thứ tự boot, `sdb` có thể trở thành `sdc`. Với iSCSI, sau reboot hoặc session reconnect, thứ tự có thể khác. `/dev/disk/by-path/ip-<target-ip>:3260-iscsi-<iqn>-lun-<n>` là stable identifier. Dùng hardcoded `sdb` trong `/etc/fstab` có thể mount nhầm disk sau reboot.

@@ -261,8 +261,6 @@ biết repository, tự tra và tải dependency còn thiếu khi phát hiện.
 
 a) Có, `apt update` tự động nâng cấp mọi package có bản mới ngay khi chạy xong
 b) Chưa — `apt update` CHỈ tải lại danh sách gói/version mới nhất có sẵn trên repo
-   (metadata), không cài hay nâng cấp bất cứ gì. Cần chạy thêm `apt upgrade` hoặc
-   `apt install <package>` để thực sự thay đổi
 c) Có, nhưng chỉ nâng cấp các package bảo mật (security update), còn package thường thì chưa
 d) Không xác định được — phụ thuộc vào cấu hình `APT::Periodic` trong `/etc/apt/apt.conf.d/`
 
@@ -279,9 +277,7 @@ a) Exit code `1` (sai) — vì so chuỗi ký tự thông thường, "2" > "1" n
    "10.0.0"
 b) Exit code `2` — vì tham số `lt` không hợp lệ với `dpkg --compare-versions`, cần dùng
    `-lt` có dấu gạch
-c) Exit code `0` (đúng — 2.0.0 nhỏ hơn 10.0.0). So sánh CHUỖI ký tự thông thường có thể cho
-   kết quả khác — `dpkg --compare-versions` dùng thuật toán so sánh VERSION chuyên biệt của
-   Debian, hiểu đúng ý nghĩa số học của các thành phần version
+c) Exit code `0` (đúng — 2.0.0 nhỏ hơn 10.0.0). So sánh CHUỖI ký tự thông thường có thể cho kết quả khác
 d) Exit code `0`, nhưng chỉ vì `dpkg --compare-versions` luôn trả `0` bất kể 2 version nào
    được so sánh
 

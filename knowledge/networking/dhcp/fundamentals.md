@@ -179,8 +179,7 @@ Buổi sáng, 5 máy cuối cùng cắm vào không lấy được IP.
 
 a) Vì unicast yêu cầu client phải biết địa chỉ MAC đích trước, trong khi DHCP chỉ biết IP đích
 b) Vì chuẩn DHCP quy định mọi gói tin đều phải broadcast trong toàn bộ quy trình DORA
-c) Vì client chưa có IP và chưa biết IP của DHCP server — broadcast là cách duy nhất để "hỏi
-   cả mạng" khi chưa biết địa chỉ ai
+c) Vì client chưa có IP và chưa biết IP của DHCP server
 d) Vì router luôn chặn gói unicast từ địa chỉ IP 0.0.0.0, buộc client phải dùng broadcast
 
 **Đáp án: c** — Vì client chưa có IP và chưa biết IP của DHCP server — broadcast là cách duy
@@ -211,8 +210,7 @@ trình DORA, không gộp chung một gói (loại c).
 
 **Câu 3**: DHCP relay làm gì, và vì sao cần nó khi server ở VLAN khác client?
 
-a) Relay nghe broadcast DHCP trên subnet client và chuyển tiếp dạng UNICAST sang DHCP server ở
-   subnet/VLAN khác (kèm `giaddr`) — nếu không có relay, broadcast không vượt qua được router
+a) Relay nghe broadcast DHCP trên subnet client và chuyển tiếp dạng UNICAST sang DHCP server ở subnet/VLAN khác
 b) Relay mã hoá gói DHCP trước khi gửi qua VLAN khác để đảm bảo bảo mật
 c) Relay tự cấp IP tạm thời cho client trong lúc chờ broadcast tới được server ở VLAN khác
 d) Relay chỉ cần thiết khi server và client cùng VLAN nhưng khác switch vật lý
@@ -230,8 +228,7 @@ switch — loại d).
 bước?
 
 a) Luôn phải chạy lại toàn bộ DORA từ đầu, bất kể lease còn hạn bao lâu
-b) Chỉ cần unicast REQUEST/ACK trực tiếp với server đã cấp (ở mốc T1, thường 50% lease time);
-   chỉ quay lại DISCOVER broadcast đầy đủ nếu renew thất bại
+b) Chỉ cần unicast REQUEST/ACK trực tiếp với server đã cấp (ở mốc T1, thường 50% lease time)
 c) Client tự gia hạn lease nội bộ mà không cần liên hệ lại server nào cả
 d) Chỉ cần gửi lại chính xác gói DHCPDISCOVER ban đầu, server sẽ tự nhận ra và gia hạn
 

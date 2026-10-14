@@ -207,8 +207,7 @@ qua được các tầng đó).
 chuyển từ WiFi nhà sang WiFi công ty?
 
 a) MAC cũng đổi theo mạng, nhưng hệ điều hành cache giá trị cũ nên nhìn như không đổi
-b) MAC gắn với thiết bị vật lý (card mạng) nên không đổi theo môi trường; IP là địa chỉ logic
-   gắn với mạng đang kết nối, phải đổi theo để định tuyến đúng
+b) MAC gắn với thiết bị vật lý (card mạng) nên không đổi theo môi trường
 c) IP được NAT giữ nguyên qua router, còn MAC mới được DHCP cấp lại ở mỗi mạng
 d) Cả MAC và IP đều do nhà sản xuất card mạng gán cố định ngay từ khi sản xuất
 
@@ -224,8 +223,7 @@ mạng).
 
 a) Vì hai tầng đó được gộp chung vào tầng Transport để giảm độ trễ xử lý gói tin
 b) Vì Presentation và Session chỉ cần thiết cho giao thức UDP, không áp dụng cho TCP
-c) Vì chức năng của hai tầng đó (mã hoá/nén, quản lý session) được xử lý ngay trong tầng
-   Application trong thực tế — không cần tầng riêng để mô tả đúng cách Internet vận hành
+c) Vì chức năng của hai tầng đó (mã hoá/nén, quản lý session) được xử lý ngay trong tầng Application trong thực tế
 d) Vì TCP/IP không có khái niệm mã hoá hay quản lý session ở bất kỳ tầng nào
 
 **Đáp án: c** — Vì chức năng của hai tầng đó (mã hoá/nén, quản lý session) trong thực tế được xử
@@ -245,9 +243,7 @@ b) Cả hai đều có nghĩa service không lắng nghe port đó, chỉ khác 
    chờ trước khi nhận lỗi
 c) "Refused" nghĩa là địa chỉ IP đích không tồn tại trên mạng, "timed out" nghĩa là địa chỉ tồn
    tại nhưng tên miền chưa phân giải được
-d) "Refused" là gói tin tới được đích (tầng Internet ổn) nhưng không có service nào lắng nghe
-   đúng port đó, máy đích chủ động gửi lại TCP RST; "timed out" là gói tin không tới được đích
-   hoặc phản hồi không quay lại được, thường do vấn đề routing/firewall ở tầng thấp hơn
+d) "Refused" là gói tin tới được đích (tầng Internet ổn) nhưng không có service nào lắng nghe đúng port đó, máy đích chủ động gửi lại TCP RST
 
 **Đáp án: d** — "Refused" nghĩa là gói tin TỚI ĐƯỢC đích (tầng Internet ổn) nhưng KHÔNG CÓ
 service nào lắng nghe đúng port đó (tầng Application/Transport) — máy đích chủ động gửi lại TCP

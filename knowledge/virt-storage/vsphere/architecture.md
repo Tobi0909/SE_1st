@@ -257,7 +257,7 @@ báo HA đã restart 8 VM sang 2 host còn lại. Buổi sáng bạn vào nhận
 **Câu 1**: Điều gì xảy ra với các VM đang chạy nếu vCenter Server bị tắt?
 
 a) Tất cả VM dừng ngay lập tức  
-b) VM tiếp tục chạy bình thường trên ESXi — chỉ mất khả năng quản lý qua vCenter (tạo VM mới, vMotion, HA action)  
+b) VM tiếp tục chạy bình thường trên ESXi
 c) VM chạy tiếp nhưng không thể nhận network packet  
 d) VM tự suspend để chờ vCenter khởi động lại
 
@@ -268,7 +268,7 @@ d) VM tự suspend để chờ vCenter khởi động lại
 **Câu 2**: Vì sao RAM overcommit nguy hiểm hơn CPU overcommit trong vSphere?
 
 a) Vì ESXi không hỗ trợ overcommit RAM  
-b) Vì CPU overcommit chỉ gây chậm (VM phải chờ), còn RAM overcommit dẫn đến swap to datastore — latency tăng đột ngột từ nanosecond lên millisecond  
+b) Vì CPU overcommit chỉ gây chậm
 c) Vì RAM overcommit làm tăng chi phí license  
 d) Vì CPU có thể được chia sẻ nhưng RAM thì không
 
@@ -292,7 +292,7 @@ d) vCenter phải có ít nhất 2 IP
 a) Tăng tốc độ đọc ghi disk cho VM  
 b) Thay thế cho cluster HA  
 c) Chỉ dùng để nhóm VM cho dễ quản lý, không ảnh hưởng tài nguyên  
-d) Phân chia CPU/RAM tài nguyên cho nhóm VM với ưu tiên khác nhau — production được đảm bảo tài nguyên, dev bị giới hạn
+d) Phân chia CPU/RAM tài nguyên cho nhóm VM với ưu tiên khác nhau
 
 **Đáp án: d** — Resource Pool là cơ chế phân chia tài nguyên (CPU shares/reservation/limit và RAM shares/reservation/limit). Ứng dụng: cô lập môi trường production (reservation cao, đảm bảo tài nguyên dù host đang bận) khỏi dev/test (limit thấp, không tranh giành với production). Đây là cách nhiều team dùng chung cluster vật lý mà vẫn đảm bảo SLA cho production.
 
@@ -303,7 +303,7 @@ d) Phân chia CPU/RAM tài nguyên cho nhóm VM với ưu tiên khác nhau — p
 a) Ngay lập tức restart tất cả VM trên host đó sang 2 host còn lại  
 b) Không làm gì — chỉ gửi alert  
 c) Disable HA trên toàn cluster  
-d) Chờ một khoảng thời gian, xác nhận host thực sự down (qua datastore heartbeat), rồi restart VM trên 2 host còn lại
+d) Chờ một khoảng thời gian, xác nhận host thực sự down
 
 **Đáp án: d** — HA không hành động ngay lập tức để tránh restart VM không cần thiết khi chỉ là network blip ngắn. HA dùng **datastore heartbeat** (host ghi/đọc file trên shared datastore) để phân biệt "host thực sự down" khỏi "chỉ mất management network". Sau khi xác nhận host down (không còn heartbeat cả trên network lẫn datastore), HA mới restart VM. Thời gian này thường 30-60 giây tổng cộng.
 

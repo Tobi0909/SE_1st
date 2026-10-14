@@ -172,8 +172,7 @@ Nguyên nhân phổ biến nhất là gì?
 a) Vì process đó đã bị kill ngay sau khi mở socket, chỉ còn socket "ma" không gắn process
 b) Vì cờ -p chỉ hoạt động với giao thức UDP, không hiển thị được cho TCP
 c) Vì tên process quá dài, ss tự động ẩn đi để giữ định dạng cột gọn
-d) Thiếu quyền (không chạy bằng sudo) để xem thông tin process của user KHÁC — kernel giới hạn
-   hiển thị chi tiết process cho user không sở hữu nó
+d) Thiếu quyền (không chạy bằng sudo) để xem thông tin process của user KHÁC
 
 **Đáp án: d** — Thiếu quyền (không chạy bằng sudo) để xem thông tin process của user KHÁC —
 kernel giới hạn hiển thị chi tiết process cho user không sở hữu nó. Socket "ma" không phải
@@ -186,8 +185,7 @@ hoạt động với cả TCP và UDP, không giới hạn UDP (loại b); độ
 **Câu 2**: Vì sao `ss` thường nhanh hơn `netstat` đáng kể trên server có hàng chục nghìn kết
 nối?
 
-a) ss dùng Netlink socket để truy vấn TRỰC TIẾP và LỌC NGAY tại kernel. netstat đọc toàn bộ
-   file ảo /proc/net/tcp rồi tự lọc ở phía user-space — chậm hơn khi số lượng socket lớn
+a) ss dùng Netlink socket để truy vấn TRỰC TIẾP và LỌC NGAY tại kernel. netstat đọc toàn bộ file ảo /proc/net/tcp rồi tự lọc ở phía user-space
 b) Vì ss được viết bằng ngôn ngữ biên dịch nhanh hơn, còn netstat là script shell thuần
 c) Vì ss chỉ hiển thị tối đa 100 kết nối đầu tiên nên luôn có vẻ nhanh hơn
 d) Vì netstat luôn phải phân giải DNS ngược cho mỗi kết nối trước khi hiển thị, mặc định không
@@ -206,9 +204,7 @@ giới hạn hiển thị cứng 100 kết nối (loại c); `netstat` không b�
 ngắn hạn. Đây có phải dấu hiệu rò rỉ kết nối cần xử lý ngay không?
 
 a) Có, TIME-WAIT luôn là dấu hiệu rò rỉ file descriptor cần restart service ngay
-b) Không nhất thiết — TIME-WAIT là trạng thái bình thường sau khi đóng kết nối TCP đúng cách,
-   hệ điều hành giữ một khoảng thời gian để tránh nhận lầm gói trễ. Chỉ đáng lo khi số lượng
-   TĂNG LIÊN TỤC không dừng, không phải chỉ vì số lượng tuyệt đối lớn tại một thời điểm
+b) Không nhất thiết — TIME-WAIT là trạng thái bình thường sau khi đóng kết nối TCP đúng cách, hệ điều hành giữ một khoảng thời gian để tránh nhận lầm gói trễ
 c) Có, vì TIME-WAIT chiếm RAM vĩnh viễn cho tới khi reboot server
 d) Không, vì TIME-WAIT chỉ xuất hiện khi dùng UDP, không liên quan tới TCP request ngắn hạn
 
@@ -227,9 +223,7 @@ sao?
 a) Vì ss -u chỉ hỗ trợ phiên bản kernel cũ, kernel mới đã bỏ tính năng hiển thị state cho UDP
 b) Vì UDP luôn ở trạng thái ESTABLISHED ngay khi mở socket, chỉ không hiển thị rõ do giới hạn
    cột
-c) UDP là connectionless ở tầng giao thức — không có state machine kết nối như TCP (không có
-   bắt tay, không có trạng thái ESTABLISHED thật). ss -u chỉ hiện socket đang tồn tại ở tầng
-   OS, không có cột trạng thái mang ý nghĩa như TCP
+c) UDP là connectionless ở tầng giao thức — không có state machine kết nối như TCP
 d) Vì UDP cần chạy kèm thêm module riêng mới hiển thị được trạng thái, mặc định không có
 
 **Đáp án: c** — UDP là connectionless ở tầng giao thức — không có state machine kết nối như
@@ -248,9 +242,7 @@ a) Luôn là lỗi của systemctl stop, vì lệnh này chỉ gửi SIGTERM mà
 b) Luôn là lỗi kernel không giải phóng port đúng cách sau khi process bị kill
 c) Lỗi do port đang ở TIME-WAIT nên bị coi nhầm là "đang chiếm", không liên quan gì tới cấu
    hình service
-d) Thường là lỗi CẤU HÌNH service (ví dụ sai Type=, thiếu PIDFile= cho service tự fork) —
-   systemctl stop chỉ dừng đúng những gì systemd BIẾT là thuộc service đó theo cấu hình unit
-   file; process con không được quản lý đúng cgroup có thể "sót lại" ngoài tầm kiểm soát
+d) Thường là lỗi CẤU HÌNH service (ví dụ sai Type=, thiếu PIDFile= cho service tự fork)
 
 **Đáp án: d** — Thường là lỗi CẤU HÌNH service (sai `Type=`, thiếu `PIDFile=`) — `systemctl
 stop` chỉ dừng đúng những gì systemd BIẾT là thuộc service đó theo cấu hình unit file. `systemctl

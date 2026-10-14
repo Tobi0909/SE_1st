@@ -306,7 +306,7 @@ chính xác cần index trên cột nào, theo thứ tự nào.
 
 a) Lock toàn bộ database trong khi dump  
 b) Tắt tất cả write connection trước khi dump  
-c) Mở một transaction REPEATABLE READ trước khi bắt đầu dump — tất cả bảng đều thấy cùng snapshot, không cần lock; chỉ hoạt động đúng với InnoDB  
+c) Mở một transaction REPEATABLE READ trước khi bắt đầu dump
 d) Copy file trực tiếp từ disk, không qua SQL layer
 
 **Đáp án: c** — REPEATABLE READ snapshot đảm bảo mọi SELECT trong transaction đó thấy cùng một trạng thái dữ liệu. Cờ này KHÔNG hoạt động đúng với MyISAM (không hỗ trợ transaction) — với MyISAM phải dùng `--lock-all-tables` để lock write toàn bảng trong khi dump, ảnh hưởng production.
@@ -316,7 +316,7 @@ d) Copy file trực tiếp từ disk, không qua SQL layer
 **Câu 2**: Sự khác biệt chính giữa `pg_dump -Fc` và `pg_dump -Fp` là gì, và khi nào dùng từng loại?
 
 a) Không có khác biệt — chỉ khác extension file  
-b) `-Fc` tạo binary custom format (nén tốt hơn, hỗ trợ restore song song với `pg_restore -j`, có thể restore từng table); `-Fp` tạo plain SQL text (restore bằng `psql`, dễ đọc); dùng `-Fc` cho production DB lớn, `-Fp` khi cần migrate sang platform khác hoặc đọc script  
+b) `-Fc` tạo binary custom format
 c) `-Fc` chỉ backup schema, `-Fp` backup cả data  
 d) `-Fc` chỉ chạy được trên Linux, `-Fp` chạy được trên mọi OS
 
@@ -328,7 +328,7 @@ d) `-Fc` chỉ chạy được trên Linux, `-Fp` chạy được trên mọi OS
 
 a) 1 giây — phù hợp cho hầu hết production  
 b) 0 — log tất cả query  
-c) 10 giây — quá cao cho production; query 1-3 giây đã ảnh hưởng UX nhưng không bị log; nên đặt 0.5–1 giây  
+c) 10 giây — quá cao cho production
 d) 60 giây — chỉ log query thực sự nghiêm trọng
 
 **Đáp án: c** — Theo MySQL docs, default là 10 giây. Với application web, query 2-3 giây đã làm người dùng thấy chậm (thông thường P95 latency mục tiêu < 500ms). Đặt `long_query_time = 1` để bắt được query cần tối ưu. Kết hợp `log_queries_not_using_indexes = 1` để bắt thêm query thiếu index dù chưa đạt ngưỡng thời gian.
@@ -339,7 +339,7 @@ d) 60 giây — chỉ log query thực sự nghiêm trọng
 
 a) Khi cột đó có kiểu VARCHAR  
 b) Khi bảng có ít hơn 1000 row  
-c) Khi cột có cardinality thấp (ít giá trị phân biệt so với số row, ví dụ: cột gender với 2 giá trị, status với 3-4 giá trị) — index không giúp vì optimizer vẫn phải đọc phần lớn bảng  
+c) Khi cột có cardinality thấp
 d) Khi cột đó đã có NULL value
 
 **Đáp án: c** — Index hữu ích khi giúp lọc xuống phần nhỏ của bảng. Cột `status` có 4 giá trị trong bảng 1M row: mỗi giá trị ~250K row (25%). Với query `WHERE status = 'active'`, optimizer thường chọn Seq Scan vì đọc 250K/1M row qua index sẽ random I/O hơn sequential scan. Cardinality thấp = index waste. Trường hợp ngoại lệ: composite index dùng cột cardinality thấp kết hợp với cột khác.
@@ -349,7 +349,7 @@ d) Khi cột đó đã có NULL value
 **Câu 5**: `EXPLAIN ANALYZE` và `EXPLAIN` trong PostgreSQL khác nhau thế nào?
 
 a) Hoàn toàn giống nhau  
-b) `EXPLAIN` hiển thị estimated cost/rows từ query planner (không chạy query); `EXPLAIN ANALYZE` thực sự chạy query và hiển thị cả estimated lẫn actual rows/time — dùng để phát hiện khi planner estimate sai (rows mismatch lớn = statistics cần cập nhật bằng ANALYZE)  
+b) `EXPLAIN` hiển thị estimated cost/rows từ query planner (không chạy query)
 c) `EXPLAIN ANALYZE` chỉ dùng được cho SELECT, không dùng được cho UPDATE/DELETE  
 d) `EXPLAIN` nhanh hơn vì không cần quyền đặc biệt
 

@@ -284,11 +284,7 @@ trace ID.
 
 **Câu 1**: Elasticsearch cluster status `yellow` vs `red` nghĩa là gì? Cần hành động gì?
 
-a) Yellow: tất cả primary shard assigned và data OK, nhưng ít nhất 1 replica shard chưa được
-   assigned (thường do không đủ node). Không mất data, nhưng nếu node chứa primary shard chết
-   = mất shard đó (không có replica bù). Red: ít nhất 1 primary shard unassigned — có khả năng
-   mất data. Hành động: yellow = xem có đủ node không, cân nhắc giảm replica nếu chỉ có 1
-   node; red = điều tra ngay (GET /_cluster/allocation/explain)
+a) Yellow: tất cả primary shard assigned và data OK, nhưng ít nhất 1 replica shard chưa được assigned (thường do không đủ node)
 b) Yellow nghĩa là cluster sắp hết dung lượng disk; red nghĩa là cluster đã hết dung lượng
    hoàn toàn
 c) Red ít nghiêm trọng hơn yellow vì red chỉ là cảnh báo CPU cao tạm thời
@@ -307,11 +303,7 @@ rệt (loại d).
 để parse? Tại sao?
 
 a) Filebeat — vì Filebeat có sẵn grok pattern mạnh hơn Logstash cho mọi loại log web server
-b) Logstash — Filebeat rất nhẹ, parse cơ bản (JSON, multiline) nhưng không có grok pattern
-   parser mạnh. Logstash có grok filter plugin với hàng trăm pattern dựng sẵn (bao gồm
-   COMBINEDAPACHELOG cho Nginx). Filebeat chỉ ship log; Logstash parse và transform trước khi
-   vào Elasticsearch. Alternative: Elasticsearch Ingest Pipeline (có grok processor) — parse
-   phía Elasticsearch, không cần Logstash riêng
+b) Logstash — Filebeat rất nhẹ, parse cơ bản (JSON, multiline) nhưng không có grok pattern parser mạnh
 c) Dùng Kibana để parse log trực tiếp, không cần Filebeat hay Logstash cho bước này
 d) Cả hai đều không parse được log không phải JSON, phải tự viết script chuyển đổi trước khi
    ingest
@@ -332,10 +324,7 @@ a) Ngày trong tên index chỉ để hiển thị cho dễ đọc trên Kibana,
    retention thật
 b) Elasticsearch tự động nén index cũ theo ngày trong tên, không liên quan tới việc xoá dữ
    liệu
-c) Tạo điều kiện delete theo ngày. Khi hết 30 ngày retention, chỉ cần DELETE
-   /logs-nginx-2026.09.06 — xóa nguyên index thay vì phải delete từng document (cực kỳ chậm
-   với Elasticsearch). ILM policy tự động rollover sang index mới và delete index cũ theo
-   min_age. Đây là pattern chuẩn cho log data — immutable, append-only, xoá theo thời gian
+c) Tạo điều kiện delete theo ngày. Khi hết 30 ngày retention, chỉ cần DELETE /logs-nginx-2026.09.06
 d) Ngày trong tên index bắt buộc phải khớp đúng ngày hệ thống hiện tại, nếu không
    Elasticsearch sẽ từ chối ghi
 

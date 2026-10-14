@@ -237,7 +237,7 @@ Kết quả: 980 connections → 20, database không còn bị áp lực connect
 
 a) MySQL database dùng InnoDB, PostgreSQL database dùng MyISAM  
 b) Không có sự khác biệt — cả hai đều là namespace chứa table  
-c) Trong PostgreSQL, mỗi database là một entity độc lập (khác process khi connect, không query chéo thường); trong MySQL, database là synonym của schema trong cùng một instance  
+c) Trong PostgreSQL, mỗi database là một entity độc lập
 d) PostgreSQL không có khái niệm "database", chỉ có "schema"
 
 **Đáp án: c** — PostgreSQL: database độc lập, kết nối phải chỉ định database, query chéo database cần Foreign Data Wrapper. MySQL: database (=schema) chỉ là namespace trong cùng instance, `USE db2` rồi `SELECT * FROM db1.table1` hoạt động bình thường. Sự khác biệt ảnh hưởng đến cách thiết kế multi-tenant và cách cấp quyền.
@@ -247,7 +247,7 @@ d) PostgreSQL không có khái niệm "database", chỉ có "schema"
 **Câu 2**: Tại sao PostgreSQL cần connection pooler (PgBouncer) hơn MySQL?
 
 a) PostgreSQL không hỗ trợ nhiều connection đồng thời  
-b) PostgreSQL fork một process riêng cho mỗi connection — nhiều connection = nhiều process = tốn nhiều memory hơn so với MySQL dùng thread  
+b) PostgreSQL fork một process riêng cho mỗi connection
 c) PgBouncer là tool của PostgreSQL, MySQL có tool riêng  
 d) PostgreSQL không có connection pool built-in
 
@@ -258,7 +258,7 @@ d) PostgreSQL không có connection pool built-in
 **Câu 3**: `work_mem=4MB` trong PostgreSQL có nghĩa là tổng memory dùng cho sort là 4MB không?
 
 a) Đúng — PostgreSQL chỉ dùng tối đa 4MB tổng cộng cho tất cả sort  
-b) Không — 4MB là per operation, và một query có thể có nhiều sort/hash đồng thời; tổng thực tế = 4MB × số_operation × số_connection  
+b) Không — 4MB là per operation, và một query có thể có nhiều sort/hash đồng thời
 c) Đúng — work_mem áp dụng cho toàn bộ server  
 d) Không — work_mem không liên quan đến sort, chỉ cho aggregate function
 
@@ -269,7 +269,7 @@ d) Không — work_mem không liên quan đến sort, chỉ cho aggregate functi
 **Câu 4**: "Too many connections" error nên được fix bằng cách nào?
 
 a) Chỉ cần tăng max_connections lên đủ cao  
-b) Thêm connection pooler và giảm pool size per application; tăng max_connections chỉ là biện pháp tạm  
+b) Thêm connection pooler và giảm pool size per application
 c) Restart database server để reset connection counter  
 d) Tắt SSL để giảm connection overhead
 

@@ -285,7 +285,7 @@ an toàn.
 **Câu 1**: `terraform plan` và `terraform apply` khác nhau như thế nào?
 
 a) `plan` chạy nhanh hơn vì không cần credentials  
-b) `plan` chỉ đọc state và tính toán diff, không thay đổi hạ tầng; `apply` thực thi diff đó  
+b) `plan` chỉ đọc state và tính toán diff, không thay đổi hạ tầng
 c) `plan` tạo resource tạm, `apply` xác nhận giữ lại  
 d) Hai lệnh giống nhau, `apply` chỉ thêm bước xác nhận
 
@@ -299,8 +299,7 @@ credentials để đọc trạng thái hiện tại từ provider (trừ `terraf
 **Câu 2**: File `terraform.tfstate` chứa gì và tại sao không nên commit lên git public?
 
 a) Chỉ chứa template config — an toàn commit  
-b) Chứa trạng thái resource (ID, IP, metadata) — có thể lộ thông tin nhạy cảm như
-   connection string DB, private key, hoặc cấu hình nội bộ  
+b) Chứa trạng thái resource (ID, IP, metadata)
 c) Chứa credentials AWS/GCP theo mặc định  
 d) File binary, không đọc được nên vô hại
 

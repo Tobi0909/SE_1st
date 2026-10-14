@@ -220,9 +220,7 @@ a) apiserver tự gọi trực tiếp container runtime để start container, k
 b) Controller-manager nhận event này và tự start container thay cho kubelet
 c) Scheduler tiếp tục theo dõi Pod cho tới khi container start xong, kubelet chỉ xử lý khi Pod
    bị xoá
-d) Kubelet trên node đó đang watch apiserver — nó nhận được event "có PodSpec mới với
-   nodeName = node này". Kubelet đọc PodSpec và gọi container runtime (qua CRI) để pull image
-   nếu cần và start container. Kubelet liên tục báo cáo trạng thái Pod về apiserver
+d) Kubelet trên node đó đang watch apiserver — nó nhận được event "có PodSpec mới với nodeName = node này". Kubelet đọc PodSpec và gọi container runtime
 
 **Đáp án: d** — Kubelet trên node đó watch apiserver, nhận event PodSpec mới, gọi container
 runtime qua CRI để start container, rồi báo cáo trạng thái về apiserver. apiserver không tự
@@ -236,11 +234,7 @@ theo dõi quá trình start container (loại c).
 **Câu 2**: etcd bị mất toàn bộ data nhưng container vẫn đang chạy trên các worker node.
 Chuyện gì xảy ra?
 
-a) Container đang chạy không bị dừng ngay (process còn sống trên node). Nhưng toàn bộ object
-   (Pod, Deployment, Service...) trong cluster bị mất — apiserver không còn biết gì về chúng.
-   Nếu container crash, kubelet sẽ không restart theo spec (không có spec nào còn tồn tại).
-   Không thể schedule Pod mới, không có Service networking. Cluster về cơ bản là "dead" dù
-   process còn chạy — phải restore từ etcd backup
+a) Container đang chạy không bị dừng ngay (process còn sống trên node). Nhưng toàn bộ object (Pod, Deployment, Service...) trong cluster bị mất
 b) Toàn bộ container trên worker node sẽ bị kill ngay lập tức vì mất kết nối tới etcd
 c) Kubelet tự động lưu lại bản sao PodSpec cục bộ, không bị ảnh hưởng gì khi etcd mất data
 d) Container vẫn chạy và kubelet vẫn tự restart đúng theo spec cũ vì spec được cache tại node,
@@ -260,11 +254,7 @@ spec gốc không còn tồn tại trong etcd, kubelet KHÔNG tự restart conta
 
 a) Ready=False nghĩa là node đã bị xoá khỏi cluster; Ready=Unknown nghĩa là node mới được
    thêm vào, chưa join xong
-b) Ready=False: kubelet đang contact được apiserver và CHỦ ĐỘNG báo cáo node không healthy
-   (ví dụ thiếu tài nguyên, lỗi cấu hình). Ready=Unknown: apiserver không nhận được heartbeat
-   từ kubelet trong 40 giây — không biết node đang ở trạng thái gì (có thể mất mạng, node bị
-   tắt nguồn, kubelet crash...). Unknown thường nghiêm trọng hơn vì không có thông tin gì để
-   debug từ phía node
+b) Ready=False: kubelet đang contact được apiserver và CHỦ ĐỘNG báo cáo node không healthy (ví dụ thiếu tài nguyên, lỗi cấu hình)
 c) Cả hai có nghĩa giống nhau, chỉ khác cách hiển thị tuỳ phiên bản kubectl
 d) Ready=Unknown nghĩa là kubelet chủ động báo lỗi cấu hình; Ready=False nghĩa là mất heartbeat
 

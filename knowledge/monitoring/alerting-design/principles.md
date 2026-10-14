@@ -237,13 +237,7 @@ gì?
 
 a) Luôn tăng ngưỡng lên 95% ngay, không cần xem xét nguyên nhân cụ thể đang gây fire
 b) Snooze/mute alert vĩnh viễn vì nó chưa từng gây incident thật, không cần điều tra thêm
-c) Tùy thuộc vào context: (a) Nếu disk tăng đều đặn và sẽ đầy trong vài tuần: đây là warning
-   hợp lệ nhưng không cần wake on-call — hạ xuống Slack notification, đặt deadline cleanup;
-   (b) Nếu disk luôn ở 80-85% và ổn định: threshold quá thấp so với capacity planning — tăng
-   ngưỡng lên 90% hoặc alert trên growth rate thay vì absolute level; (c) Nếu disk tăng đột
-   ngột: đây là symptom đáng alert, nhưng cần tìm root cause (log explosion? backup chưa
-   cleanup?) và fix thay vì liên tục snooze. Mọi trường hợp: không nên silently dismiss —
-   hoặc fix nguyên nhân, hoặc điều chỉnh alert cho phù hợp hơn
+c) Tùy thuộc vào context: (a) Nếu disk tăng đều đặn và sẽ đầy trong vài tuần: đây là warning hợp lệ nhưng không cần wake on-call
 d) Luôn xoá hẳn alert này khỏi hệ thống vì nó đã được xác nhận là false positive cố định
 
 **Đáp án: c** — Tuỳ context: hạ mức độ nếu tăng đều đặn chậm, tăng ngưỡng nếu ổn định ở
@@ -262,13 +256,7 @@ a) Cause-based luôn chính xác hơn symptom-based vì đo trực tiếp nguyê
 b) Symptom-based và cause-based là hai tên gọi khác nhau cho cùng một kỹ thuật alerting
 c) Symptom-based chỉ áp dụng được cho hệ thống không có database, cause-based mới áp dụng
    được cho DB
-d) Cause-based: alert theo internal metric không trực tiếp phản ánh user experience — "CPU >
-   80%", "Memory > 70%", "DB connection pool > 80%". Vấn đề: có thể fire khi hệ thống vẫn phục
-   vụ user tốt, tạo noise; cũng có thể KHÔNG fire khi user bị ảnh hưởng (DB slow nhưng
-   connection pool chưa đầy). Symptom-based: alert theo điều user thực sự trải nghiệm —
-   "Error rate > 1%", "P99 latency > 500ms", "Checkout success rate < 99%". Fire khi và chỉ
-   khi user bị ảnh hưởng thật sự. Cause metrics vẫn quan trọng — nhưng để trong dashboard/
-   runbook để diagnose, không phải làm trigger wake on-call
+d) Cause-based: alert theo internal metric không trực tiếp phản ánh user experience
 
 **Đáp án: d** — Cause-based dựa trên internal metric, có thể noise hoặc bỏ sót; symptom-based
 dựa trên trải nghiệm user thật, fire khi và chỉ khi user bị ảnh hưởng. Cause-based CÓ THỂ
@@ -282,12 +270,7 @@ hoặc không có database — sự phân biệt không nằm ở có database h
 **Câu 3**: Alert rule không có `for` clause. Điều gì xảy ra khi có spike ngắn (30 giây) vượt
 ngưỡng?
 
-a) Alert fire ngay khi expression TRUE lần đầu — dù condition chỉ kéo dài 30 giây. Prometheus
-   gửi FIRING đến Alertmanager, Alertmanager gửi notification sau group_wait (default 30s).
-   Nếu spike tự hết trong 30s, Alertmanager đã nhận FIRING và sẽ gửi "resolved" ngay sau.
-   On-call nhận 1 "firing" rồi ngay sau 1 "resolved" — mà không có vấn đề thật nào cần xử lý.
-   Thêm for: 5m sẽ require condition TRUE liên tục 5 phút trước khi fire, loại bỏ spike ngắn
-   không quan trọng
+a) Alert fire ngay khi expression TRUE lần đầu — dù condition chỉ kéo dài 30 giây
 b) Alert sẽ không fire gì cả vì thiếu for clause, Prometheus mặc định yêu cầu for mới cho fire
 c) Alert fire và giữ nguyên trạng thái FIRING mãi mãi dù spike đã hết từ lâu, không bao giờ
    tự resolved

@@ -160,9 +160,7 @@ có khả thi không?
 
 a) Có, Security Group hỗ trợ cả ALLOW và DENY như tường lửa truyền thống
 b) Có, nhưng chỉ khi Security Group được gắn ở cấp VPC thay vì cấp instance
-c) Không. Security Group THEO ĐỊNH NGHĨA chỉ hỗ trợ rule ALLOW (hoạt động theo nguyên lý
-   default-deny — mọi thứ không được allow tường minh đã bị chặn sẵn). Muốn DENY tường minh
-   một nguồn cụ thể, phải dùng Network ACL
+c) Không. Security Group THEO ĐỊNH NGHĨA chỉ hỗ trợ rule ALLOW
 d) Không, vì Security Group không hỗ trợ lọc theo IP, chỉ lọc theo port
 
 **Đáp án: c** — Không. Security Group THEO ĐỊNH NGHĨA chỉ hỗ trợ rule ALLOW (hoạt động theo
@@ -180,8 +178,7 @@ Network ACL theo thứ tự nào?
 a) Security Group (cấp instance) TRƯỚC, Network ACL (cấp subnet) SAU
 b) Cả hai được kiểm tra đồng thời, traffic chỉ cần qua một trong hai là được phép
 c) Thứ tự phụ thuộc vào cấu hình routing table, không cố định theo cấp subnet/instance
-d) Network ACL (cấp subnet) TRƯỚC, Security Group (cấp instance) SAU — traffic bị NACL chặn sẽ
-   không bao giờ tới được Security Group để kiểm tra tiếp
+d) Network ACL (cấp subnet) TRƯỚC, Security Group
 
 **Đáp án: d** — Network ACL (cấp subnet) TRƯỚC, Security Group (cấp instance) SAU — traffic bị
 NACL chặn sẽ không bao giờ tới được Security Group để kiểm tra tiếp. Thứ tự thực tế đi từ
@@ -213,9 +210,7 @@ stateful áp dụng cho MỌI port, không chỉ port 80 đặc biệt (loại d
 ephemeral port. Điều gì xảy ra?
 
 a) Request cũng không tới được instance vì thiếu outbound tương ứng ngay từ đầu
-b) Request tới được instance, nhưng RESPONSE không gửi ra được cho client — vì Network ACL là
-   STATELESS, không tự nhận biết "đây là response", cần rule outbound riêng cho phép dải
-   ephemeral port (thường client dùng để nhận response)
+b) Request tới được instance, nhưng RESPONSE không gửi ra được cho client
 c) Không có gì xảy ra, Network ACL tự động suy ra dải ephemeral cần mở dựa trên rule inbound
    đã có
 d) Request tới instance và response gửi ra bình thường vì NACL chỉ áp dụng cho chiều inbound
@@ -234,9 +229,7 @@ khai tường minh (loại c); NACL áp dụng cho CẢ hai chiều inbound và 
 
 a) Có, vì rule ALLOW luôn được ưu tiên hơn rule DENY bất kể số thứ tự
 b) Có, vì rule số 100 cụ thể hơn (chỉ TCP 443) nên được xét trước rule số 50 (áp dụng "all")
-c) Không — Network ACL xét rule theo THỨ TỰ SỐ tăng dần, dừng ở rule ĐẦU TIÊN khớp. Rule `50
-   DENY all` khớp TRƯỚC (số nhỏ hơn, mọi traffic đều khớp "all") và chặn ngay, traffic không
-   bao giờ được xét tới rule `100`
+c) Không — Network ACL xét rule theo THỨ TỰ SỐ tăng dần, dừng ở rule ĐẦU TIÊN khớp
 d) Không thể xác định nếu không biết thêm rule outbound tương ứng
 
 **Đáp án: c** — Không — Network ACL xét rule theo THỨ TỰ SỐ tăng dần, dừng ở rule ĐẦU TIÊN

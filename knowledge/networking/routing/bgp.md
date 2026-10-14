@@ -164,8 +164,7 @@ selection, không dùng đồng thời mọi route hợp lệ (loại d).
 
 a) Vì iBGP không hỗ trợ TCP, cần route-reflector làm trung gian chuyển đổi giao thức
 b) Vì full-mesh/route-reflector giúp giảm số AS-PATH cần quảng bá ra ngoài AS
-c) Route học qua iBGP không được re-advertise tiếp cho một iBGP peer khác (chống loop), nên cần
-   mọi router iBGP nối trực tiếp nhau hoặc dùng route-reflector để route vẫn lan tới toàn AS
+c) Route học qua iBGP không được re-advertise tiếp cho một iBGP peer khác
 d) Vì mỗi router iBGP chỉ được phép giữ tối đa 1 route trong bảng BGP, cần route-reflector tổng
    hợp
 

@@ -236,10 +236,7 @@ Sau 20 phút scale consumer, lag về 0. DLQ message được reprocess sau khi 
 
 a) Vì Kafka không có khái niệm xoá dữ liệu dưới bất kỳ hình thức nào, message tồn tại vĩnh
    viễn không giới hạn
-b) Kafka là log-based — message được lưu theo retention policy (thời gian hoặc size), không
-   theo trạng thái consumed. Điều này cho phép: (1) nhiều consumer group đọc độc lập cùng
-   topic, (2) consumer có thể replay về offset cũ để xử lý lại. RabbitMQ thì xoá message sau
-   khi consumer ack — phù hợp cho task queue nơi mỗi task chỉ cần xử lý một lần
+b) Kafka là log-based — message được lưu theo retention policy (thời gian hoặc size), không theo trạng thái consumed. Điều này cho phép
 c) Vì consumer trong Kafka không gửi ack nên broker không biết khi nào an toàn để xoá
 d) Vì RabbitMQ cũng giữ nguyên message sau khi đọc giống Kafka, không có khác biệt thật nào
    giữa 2 hệ thống
@@ -259,10 +256,7 @@ a) Consumer lag là thời gian broker Kafka bị downtime, giảm lag bằng c�
    thường xuyên hơn
 b) Consumer lag là số lượng consumer group đang active cùng lúc, giảm lag bằng cách giảm số
    consumer group
-c) Consumer lag = khoảng cách giữa offset cuối cùng trong partition và offset consumer đã
-   commit. Lag tăng nghĩa là consumer đang xử lý chậm hơn producer. Giảm lag bằng: scale
-   consumer (không vượt số partition), tăng partition để tăng parallelism, tối ưu logic xử
-   lý, hoặc batch processing
+c) Consumer lag = khoảng cách giữa offset cuối cùng trong partition và offset consumer đã commit
 d) Consumer lag chỉ xảy ra khi dùng RabbitMQ chứ không xảy ra trong Kafka vì Kafka không có
    khái niệm offset
 
@@ -281,9 +275,7 @@ a) Vì mỗi consumer chỉ được phép đọc tối đa 1 message mỗi giâ
 b) Vì Kafka giới hạn cứng số consumer tối đa là bằng số broker, không liên quan tới partition
 c) Vì nhiều consumer hơn partition sẽ làm Kafka tự động tạo thêm partition mới để cân bằng
    tải
-d) Mỗi partition chỉ được assign cho 1 consumer trong 1 group tại 1 thời điểm (để đảm bảo
-   ordering và exactly-once semantics). Nếu có nhiều consumer hơn partition, consumer thừa sẽ
-   idle — không có partition để đọc. Số partition là giới hạn parallelism của consumer group
+d) Mỗi partition chỉ được assign cho 1 consumer trong 1 group tại 1 thời điểm (để đảm bảo ordering và exactly-once semantics)
 
 **Đáp án: d** — Mỗi partition chỉ gán cho 1 consumer/group tại 1 thời điểm; consumer thừa sẽ
 idle. Số partition giới hạn parallelism. Không có giới hạn tốc độ "1 message/giây" nào trong
@@ -296,10 +288,7 @@ partition khi thêm consumer — số partition là giá trị cấu hình cố 
 
 **Câu 4**: Dead letter queue (DLQ) trong RabbitMQ là gì? Khi nào message bị chuyển vào DLQ?
 
-a) DLQ là queue đặc biệt nhận message bị từ chối. Message vào DLQ khi: consumer nack với
-   requeue=false, message hết TTL (x-message-ttl), hoặc queue đầy (x-overflow: dead-letter).
-   DLQ dùng để debug message thất bại mà không làm mất — team có thể inspect, sửa code, rồi
-   requeue lại
+a) DLQ là queue đặc biệt nhận message bị từ chối. Message vào DLQ khi: consumer nack với requeue=false, message hết TTL
 b) DLQ là queue chính dùng để xử lý message bình thường, không phải nơi chứa message lỗi
 c) Message vào DLQ chỉ khi admin xoá queue gốc thủ công, không có cơ chế tự động nào khác
 d) DLQ chỉ tồn tại trong Kafka, RabbitMQ không hỗ trợ khái niệm dead letter queue
@@ -316,10 +305,7 @@ niệm CÓ trong RabbitMQ (qua `x-dead-letter-exchange`), không phải chỉ ri
 
 a) Chọn Kafka khi cần routing linh hoạt (fanout, topic, headers); chọn RabbitMQ khi cần
    replay/audit trail
-b) Chọn Kafka khi: cần throughput cao (>10k msg/s), cần replay/audit trail (event sourcing),
-   nhiều consumer group đọc cùng topic (streaming pipeline), hoặc cần retention dài (log
-   aggregation). Chọn RabbitMQ khi: cần routing linh hoạt (fanout, topic, headers), workflow
-   với ack/nack/retry built-in, hoặc task queue đơn giản với throughput vừa phải
+b) Chọn Kafka khi: cần throughput cao (>10k msg/s), cần replay/audit trail (event sourcing), nhiều consumer group đọc cùng topic
 c) Luôn chọn Kafka cho mọi trường hợp vì Kafka vượt trội hoàn toàn RabbitMQ về mọi mặt
 d) Cả hai hoàn toàn tương đương, lựa chọn chỉ dựa vào sở thích cá nhân của team
 

@@ -234,9 +234,7 @@ rolling update, bao nhiêu Pod có thể cùng tồn tại tại thời điểm 
 
 a) Tối đa 3 Pod, vì maxSurge chỉ áp dụng khi scale thủ công, không áp dụng cho rolling update
 b) Tối đa 2 Pod, vì maxUnavailable giới hạn tổng số Pod tồn tại cùng lúc xuống còn 2
-c) Tối đa 4 Pod (3 + maxSurge 1). Tối thiểu 2 Pod available (3 - maxUnavailable 1). Trong giai
-   đoạn giữa: có thể có 2 Pod cũ + 2 Pod mới = 4 Pod cùng tồn tại, với 2 Pod ready phục vụ
-   traffic
+c) Tối đa 4 Pod (3 + maxSurge 1). Tối thiểu 2 Pod available (3 - maxUnavailable 1)
 d) Tối đa 6 Pod, vì cả Pod cũ (3) và Pod mới (3) tồn tại song song cho tới khi rollout hoàn tất
 
 **Đáp án: c** — Tối đa 4 Pod (3 + maxSurge 1). Tối thiểu 2 Pod available (3 - maxUnavailable
@@ -253,10 +251,7 @@ a) Khi cần rollout nhanh hơn RollingUpdate về tốc độ, không liên qua
    phiên bản
 b) Khi cluster chỉ có đúng 1 node, RollingUpdate không hoạt động được trên cluster 1 node
 c) Khi ứng dụng cần zero-downtime tuyệt đối, Recreate đảm bảo điều này tốt hơn RollingUpdate
-d) Khi ứng dụng KHÔNG thể chạy cả phiên bản cũ lẫn mới cùng lúc: database schema migration phá
-   vỡ backward compatibility (v2 đổi schema theo cách v1 không đọc được), hoặc ứng dụng dùng
-   lock/singleton không hỗ trợ chạy nhiều instance cùng lúc. Recreate có downtime nhưng đơn
-   giản và tránh vấn đề split-brain
+d) Khi ứng dụng KHÔNG thể chạy cả phiên bản cũ lẫn mới cùng lúc: database schema migration phá vỡ backward compatibility
 
 **Đáp án: d** — Khi ứng dụng KHÔNG thể chạy cả phiên bản cũ lẫn mới cùng lúc (schema migration
 phá vỡ backward compat, hoặc lock/singleton). Recreate có downtime nhưng tránh split-brain.
@@ -270,9 +265,7 @@ giới hạn bởi resource capacity (loại b); `Recreate` có DOWNTIME, hoàn 
 **Câu 3**: ReplicaSet cũ (rs-v1) bị scale về 0 sau khi rolling update hoàn tất — tại sao K8s
 không xoá nó luôn?
 
-a) Để phục vụ rollback. Deployment giữ lại N revision cũ (mặc định revisionHistoryLimit: 10)
-   dưới dạng ReplicaSet với 0 replica. Khi kubectl rollout undo được gọi, Deployment chỉ cần
-   scale rs-v1 từ 0 lên và scale rs-v2 về 0 — nhanh hơn tạo lại từ đầu
+a) Để phục vụ rollback. Deployment giữ lại N revision cũ
 b) Vì K8s không có quyền xoá ReplicaSet đã từng chạy, chỉ có thể scale về 0
 c) Vì xoá ReplicaSet sẽ làm mất luôn Service đang trỏ tới Pod của ReplicaSet đó
 d) Vì ReplicaSet cũ vẫn cần giữ lại để làm template cho HPA tính toán scale tiếp theo

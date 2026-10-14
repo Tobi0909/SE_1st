@@ -283,7 +283,7 @@ history. Secret bị expose cần được **rotate** (vô hiệu hóa credentia
 **Câu 2**: Vault ở trạng thái "Sealed" nghĩa là gì?
 
 a) Vault đang bị tấn công và tự động khóa  
-b) Vault chưa được unseal sau khi khởi động — không thể đọc hoặc ghi bất kỳ secret nào  
+b) Vault chưa được unseal sau khi khởi động
 c) Vault đang trong chế độ maintenance  
 d) Các client không thể kết nối tới Vault API
 
@@ -297,7 +297,7 @@ kế có chủ ý: nếu server bị restart bất ngờ, secret không tự đ�
 **Câu 3**: Envelope encryption trong KMS hoạt động như thế nào?
 
 a) KMS mã hóa trực tiếp toàn bộ dữ liệu cần lưu  
-b) App tạo DEK ngẫu nhiên để mã hóa data, KMS mã hóa DEK bằng master key — chỉ encrypted_DEK gửi lên KMS  
+b) App tạo DEK ngẫu nhiên để mã hóa data, KMS mã hóa DEK bằng master key
 c) KMS tạo một copy mã hóa của toàn bộ dữ liệu để backup  
 d) Data được mã hóa hai lần: một lần bằng app key, một lần bằng KMS key
 

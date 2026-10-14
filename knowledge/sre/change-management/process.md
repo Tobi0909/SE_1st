@@ -269,7 +269,7 @@ mở rộng dần. Trade-off: deploy mất thời gian hơn, nhưng safer cho cr
 
 a) Nhẹ hơn code change vì không cần build/deploy  
 b) Nhanh hơn code change vì không cần test  
-c) Cùng quy trình với code change — review, staging test, rollback plan  
+c) Cùng quy trình với code change
 d) Chỉ cần thông báo sau khi thay đổi xong
 
 **Đáp án: c** — Config change là nguồn gây incident thường bị đánh giá thấp vì không cần CI/CD.

@@ -200,10 +200,7 @@ d) `r--` (chỉ đọc) — quyền hiệu lực là GIAO của entry và mask, 
 **Câu 2**: Vì sao ACL, extended attribute, và file attribute (immutable...) được coi là BA cơ
 chế khác nhau dù đều "thêm thông tin" vào file ngoài permission rwx cơ bản?
 
-a) ACL là MỞ RỘNG của permission truyền thống (vẫn là quyền đọc/viết/thực thi, chi tiết hơn
-   theo user/group cụ thể). Extended attribute là metadata TÙY Ý, không nhất thiết liên quan
-   quyền truy cập. File attribute (immutable, append-only...) là CỜ ở TẦNG FILESYSTEM, hoạt
-   động độc lập hoàn toàn với permission/owner/ACL
+a) ACL là MỞ RỘNG của permission truyền thống (vẫn là quyền đọc/viết/thực thi, chi tiết hơn theo user/group cụ thể)
 b) Vì mỗi cơ chế chỉ hoạt động trên 1 loại filesystem riêng (ACL cho ext4, xattr cho XFS,
    file attribute cho Btrfs)
 c) Vì ACL và extended attribute thực chất là một cơ chế, chỉ file attribute mới thực sự khác
@@ -239,8 +236,7 @@ ACL trên file đích có giữ nguyên không?
 
 a) Có, `rsync` luôn giữ nguyên toàn bộ ACL/xattr theo mặc định, kể cả không truyền cờ gì
 b) Không, và không có cách nào để `rsync` giữ lại ACL dù dùng cờ nào
-c) Không, theo mặc định. Cần cờ `-A` (giữ ACL) hoặc `-X` (giữ xattr) với `rsync` để chủ động
-   yêu cầu giữ lại các metadata mở rộng này
+c) Không, theo mặc định. Cần cờ `-A` (giữ ACL) hoặc `-X`
 d) Có, nhưng chỉ khi file đích cùng user/group với file nguồn — khác thì ACL tự mất
 
 **Đáp án: c** — Không, theo mặc định. Cần cờ `-A` (giữ ACL) hoặc `-X` (giữ xattr) với `rsync`
@@ -257,9 +253,7 @@ a) Vì đổi group/permission chung yêu cầu reboot để áp dụng, còn AC
 b) Vì ACL nhanh hơn `chmod`/`chgrp` về mặt hiệu năng xử lý khi file rất lớn
 c) Vì group/permission chung chỉ hỗ trợ tối đa 1 user mỗi file, ACL hỗ trợ không giới hạn số
    user
-d) ACL cho phép cấp quyền CHÍNH XÁC cho MỘT user cụ thể mà KHÔNG cần thay đổi group/permission
-   chung của file — tránh vô tình cấp dư quyền cho user chỉ cần đọc, giữ đúng nguyên tắc least
-   privilege
+d) ACL cho phép cấp quyền CHÍNH XÁC cho MỘT user cụ thể mà KHÔNG cần thay đổi group/permission chung của file
 
 **Đáp án: d** — ACL cho phép cấp quyền CHÍNH XÁC cho MỘT user cụ thể mà KHÔNG cần thay đổi
 group/permission chung của file — tránh vô tình cấp dư quyền (ví dụ cấp cả quyền viết nếu

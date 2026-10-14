@@ -239,10 +239,7 @@ Kết quả: zero lần hit Docker Hub trong tuần tiếp theo; build time gi�
 **Câu 1**: Sự khác biệt giữa image tag và image digest trong Docker là gì? Khi nào nên dùng
 digest thay vì tag?
 
-a) Tag là mutable reference — cùng tag nginx:1.25 có thể trỏ đến image khác nhau nếu
-   maintainer re-push. Digest (sha256:...) là immutable — luôn tương ứng với đúng một bộ
-   layer. Dùng digest trong production deployment để đảm bảo không có drift giữa staging và
-   production, và để rollback có thể lấy lại đúng image đã test
+a) Tag là mutable reference — cùng tag nginx:1.25 có thể trỏ đến image khác nhau nếu maintainer re-push. Digest
 b) Digest là mutable reference có thể đổi; tag là immutable luôn cố định
 c) Tag và digest hoàn toàn giống nhau, chỉ khác độ dài chuỗi ký tự
 d) Chỉ nên dùng tag trong production vì digest không được Docker Hub hỗ trợ cho image public
@@ -258,9 +255,7 @@ rệt (mutable vs immutable), không chỉ khác độ dài (loại c); digest �
 **Câu 2**: Registry loại "proxy" trong Nexus khác loại "hosted" thế nào?
 
 a) Hosted kết nối remote registry và cache; proxy lưu artifact do team tự build
-b) Hosted lưu artifact do team tự build/upload. Proxy kết nối đến remote registry (Docker
-   Hub, Maven Central) và cache kết quả — client kéo qua Nexus nhưng Nexus tự đi fetch nếu
-   chưa có. Group hợp nhất nhiều repo (hosted + proxy) dưới một URL duy nhất
+b) Hosted lưu artifact do team tự build/upload. Proxy kết nối đến remote registry
 c) Cả hai loại hoàn toàn giống nhau, chỉ khác giao diện quản trị
 d) Proxy chỉ dùng được cho Maven, không hỗ trợ Docker image
 
@@ -277,9 +272,7 @@ chạy?
 
 a) Vì xoá tag sẽ tự động xoá cả blob layer ngay lập tức, GC chỉ dọn file log thừa
 b) GC chỉ cần chạy đúng 1 lần duy nhất khi mới cài registry, sau đó không cần chạy lại nữa
-c) Khi xoá tag hoặc manifest, registry chỉ xoá metadata; blob (layer data) vẫn còn trên disk
-   vì có thể được tham chiếu bởi image khác. GC quét tìm blob không còn được tham chiếu và
-   xoá chúng. Nếu không chạy GC, disk sẽ đầy dần theo thời gian dù số lượng image logic ít
+c) Khi xoá tag hoặc manifest, registry chỉ xoá metadata; blob (layer data) vẫn còn trên disk vì có thể được tham chiếu bởi image khác
 d) Không chạy GC sẽ khiến registry crash ngay lập tức khi push image mới, không liên quan
    tới dung lượng disk
 
@@ -297,10 +290,7 @@ a) Xoá Pod và tạo lại ngay, ImagePullBackOff luôn tự hết sau khi recr
 b) Restart toàn bộ node đang chạy Pod đó, lỗi image luôn liên quan tới node bị lỗi
 c) Tăng resources.limits.memory của Pod lên cao hơn, ImagePullBackOff thường do thiếu RAM
    khi pull image
-d) Chạy kubectl describe pod <name> để xem Events — thường thấy rõ lý do (registry không
-   tồn tại, credential sai, image tag không tồn tại). Kiểm tra Secret imagePullSecrets có
-   đúng namespace không, credential có còn hạn không. Thử docker pull thủ công từ máy có cùng
-   credential để xác nhận lỗi
+d) Chạy kubectl describe pod <name> để xem Events — thường thấy rõ lý do (registry không tồn tại, credential sai, image tag không tồn tại)
 
 **Đáp án: d** — `kubectl describe pod` xem Events để biết lý do cụ thể; kiểm tra
 `imagePullSecrets`; thử `docker pull` thủ công xác nhận. Xoá/tạo lại Pod không tự giải quyết
@@ -313,10 +303,7 @@ container (loại c).
 
 **Câu 5**: Tại sao không nên dùng `insecure-registries` trong production?
 
-a) insecure-registries cho phép Docker kết nối HTTP (không mã hóa) hoặc bỏ qua xác minh TLS.
-   Điều này mở ra tấn công man-in-the-middle: kẻ tấn công có thể thay thế image khi đang
-   truyền. Registry production phải có TLS hợp lệ; insecure-registries chỉ chấp nhận cho môi
-   trường dev/test hoàn toàn tách biệt
+a) insecure-registries cho phép Docker kết nối HTTP (không mã hóa) hoặc bỏ qua xác minh TLS
 b) Vì insecure-registries làm giảm tốc độ pull image đáng kể do phải mã hoá lại nhiều lần
 c) insecure-registries chỉ là flag hiển thị cảnh báo trên log, không ảnh hưởng gì tới bảo
    mật thật

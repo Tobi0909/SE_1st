@@ -201,8 +201,7 @@ a) Có, bất kỳ swap used > 0 đều là dấu hiệu RAM không đủ, cần
 b) Không, swap chỉ được dùng khi RAM đã hoàn toàn đầy 100% — 200MB ổn định nghĩa là RAM đã
    hết sạch
 c) Có, nhưng chỉ cần nâng cấp nếu swap used vượt quá 500MB — dưới mức đó không đáng lo
-d) Không nhất thiết — một lần swap ra rồi ổn định có thể là kernel tối ưu hợp lý. Chỉ đáng
-   lo khi swap TĂNG LIÊN TỤC hoặc có hoạt động `si`/`so` tích cực (thrashing)
+d) Không nhất thiết — một lần swap ra rồi ổn định có thể là kernel tối ưu hợp lý
 
 **Đáp án: d** — Không nhất thiết — một lần swap ra rồi ổn định có thể là kernel tối ưu hợp
 lý (đẩy trang nhớ ít dùng ra để dành RAM cho dữ liệu tích cực hơn). Chỉ đáng lo khi swap TĂNG
@@ -213,9 +212,7 @@ LIÊN TỤC hoặc có hoạt động `si`/`so` tích cực (thrashing).
 **Câu 4**: Một ứng dụng bị OOM killer giết. Hành động "restart ứng dụng" có giải quyết được
 nguyên nhân gốc không?
 
-a) Không — restart chỉ xử lý TRIỆU CHỨNG (process đã chết). Nếu nguyên nhân là memory leak
-   hoặc tải thật sự vượt khả năng RAM, vấn đề sẽ LẶP LẠI. Cần điều tra xu hướng RAM trước khi
-   OOM xảy ra để tìm đúng nguyên nhân gốc
+a) Không — restart chỉ xử lý TRIỆU CHỨNG (process đã chết)
 b) Có, restart luôn giải quyết hoàn toàn vì process mới khởi động lại từ bộ nhớ sạch
 c) Có, nhưng chỉ nếu restart kèm theo tăng `oom_score_adj` cho process đó ngay sau khi chạy
    lại
@@ -230,8 +227,7 @@ trước khi OOM xảy ra để tìm đúng nguyên nhân gốc.
 **Câu 5**: Vì sao `oom_score` của PID 1 (`systemd`/init) luôn ở mức thấp nhất có thể?
 
 a) Vì PID 1 luôn dùng ít RAM nhất trong mọi hệ thống, nên tự nhiên có `oom_score` thấp
-b) Vì PID 1 là tiến trình init — nếu bị giết, toàn bộ hệ thống sẽ sập. Kernel tự bảo vệ
-   tuyệt đối PID 1 khỏi bị OOM killer chọn, bất kể lượng RAM nó dùng
+b) Vì PID 1 là tiến trình init — nếu bị giết, toàn bộ hệ thống sẽ sập
 c) Vì PID 1 có `oom_score_adj` mặc định là `-500`, giống mọi process hệ thống khác
 d) Vì PID 1 chạy trong namespace riêng biệt, không nằm trong phạm vi tính toán của OOM
    killer

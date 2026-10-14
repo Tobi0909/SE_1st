@@ -202,9 +202,7 @@ b) Lần gọi thứ hai sẽ tạo lại đơn hàng 42 mới, vì DELETE luôn
    tự
 c) Lần gọi thứ hai an toàn chỉ vì server tự động phát hiện trùng request nhờ cơ chế idempotency
    key bắt buộc trong chuẩn HTTP
-d) Lần gọi thứ hai vẫn trả kết quả "thành công" theo nghĩa đơn hàng 42 vẫn không tồn tại —
-   không gây lỗi hay tác dụng phụ thêm, vì DELETE là idempotent. Đây là lý do retry tự động an
-   toàn với DELETE/PUT nhưng KHÔNG an toàn với POST
+d) Lần gọi thứ hai vẫn trả kết quả "thành công" theo nghĩa đơn hàng 42 vẫn không tồn tại — không gây lỗi hay tác dụng phụ thêm, vì DELETE là idempotent
 
 **Đáp án: d** — Lần gọi thứ hai vẫn trả kết quả "thành công" theo nghĩa đơn hàng 42 vẫn không
 tồn tại — không gây lỗi hay tác dụng phụ thêm, vì DELETE là idempotent. Đây là lý do retry tự
@@ -219,9 +217,7 @@ trong chuẩn HTTP" — tính an toàn của DELETE đến từ ĐỊNH NGHĨA m
 **Câu 2**: Client nhận `504 Gateway Timeout`. Vấn đề nằm ở PROXY hay BACKEND? Nên điều tra ở
 đâu trước?
 
-a) Về bản chất là PROXY tạo ra mã lỗi này (vì backend không phản hồi kịp trong thời gian chờ
-   proxy quy định), nhưng NGUYÊN NHÂN GỐC thường nằm ở BACKEND (quá chậm xử lý) — nên điều tra
-   hiệu năng backend (query DB, lock, tải) trước, không chỉ xem log proxy
+a) Về bản chất là PROXY tạo ra mã lỗi này (vì backend không phản hồi kịp trong thời gian chờ proxy quy định), nhưng NGUYÊN NHÂN GỐC thường nằm ở BACKEND
 b) Luôn là lỗi của proxy, cần tăng timeout cấu hình trên proxy ngay mà không cần xem backend
 c) Luôn là lỗi của backend, proxy chỉ đơn thuần forward request không liên quan gì tới mã lỗi
    này
@@ -240,9 +236,7 @@ tra backend trước vì đó thường là nguyên nhân gốc (loại d).
 hai đều "sửa" tài nguyên?
 
 a) PUT chỉ sửa một phần, PATCH thay thế toàn bộ tài nguyên
-b) PUT THAY THẾ TOÀN BỘ tài nguyên bằng dữ liệu gửi lên (field không gửi coi như bị xoá/reset).
-   PATCH chỉ sửa MỘT PHẦN, giữ nguyên field không được đề cập. Dùng sai có thể vô tình xoá dữ
-   liệu (dùng PUT khi ý định là PATCH) hoặc không áp dụng đúng thay đổi một phần
+b) PUT THAY THẾ TOÀN BỘ tài nguyên bằng dữ liệu gửi lên (field không gửi coi như bị xoá/reset)
 c) Cả hai hoàn toàn tương đương về hành vi, chỉ khác tên gọi theo convention của từng framework
 d) PUT chỉ dùng được cho JSON, PATCH chỉ dùng được cho form-data
 
@@ -281,9 +275,7 @@ b) Vì HTTP không hỗ trợ truyền method POST qua redirect dưới bất k�
    cấm hoàn toàn
 c) Vì 301 chỉ áp dụng cho GET theo đúng chuẩn RFC, các method khác sẽ bị server trả lỗi 405
    ngay khi redirect
-d) Nhiều client/thư viện HTTP tự đổi method thành GET khi theo 301/302 redirect (hành vi lịch
-   sử, dù không bắt buộc theo spec) — request POST gốc có thể bị mất dữ liệu hoặc không tới
-   đúng endpoint xử lý khi đi qua redirect này. Nên gọi thẳng HTTPS ngay từ đầu
+d) Nhiều client/thư viện HTTP tự đổi method thành GET khi theo 301/302 redirect (hành vi lịch sử, dù không bắt buộc theo spec)
 
 **Đáp án: d** — Nhiều client/thư viện HTTP tự đổi method thành GET khi theo 301/302 redirect
 (hành vi lịch sử, dù không bắt buộc theo spec) — request POST gốc có thể bị mất dữ liệu hoặc

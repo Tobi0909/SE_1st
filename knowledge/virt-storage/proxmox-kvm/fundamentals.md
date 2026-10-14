@@ -284,7 +284,7 @@ VM cho thấy `%wa` (I/O wait) thường xuyên 60-80%. Host Linux chạy bình 
 
 a) KVM và QEMU là cùng một phần mềm  
 b) KVM là hypervisor thương mại, QEMU là open source  
-c) KVM là module Linux kernel cung cấp CPU virtualization (khai thác Intel VT-x/AMD-V); QEMU là process userspace thực hiện device emulation (disk, NIC, BIOS) và dùng KVM để execute VM CPU code — cả hai cùng làm việc cho một VM  
+c) KVM là module Linux kernel cung cấp CPU virtualization (khai thác Intel VT-x/AMD-V)
 d) QEMU chỉ dùng để emulate ARM trên x86, không liên quan đến KVM
 
 **Đáp án: c** — KVM một mình không thể chạy VM (chỉ là kernel module). QEMU một mình emulate toàn bộ bằng software (chậm). Kết hợp: QEMU dùng `/dev/kvm` để CPU code chạy native, chỉ dùng software emulation cho device I/O. Đây là lý do đúng khi nói "KVM/QEMU" như một cặp.
@@ -294,7 +294,7 @@ d) QEMU chỉ dùng để emulate ARM trên x86, không liên quan đến KVM
 **Câu 2**: Tại sao VirtIO disk nhanh hơn emulated SATA/IDE trong KVM?
 
 a) VirtIO dùng phần cứng đặc biệt, không cần software  
-b) VirtIO disk driver trong guest biết mình đang ảo hóa — giao tiếp trực tiếp với QEMU backend qua interface tối ưu thay vì phải emulate toàn bộ SATA/IDE controller với tất cả register và interrupt phức tạp của nó  
+b) VirtIO disk driver trong guest biết mình đang ảo hóa
 c) VirtIO chỉ hoạt động với SSD  
 d) VirtIO tắt tất cả cache để tăng tốc
 
@@ -305,7 +305,7 @@ d) VirtIO tắt tất cả cache để tăng tốc
 **Câu 3**: `qemu-img create -f qcow2 vm.qcow2 50G` tạo file bao nhiêu GB trên disk?
 
 a) 50 GB ngay lập tức  
-b) ~196 KB — qcow2 thin provision, chỉ lưu overhead metadata; thực tế disk usage tăng khi VM ghi data  
+b) ~196 KB — qcow2 thin provision, chỉ lưu overhead metadata
 c) 25 GB (nửa kích thước khai báo)  
 d) Phụ thuộc vào filesystem của host
 
@@ -318,7 +318,7 @@ d) Phụ thuộc vào filesystem của host
 a) Để chạy 64-bit OS trong VM  
 b) Để kết nối VM vào mạng  
 c) Để bật nested virtualization  
-d) Để KVM execute VM CPU code trực tiếp trên phần cứng mà không cần software emulation toàn bộ — thiếu VT-x thì KVM không hoạt động, chỉ QEMU software emulation (chậm 10-100x)
+d) Để KVM execute VM CPU code trực tiếp trên phần cứng mà không cần software emulation toàn bộ
 
 **Đáp án: d** — Intel VT-x (VMX = Virtual Machine Extensions) là tập lệnh mở rộng cho phép CPU chạy "guest mode" — guest code chạy trực tiếp trên CPU nhưng trong sandbox, hypervisor chỉ can thiệp khi cần. Thiếu VT-x (hoặc bị disabled trong BIOS), KVM module không thể activate, `/dev/kvm` không tồn tại. QEMU vẫn chạy được nhưng pure software emulation — vài lần chậm hơn.
 
@@ -326,7 +326,7 @@ d) Để KVM execute VM CPU code trực tiếp trên phần cứng mà không c�
 
 **Câu 5**: Backing file trong qcow2 dùng để làm gì?
 
-a) Để link file qcow2 vào một "base image" — VM chỉ lưu phần khác biệt so với base, cho phép clone nhanh nhiều VM từ cùng template mà không copy toàn bộ base image  
+a) Để link file qcow2 vào một "base image"
 b) Để backup VM tự động  
 c) Để replicate VM sang host khác  
 d) Để tăng tốc độ đọc bằng cách cache trên backing device

@@ -230,11 +230,7 @@ không?
 
 a) kubectl logs đọc trực tiếp từ etcd, nơi K8s lưu toàn bộ log của mọi Pod từng tồn tại
 b) Có, luôn lấy được log của Pod đã xoá miễn là cluster còn chạy, không cần công cụ gì thêm
-c) kubectl logs đọc stdout/stderr của container từ file trên node (/var/log/pods/...). Khi
-   Pod bị xoá, kubelet dọn log file đó — không còn lấy được. Chỉ lấy được log của: (1)
-   container đang chạy; (2) container vừa crash/restart (lần crash ngay trước với --previous).
-   Để xem log của Pod đã bị xoá hoàn toàn, cần centralized logging (Loki, Elasticsearch, Cloud
-   Logging) đã ship log ra ngoài trước khi Pod bị xoá
+c) kubectl logs đọc stdout/stderr của container từ file trên node (/var/log/pods/...)
 d) kubectl logs đọc log từ registry image, không liên quan tới runtime thật của container
 
 **Đáp án: c** — `kubectl logs` đọc file trên node (`/var/log/pods/...`). Pod bị xoá thì
@@ -252,9 +248,7 @@ Tại sao và cách lấy tất cả 10?
 a) Vì label selector chỉ khớp được tối đa 5 Pod theo thiết kế, cần chia thành 2 label riêng
 b) Vì 5 Pod còn lại chưa start xong container, chưa có log nào để hiển thị
 c) Vì kubectl logs chỉ hỗ trợ hiển thị log của Pod trong cùng 1 node, 5 Pod kia ở node khác
-d) Mặc định kubectl logs với label selector giới hạn tối đa 5 container (safety limit để
-   tránh apiserver overload). Để lấy log từ tất cả 10 Pod: thêm --max-log-requests=10 (hoặc
-   số lớn hơn). Hoặc dùng centralized logging để aggregation không qua kubectl
+d) Mặc định kubectl logs với label selector giới hạn tối đa 5 container (safety limit để tránh apiserver overload)
 
 **Đáp án: d** — Mặc định giới hạn tối đa 5 container (safety limit). Thêm
 `--max-log-requests=10` để lấy đủ. Label selector không có giới hạn khớp 5 Pod — nó khớp được
@@ -267,11 +261,7 @@ qua mọi node trong cluster (loại c).
 
 **Câu 3**: Event TTL mặc định của K8s là bao lâu? Tại sao không nên set TTL quá dài?
 
-a) Mặc định 1 giờ (--event-ttl=1h ở kube-apiserver). Không nên set quá dài vì Events được
-   lưu trong etcd — etcd là single-point-of-truth của cả cluster, có giới hạn storage và
-   performance. Nhiều Events tồn tại lâu = etcd lớn hơn = slower watch và backup. Production
-   cần ghi Events ra ngoài (event-exporter, Loki) trước khi hết TTL, rồi giữ TTL ngắn để etcd
-   nhẹ
+a) Mặc định 1 giờ (--event-ttl=1h ở kube-apiserver). Không nên set quá dài vì Events được lưu trong etcd
 b) Event TTL mặc định là 24 giờ, không nên set dài hơn vì làm chậm response của kubectl get
    events
 c) Event TTL mặc định là vô hạn (không tự xoá), nên set ngắn lại để tránh đầy disk trên node

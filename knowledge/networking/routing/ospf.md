@@ -125,8 +125,7 @@ hello timer, MTU).
 
 **Câu 1**: OSPF là link-state hay distance-vector? Khác biệt chính là gì?
 
-a) Link-state — mỗi router gửi thông tin link của chính nó cho cả area, mọi router tự tính SPF
-   trên cùng một bản đồ topology, khác distance-vector (gửi cả bảng route đã tính sẵn)
+a) Link-state — mỗi router gửi thông tin link của chính nó cho cả area, mọi router tự tính SPF trên cùng một bản đồ topology, khác distance-vector
 b) Distance-vector — mỗi router chỉ gửi bảng route đã tính sẵn cho hàng xóm, không có khái niệm
    topology chung
 c) Link-state, nhưng mỗi router chỉ biết link của hàng xóm trực tiếp, không có bản đồ toàn mạng

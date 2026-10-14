@@ -183,8 +183,7 @@ degraded" cho server lưu trữ file chia sẻ nội bộ.
 **Câu 1**: Một RAID 0 gồm 4 đĩa. Một đĩa trong số đó hỏng. Có thể khôi phục lại dữ liệu từ 3
 đĩa còn lại không? Vì sao?
 
-a) Không. RAID 0 không có dự phòng — dữ liệu bị "xé" (stripe) rải đều qua TẤT CẢ đĩa, mỗi đĩa
-   chứa một phần không thể thiếu. Mất bất kỳ đĩa nào cũng mất toàn bộ dữ liệu của cả mảng
+a) Không. RAID 0 không có dự phòng — dữ liệu bị "xé" (stripe) rải đều qua TẤT CẢ đĩa, mỗi đĩa chứa một phần không thể thiếu
 b) Có, khôi phục được khoảng 75% dữ liệu tương ứng với 3/4 đĩa còn hoạt động
 c) Có, nhưng chỉ khi RAID 0 được tạo với tối thiểu 4 đĩa trở lên — ít đĩa hơn thì mất hết
 d) Không, nhưng dữ liệu có thể phục hồi phần nào nhờ parity dự phòng tích hợp sẵn trong
@@ -200,8 +199,7 @@ mảng, không chỉ phần trên đĩa đó.
 được dữ liệu khỏi MỘT lỗi đĩa tiếp theo không?
 
 a) Có, RAID 5 luôn chịu được tối đa 2 lỗi đĩa đồng thời bất kể trạng thái hiện tại
-b) Không. Mảng đang ở trạng thái degraded (1 trên 4 đĩa đã down) — RAID 5 chỉ chịu được 1
-   đĩa hỏng, đã dùng hết "ngân sách" chịu lỗi đó. Thêm một đĩa hỏng nữa sẽ mất toàn bộ dữ liệu
+b) Không. Mảng đang ở trạng thái degraded (1 trên 4 đĩa đã down)
 c) Có, vì ký hiệu `[UUU_]` cho thấy 3 đĩa còn hoạt động vẫn đủ để tự tạo dự phòng mới ngay
 d) Không thể xác định chỉ từ `/proc/mdstat`, cần chạy thêm `mdadm --detail` để biết chắc
 
@@ -216,9 +214,7 @@ sẽ mất toàn bộ dữ liệu của mảng.
 a) Vì RAID5/6 luôn mã hoá dữ liệu bằng AES trước khi ghi xuống đĩa, còn RAID 1 thì không
 b) Vì RAID 5/6 phải ghi dữ liệu 3 lần lên mỗi đĩa để đảm bảo tính nhất quán, RAID 1 chỉ ghi
    1 lần
-c) RAID 1 chỉ cần ghi (copy) dữ liệu giống hệt sang đĩa thứ hai. RAID 5/6 phải TÍNH LẠI giá
-   trị parity (thường qua XOR) dựa trên dữ liệu mới và dữ liệu hiện có trên các đĩa khác mỗi
-   lần ghi
+c) RAID 1 chỉ cần ghi (copy) dữ liệu giống hệt sang đĩa thứ hai. RAID 5/6 phải TÍNH LẠI giá trị parity
 d) Vì RAID 1 chạy hoàn toàn bằng phần cứng chuyên dụng, còn RAID 5/6 luôn chạy bằng software
    bất kể cấu hình
 
@@ -235,9 +231,7 @@ a) Root cause là bản thân đĩa hỏng — RAID không nên để xảy ra b
 b) Root cause là dùng sai mức RAID — nên chuyển sang RAID 0 để tránh hoàn toàn khả năng
    degraded
 c) Root cause là ổ đĩa kém chất lượng — chỉ cần đổi sang đĩa SSD là vấn đề biến mất hoàn toàn
-d) Nguyên nhân gốc là THIẾU GIÁM SÁT CHỦ ĐỘNG, không phải bản thân việc một đĩa hỏng (RAID
-   được thiết kế để chịu được MỘT lỗi đĩa). Vấn đề thật là hệ thống không có cách nào tự động
-   phát hiện và cảnh báo khi RAID chuyển sang degraded
+d) Nguyên nhân gốc là THIẾU GIÁM SÁT CHỦ ĐỘNG, không phải bản thân việc một đĩa hỏng
 
 **Đáp án: d** — Nguyên nhân gốc là THIẾU GIÁM SÁT CHỦ ĐỘNG, không phải bản thân việc một đĩa
 hỏng (RAID được thiết kế để chịu được MỘT lỗi đĩa). Vấn đề thật là hệ thống không có cách nào

@@ -200,9 +200,7 @@ b) Vì layer được đánh số thứ tự, Docker chỉ tải các layer có 
    bất kể nội dung
 c) Vì image luôn được chia nhỏ ngẫu nhiên mỗi lần build, layer cũ không còn hợp lệ để tái sử
    dụng
-d) Layer được xác định bằng SHA256 hash của nội dung — nếu local đã có layer đó (cùng hash),
-   không cần tải lại. Ví dụ hai image khác nhau đều dùng ubuntu:22.04 base sẽ share layer base;
-   khi pull image thứ hai, Docker thấy layer đó đã có và bỏ qua
+d) Layer được xác định bằng SHA256 hash của nội dung — nếu local đã có layer đó (cùng hash), không cần tải lại
 
 **Đáp án: d** — Layer được xác định bằng SHA256 hash của nội dung — nếu local đã có layer đó
 (cùng hash), không cần tải lại. Đây không phải giới hạn băng thông của Docker Hub — là cơ chế
@@ -216,10 +214,7 @@ lý do tái sử dụng được (loại c).
 **Câu 2**: Một Dockerfile có `RUN apt-get update` ở một layer riêng và `RUN apt-get install
 nginx` ở layer tiếp theo. Đây là best practice hay anti-pattern?
 
-a) Anti-pattern ("apt-get cache buster") — nếu layer apt-get update được cache từ lâu nhưng
-   layer install bị rebuild (ví dụ thêm package khác), lệnh install sẽ dùng package metadata CŨ
-   từ cache. Đúng là gộp cả hai vào một RUN apt-get update && apt-get install -y ... để đảm bảo
-   metadata luôn đồng bộ với danh sách package
+a) Anti-pattern ("apt-get cache buster") — nếu layer apt-get update được cache từ lâu nhưng layer install bị rebuild
 b) Best practice, vì tách riêng 2 lệnh luôn giúp build nhanh hơn do tận dụng cache tối đa cho
    mỗi bước
 c) Anti-pattern, nhưng chỉ vì tốn thêm 1 layer làm image nặng hơn, không liên quan tới cache
@@ -241,10 +236,7 @@ d).
 nhau thực tế ở điểm nào khi dùng `docker run`?
 
 a) Cả hai hoàn toàn tương đương về hành vi override, chỉ khác cách viết cú pháp YAML/Dockerfile
-b) Với CMD thuần: docker run myimage bash sẽ chạy bash thay vì node server.js (override hoàn
-   toàn). Với ENTRYPOINT ["node"] + CMD ["server.js"]: docker run myimage other-script.js chạy
-   node other-script.js — ENTRYPOINT cố định, CMD là default argument có thể override. Dùng
-   ENTRYPOINT khi muốn container luôn chạy một binary cụ thể
+b) Với CMD thuần: docker run myimage bash sẽ chạy bash thay vì node server.js (override hoàn toàn)
 c) ENTRYPOINT luôn bị override hoàn toàn giống CMD thuần, không có gì khác biệt thực tế
 d) CMD thuần không thể override bằng docker run, chỉ ENTRYPOINT mới override được
 

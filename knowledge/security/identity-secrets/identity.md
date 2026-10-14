@@ -181,7 +181,7 @@ lực toàn bộ.
 **Câu 1**: Sự khác biệt cốt lõi giữa OAuth 2.0 và OIDC là gì?
 
 a) OAuth 2.0 dùng JWT, OIDC dùng XML  
-b) OAuth 2.0 xử lý ủy quyền (authorization), OIDC bổ sung xác thực (authentication) lên trên OAuth 2.0  
+b) OAuth 2.0 xử lý ủy quyền (authorization), OIDC bổ sung xác thực
 c) OAuth 2.0 chỉ dùng cho mobile app, OIDC cho web app  
 d) OIDC không cần redirect, OAuth 2.0 thì cần
 
@@ -196,7 +196,7 @@ OAuth 2.0 đủ.
 **Câu 2**: Tại sao FIDO2/WebAuthn được gọi là "phishing-resistant"?
 
 a) Vì hardware key không thể bị sao chép  
-b) Vì challenge-response gắn với domain origin — key sẽ từ chối ký nếu domain sai  
+b) Vì challenge-response gắn với domain origin
 c) Vì không dùng mật khẩu nên không có gì để phishing  
 d) Vì OTP thay đổi quá nhanh để kẻ tấn công kịp dùng
 
@@ -225,7 +225,7 @@ sẽ tính ra cùng OTP mà không cần giao tiếp với nhau. Đáp án a là
 **Câu 4**: Trong mô hình RBAC, tại sao không nên gán quyền trực tiếp cho user mà nên gán qua role?
 
 a) Vì hệ thống chỉ hỗ trợ role, không hỗ trợ gán trực tiếp  
-b) Vì gán qua role dễ audit, revoke, và tái sử dụng — thêm/bỏ user vào role thay vì sửa từng permission  
+b) Vì gán qua role dễ audit, revoke, và tái sử dụng
 c) Vì role được mã hóa trong JWT, user thì không  
 d) Vì gán trực tiếp sẽ bị override bởi role khi có conflict
 
@@ -240,8 +240,7 @@ một query đơn giản.
 làm gì?
 
 a) Xóa token khỏi browser của user  
-b) Không thể — JWT là stateless, không có cơ chế revoke trực tiếp; cần dùng blocklist hoặc
-   giảm thời gian sống của token  
+b) Không thể — JWT là stateless, không có cơ chế revoke trực tiếp
 c) Đổi signing key của IdP để token cũ không verify được  
 d) Gọi API `/revoke` trên IdP
 

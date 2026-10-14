@@ -193,8 +193,7 @@ a) `dmesg --since "-1 hour"` — `dmesg` vẫn giữ log qua reboot nếu dùng 
    đúng cách
 b) `cat /var/log/kern.log.1` — file này luôn tồn tại sẵn trên mọi distro để lưu log trước
    reboot
-c) `journalctl -k -b -1` — đọc kernel log từ boot trước (`-b -1`). Yêu cầu persistent
-   journal phải được bật. Ring buffer thông thường của `dmesg` mất khi reboot
+c) `journalctl -k -b -1` — đọc kernel log từ boot trước (`-b -1`). Yêu cầu persistent journal phải được bật
 d) Không thể đọc được log trước panic dưới bất kỳ hình thức nào sau khi đã reboot
 
 **Đáp án: c** — `journalctl -k -b -1` — đọc kernel log từ boot trước (`-b -1`). Yêu cầu
@@ -210,8 +209,7 @@ a) `journalctl -k --level=error` — tham số `--level` dùng để lọc theo 
 b) `journalctl -k | grep -i error` — đây là cách duy nhất để lọc theo mức độ, `journalctl`
    không có tham số lọc riêng
 c) `journalctl -k --error-only` — cờ chuyên dụng chỉ hiện lỗi, không hiện cảnh báo hay info
-d) `journalctl -k -p err` — lọc chỉ các thông điệp từ mức `err` (3) trở lên (err, crit,
-   alert, emerg). Có thể kết hợp thêm `-S "2 hours ago"` để giới hạn thời gian
+d) `journalctl -k -p err` — lọc chỉ các thông điệp từ mức `err` (3) trở lên (err, crit, alert, emerg)
 
 **Đáp án: d** — `journalctl -k -p err` — lọc chỉ các thông điệp từ mức `err` (3) trở lên
 (err, crit, alert, emerg). Có thể kết hợp thêm `-S "2 hours ago"` để giới hạn thời gian.
@@ -221,9 +219,7 @@ d) `journalctl -k -p err` — lọc chỉ các thông điệp từ mức `err` (
 **Câu 3**: Thấy nhiều dòng `ACPI Error` trong kernel log ngay từ lúc boot. Điều này có nghĩa
 là gì, cần xử lý gấp không?
 
-a) Thường là lỗi BIOS firmware khai báo không đúng spec ACPI — xuất hiện khi boot và KHÔNG
-   lặp lại sau. Thường không ảnh hưởng hoạt động chính; kiểm tra nếu lỗi CHỈ xuất hiện lúc
-   boot và không lặp lại thì không cần xử lý gấp, nếu lặp liên tục thì cần điều tra thêm
+a) Thường là lỗi BIOS firmware khai báo không đúng spec ACPI
 b) Luôn là dấu hiệu RAM lỗi nghiêm trọng, cần thay RAM ngay trước khi tiếp tục sử dụng máy
 c) Luôn là lỗi kernel panic sắp xảy ra, cần backup dữ liệu và restart ngay lập tức
 d) Không có ý nghĩa gì — đây chỉ là noise log vô hại luôn xuất hiện trên mọi máy, không cần

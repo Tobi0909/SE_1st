@@ -228,11 +228,7 @@ Triển khai Postgres StatefulSet với PVC — đảm bảo data không mất k
 
 **Câu 1**: Sự khác biệt giữa PV và PVC là gì về lifecycle và scope?
 
-a) PV là cluster-scoped resource (admin-level), tồn tại độc lập với namespace và Pod —
-   lifecycle của PV không gắn với Pod. PVC là namespace-scoped (user-level), binding 1-1 với
-   PV. Khi Pod bị xoá, PVC không bị xoá tự động. Khi PVC bị xoá, PV chuyển sang Released nhưng
-   data còn hay mất tuỳ reclaimPolicy. PVC tách biệt "tôi cần storage" (user) khỏi "storage đó
-   là gì" (admin/provisioner)
+a) PV là cluster-scoped resource (admin-level), tồn tại độc lập với namespace và Pod — lifecycle của PV không gắn với Pod
 b) PV namespace-scoped (gắn theo namespace của Pod); PVC cluster-scoped (dùng chung mọi
    namespace)
 c) PV và PVC có scope giống nhau hoàn toàn, chỉ khác tên gọi do lịch sử API cũ
@@ -251,8 +247,7 @@ tách biệt được khỏi lifecycle Pod (loại d).
 K8s bind PVC vào PV nào?
 
 a) PV 20Gi, vì K8s luôn ưu tiên PV dung lượng lớn nhất để tránh phải mở rộng sau này
-b) PV 5Gi — K8s chọn PV nhỏ nhất đủ điều kiện để tránh lãng phí PV lớn. Nếu PV 5Gi đang Bound
-   hoặc không tồn tại, K8s sẽ dùng PV 20Gi. Đây là best-fit binding strategy của K8s controller
+b) PV 5Gi — K8s chọn PV nhỏ nhất đủ điều kiện để tránh lãng phí PV lớn
 c) Cả hai PV cùng được bind, PVC có thể dùng chung dung lượng từ cả 2 PV
 d) Không PV nào được bind tự động, admin phải chỉ định thủ công PV nào dùng cho PVC này
 
@@ -268,9 +263,7 @@ admin chỉ định thủ công cho static binding theo kịch bản thông thư
 
 a) Có, PVC mới tự động bind lại ngay vì Retain nghĩa là giữ nguyên trạng thái Bound
 b) Không, và PV đó sẽ bị xoá vĩnh viễn sau khi chuyển sang Released, không còn cách tái sử dụng
-c) Không trực tiếp — PV ở trạng thái Released có field claimRef vẫn trỏ vào PVC cũ; K8s không
-   tự bind PVC mới vào PV Released. Để tái dùng PV: admin phải xoá field claimRef trong spec
-   của PV (kubectl edit pv) để PV trở về Available, sau đó PVC mới mới bind được
+c) Không trực tiếp — PV ở trạng thái Released có field claimRef vẫn trỏ vào PVC cũ; K8s không tự bind PVC mới vào PV Released
 d) Có, nhưng chỉ nếu PVC mới có cùng tên chính xác với PVC cũ đã bị xoá
 
 **Đáp án: c** — Không trực tiếp. PV ở trạng thái Released vẫn giữ `claimRef` cũ, K8s không tự

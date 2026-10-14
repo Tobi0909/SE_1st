@@ -184,8 +184,7 @@ cấu hình:
 **Câu 1**: `modprobe -r nf_tables` thất bại với "Module is in use". Bước đầu tiên để tìm
 nguyên nhân là gì?
 
-a) Chạy `lsmod | grep nf_tables` xem cột "Used by" — liệt kê tên các module/thực thể đang
-   giữ reference. Lần lượt unload chúng trước, rồi mới unload `nf_tables`
+a) Chạy `lsmod | grep nf_tables` xem cột "Used by" — liệt kê tên các module/thực thể đang giữ reference
 b) Chạy `rmmod -f nf_tables` ngay để buộc unload, bỏ qua cảnh báo "in use"
 c) Reboot lại máy ngay — đây là cách duy nhất để unload module đang bị giữ reference
 d) Chạy `depmod -a` để cập nhật lại `modules.dep` rồi thử `modprobe -r` lại
@@ -220,9 +219,7 @@ a) Có, `Used by = 0` luôn đảm bảo 100% unload thành công trong mọi tr
    ngoại lệ
 b) Không, `Used by = 0` không liên quan gì tới khả năng unload — phải luôn dùng `-f` để
    chắc chắn
-c) Thường là có — `Used by = 0` nghĩa là không có thực thể nào đang giữ reference,
-   `modprobe -r` thường thành công. Ngoại lệ: một số module được đánh dấu "permanent" hoặc
-   đang trong quá trình init/teardown
+c) Thường là có — `Used by = 0` nghĩa là không có thực thể nào đang giữ reference, `modprobe -r` thường thành công
 d) Có, nhưng chỉ đúng với module được load qua `insmod` — module load qua `modprobe` thì
    luôn cần `-f`
 

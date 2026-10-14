@@ -165,9 +165,7 @@ Team nhận báo cáo "server báo cáo chạy chậm" từ một dashboard giá
 **Câu 1**: Server A có 4 lõi, load average `3.8`. Server B có 32 lõi, load average `3.8`. Hai
 server có đang "nặng" như nhau không?
 
-a) Không. Server A đang dùng gần hết (95%) khả năng xử lý đồng thời — khá nặng. Server B chỉ
-   dùng khoảng 12% — rất nhẹ. Load average là số tuyệt đối, phải chia theo số lõi (`nproc`)
-   để so sánh đúng
+a) Không. Server A đang dùng gần hết (95%) khả năng xử lý đồng thời — khá nặng. Server B chỉ dùng khoảng 12% — rất nhẹ
 b) Có, vì load average là chỉ số tuyệt đối, không phụ thuộc vào số lõi của máy
 c) Không, nhưng ngược lại — Server B đang nặng hơn Server A vì có tổng năng lực xử lý lớn hơn
 d) Có, vì hệ điều hành đã tự chuẩn hoá giá trị load average theo số lõi trước khi hiển thị
@@ -197,8 +195,7 @@ process ở trạng thái `D` bằng `ps -eo pid,stat,comm` để xác định c
 RAM không?
 
 a) Có — `free` thấp luôn là dấu hiệu sắp hết RAM, bất kể `available` cao hay thấp
-b) Chưa chắc, và thường là KHÔNG. Phần chênh lệch giữa `free` và `available` nằm ở
-   `buff/cache` — RAM kernel đang dùng để cache, có thể giải phóng ngay khi ứng dụng cần
+b) Chưa chắc, và thường là KHÔNG. Phần chênh lệch giữa `free` và `available` nằm ở `buff/cache`
 c) Chưa chắc, nhưng vì `available` chỉ tính RAM vật lý còn `free` tính cả phần swap đang dùng
 d) Có, vì `buff/cache` chiếm dụng RAM cố định và không bao giờ được giải phóng cho ứng dụng
 
@@ -211,8 +208,7 @@ d) Có, vì `buff/cache` chiếm dụng RAM cố định và không bao giờ đ
 **Câu 4**: Một process hiện `%CPU = 180` trong `top`. Đây có phải lỗi hiển thị không?
 
 a) Có, lỗi hiển thị — `%CPU` không bao giờ được phép vượt quá 100% trên bất kỳ hệ thống nào
-b) Không phải lỗi. `%CPU` tính theo MỘT lõi — 180% nghĩa là process đang dùng tương đương 1.8
-   lõi CPU (thường do chạy đa luồng/đa process con cùng lúc), hợp lệ trên máy nhiều hơn 1 lõi
+b) Không phải lỗi. `%CPU` tính theo MỘT lõi — 180% nghĩa là process đang dùng tương đương 1.8 lõi CPU
 c) Không phải lỗi, nhưng chỉ vì process đó đang chạy với quyền root nên `top` tính gấp đôi
 d) Có, lỗi do `top` tính nhầm `%CPU` và `%MEM` vào cùng một cột hiển thị
 

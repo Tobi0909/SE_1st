@@ -52,7 +52,7 @@ export async function ensureQuestionPool(
         stem: q.stem,
         source: "LLM",
         options: {
-          create: q.options.map((o) => ({
+          create: shuffled(q.options).map((o) => ({
             text: o.text,
             isCorrect: o.isCorrect,
             explanation: o.explanation,

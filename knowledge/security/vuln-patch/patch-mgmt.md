@@ -276,8 +276,7 @@ systemctl restart sshd
 **Câu 1**: Tại sao cần kiểm tra `/var/run/reboot-required` sau khi apply security patch?
 
 a) Vì apt chỉ ghi file này khi patch thất bại  
-b) Vì một số patch (kernel, glibc, libssl) cần reboot để tiến trình đang chạy trong memory
-   dùng bản mới — nếu không reboot, hệ thống vẫn chạy code cũ dù package đã được update  
+b) Vì một số patch (kernel, glibc, libssl) cần reboot để tiến trình đang chạy trong memory dùng bản mới
 c) Vì file này chứa danh sách CVE đã được vá  
 d) Vì apt không tự động apply patch nếu file này tồn tại
 
@@ -310,8 +309,7 @@ chọn nào khác — downtime có chi phí.
 toàn bộ update?
 
 a) Vì `*-security` repo không chứa kernel update  
-b) Vì regular update (bug fix, new features) có thể thay đổi behavior và break application —
-   security update thường chỉ là backport fix nhỏ, ít break hơn  
+b) Vì regular update (bug fix, new features) có thể thay đổi behavior và break application
 c) Vì apt-get không hỗ trợ unattended mode cho regular update  
 d) Vì `*-security` repo luôn up to date hơn regular repo
 

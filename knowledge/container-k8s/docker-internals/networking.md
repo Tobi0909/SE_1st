@@ -185,9 +185,7 @@ tên (`ping backend`) — hoạt động được không và cần điều kiệ
 a) Có, luôn hoạt động với mọi loại network Docker mà không cần điều kiện gì thêm
 b) Không, Docker không hỗ trợ resolve tên service bằng DNS trong bất kỳ trường hợp nào, luôn
    phải dùng IP
-c) Có, nếu cả hai cùng user-defined bridge network (Compose tự tạo mặc định, hoặc khai báo
-   networks: chung). Docker DNS nội bộ (127.0.0.11) resolve tên service trong cùng network.
-   Bridge mặc định (docker0) KHÔNG có DNS, phải dùng IP
+c) Có, nếu cả hai cùng user-defined bridge network (Compose tự tạo mặc định, hoặc khai báo networks: chung). Docker DNS nội bộ
 d) Có, nhưng chỉ khi cả hai container cùng chạy trên cùng 1 host vật lý, không áp dụng cho Swarm
 
 **Đáp án: c** — Có, nếu cả hai cùng user-defined bridge network. Docker DNS nội bộ resolve tên
@@ -205,9 +203,7 @@ nào đúng hơn với `--network=host`?
 a) Cả hai câu lệnh cho kết quả giống nhau hoàn toàn, truy cập được qua cả host:80 và host:8080
 b) -p vẫn hoạt động bình thường với --network=host, chỉ là publish thêm 1 lần nữa cho chắc
 c) --network=host không liên quan gì tới cổng, chỉ ảnh hưởng tới tốc độ mạng của container
-d) Với --network=host, container dùng trực tiếp network của host — Nginx bind cổng 80 TRỰC
-   TIẾP trên host (không qua bridge/NAT). Flag -p bị IGNORED khi dùng --network=host (không có
-   gì để publish vì không có network namespace riêng). Truy cập qua host:80, không phải 8080
+d) Với --network=host, container dùng trực tiếp network của host — Nginx bind cổng 80 TRỰC TIẾP trên host
 
 **Đáp án: d** — Với `--network=host`, Nginx bind cổng 80 TRỰC TIẾP trên host. Flag `-p` bị
 IGNORED. Truy cập qua `host:80`, không phải 8080. Hai lệnh KHÔNG cho kết quả giống nhau — chỉ
@@ -220,10 +216,7 @@ bridge/NAT), không chỉ là vấn đề tốc độ (loại c).
 
 **Câu 3**: Vì sao UFW không block được port Docker đã publish như mong đợi?
 
-a) Docker thêm iptables DNAT rule trực tiếp vào chain DOCKER (trước chain UFW trong traversal
-   order), bypass UFW. Giải pháp thực tế: bind container port chỉ trên loopback (--publish
-   127.0.0.1:port:port) rồi dùng reverse proxy (nginx) quản lý access, thay vì phụ thuộc UFW để
-   block Docker port
+a) Docker thêm iptables DNAT rule trực tiếp vào chain DOCKER (trước chain UFW trong traversal order), bypass UFW
 b) Vì UFW chỉ hoạt động được với IPv6, Docker publish port luôn qua IPv4 nên không bị chặn
 c) Vì Docker publish port không thực sự mở cổng nào trên host, chỉ giả lập cho mục đích hiển
    thị

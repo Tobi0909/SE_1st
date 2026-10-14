@@ -94,8 +94,7 @@ Bảo trì switch peer A (reboot). Server bond 2 NIC, nghĩ rằng mất 1 link 
 
 **Câu 1**: Vấn đề nào của LACP chuẩn mà MLAG/vPC giải quyết?
 
-a) LACP chuẩn chỉ nối tới một switch duy nhất; MLAG/vPC cho phép server nối tới hai switch vật
-   lý khác nhau, loại bỏ điểm lỗi đơn (SPOF) mà vẫn dùng được cả hai link
+a) LACP chuẩn chỉ nối tới một switch duy nhất; MLAG/vPC cho phép server nối tới hai switch vật lý khác nhau, loại bỏ điểm lỗi đơn
 b) LACP chuẩn không hỗ trợ tốc độ trên 1Gbps; MLAG/vPC cho phép gộp link tốc độ cao hơn
 c) LACP chuẩn không mã hoá được LACPDU; MLAG/vPC bổ sung mã hoá cho gói điều khiển
 d) LACP chuẩn chỉ hoạt động trên switch của một hãng; MLAG/vPC cho phép gộp link giữa switch
@@ -112,9 +111,7 @@ số lượng đối tác logic LACP chuẩn hỗ trợ (chỉ 1), không phải
 
 a) Để đồng bộ bảng MAC giữa hai switch; đi qua peer-link giúp đồng bộ nhanh hơn nên luôn nên
    dùng chung đường đó
-b) Phát hiện peer còn sống (sống/chết) để tránh tình trạng split-brain; nếu đi qua chính
-   peer-link thì khi peer-link đứt, keepalive cũng mất theo — không còn cách phát hiện
-   split-brain
+b) Phát hiện peer còn sống (sống/chết) để tránh tình trạng split-brain
 c) Để đo độ trễ giữa hai switch nhằm tối ưu thuật toán chọn link; không liên quan tới split-brain
 d) Để backup cấu hình giữa hai switch; đi qua đường riêng chỉ để tránh tốn băng thông peer-link
 
@@ -130,8 +127,7 @@ mất keepalive khi peer-link đứt), nhưng mục đích của keepalive bị 
 
 a) Có, server cần cài driver vPC riêng để nhận diện cả hai switch là một thực thể logic
 b) Có, server cần cấu hình 2 địa chỉ IP quản lý tương ứng với 2 switch
-c) Không — server chỉ cần cấu hình LACP chuẩn như bình thường; toàn bộ phần phối hợp vPC nằm ở
-   phía switch, trong suốt với server
+c) Không — server chỉ cần cấu hình LACP chuẩn như bình thường
 d) Không cần cấu hình, nhưng server phải hỗ trợ phần cứng NIC đặc thù của hãng switch đang dùng
    vPC
 

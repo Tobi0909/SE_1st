@@ -291,10 +291,7 @@ notification đến khi nào?
 
 a) FIRING ngay lúc 14:00, notification đến ngay lập tức không cần chờ gì thêm
 b) FIRING lúc 14:05, nhưng notification đến ngay lập tức lúc 14:05 không qua group_wait
-c) Alert PENDING từ 14:00 → FIRING lúc 14:05 (sau 5 phút TRUE liên tục). Alertmanager nhận
-   FIRING tại 14:05 → chờ group_wait (ví dụ 30s) → notification đến ~14:05:30. Nếu expression
-   chỉ TRUE một lần rồi FALSE trong 5 phút đó, alert KHÔNG fire (về INACTIVE/UNKNOWN). for là
-   safeguard tránh false positive từ spike ngắn
+c) Alert PENDING từ 14:00 → FIRING lúc 14:05 (sau 5 phút TRUE liên tục). Alertmanager nhận FIRING tại 14:05 → chờ group_wait
 d) Alert không bao giờ fire nếu for: 5m được set, for chỉ dùng để hiển thị thông tin không
    ảnh hưởng hành vi
 
@@ -315,11 +312,7 @@ a) Inhibition, vì inhibition phù hợp cho mọi trường hợp tắt alert t
 b) Cả hai đều không phù hợp, cần sửa trực tiếp alert rule để comment out tạm thời
 c) Silence, nhưng chỉ nếu namespace đó không có alert nào đang active tại thời điểm tạo
    silence
-d) Silence — vì cần tắt có thời hạn (2 giờ), không phải logic "suppress B vì A đang xảy ra".
-   Inhibition phù hợp cho quan hệ nhân quả (node down → suppress service alert). Silence phù
-   hợp cho window thời gian (bảo trì, deploy, off-hours). Silence cho staging: matchers
-   namespace="staging", duration 2h. Alertmanager vẫn nhận alert nhưng không gửi notification
-   trong thời gian silence
+d) Silence — vì cần tắt có thời hạn (2 giờ), không phải logic "suppress B vì A đang xảy ra"
 
 **Đáp án: d** — Silence — phù hợp cho window thời gian cố định (bảo trì). Inhibition dành cho
 quan hệ nhân quả giữa alert, không phải khoảng thời gian cố định. Inhibition KHÔNG phù hợp cho
@@ -334,11 +327,7 @@ suốt thời gian hiệu lực (loại c).
 **Câu 3**: Routing tree có route A (`severity=critical`) và route B (`team=infrastructure`).
 Alert có cả 2 label. Alert được gửi cho receiver nào?
 
-a) Phụ thuộc vào thứ tự trong config. Routes được evaluate theo thứ tự, first-match-wins (nếu
-   continue: false). Nếu route A viết trước route B: alert match route A → gửi cho A's
-   receiver → dừng. Route B không được check. Để gửi cho cả 2 receiver: đặt continue: true
-   trên route A. Thứ tự route quan trọng — route cụ thể (nhiều matchers) nên đặt trước route
-   chung
+a) Phụ thuộc vào thứ tự trong config. Routes được evaluate theo thứ tự, first-match-wins (nếu continue: false)
 b) Luôn gửi cho cả 2 receiver đồng thời bất kể cấu hình continue, vì alert khớp cả 2 route
 c) Luôn gửi cho route B vì route theo team luôn được ưu tiên hơn route theo severity
 d) Alertmanager sẽ báo lỗi cấu hình vì 1 alert không được phép khớp nhiều hơn 1 route

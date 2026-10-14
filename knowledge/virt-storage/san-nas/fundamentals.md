@@ -281,7 +281,7 @@ cho archive/backup giảm chi phí 60-80% so với block storage trên cùng cap
 **Câu 1**: Tại sao không nên dùng NFS (NAS) làm storage cho database OLTP production?
 
 a) NFS không hỗ trợ filesystem EXT4  
-b) NFS qua 1GbE có latency ~2ms và IOPS thấp (~500) — OLTP cần sub-millisecond latency và hàng nghìn IOPS; dùng NFS sẽ gây query timeout và performance degradation  
+b) NFS qua 1GbE có latency ~2ms và IOPS thấp (~500)
 c) NFS không tương thích với PostgreSQL và MySQL  
 d) NAS không hỗ trợ backup
 
@@ -292,7 +292,7 @@ d) NAS không hỗ trợ backup
 **Câu 2**: Sự khác biệt cốt lõi giữa block storage và file storage (NAS) là gì?
 
 a) Block storage chỉ dùng cho Windows, file storage cho Linux  
-b) Block storage cung cấp raw device — client tạo filesystem; NAS cung cấp filesystem đã có sẵn — client chỉ mount và dùng  
+b) Block storage cung cấp raw device — client tạo filesystem
 c) Block storage không hỗ trợ encryption  
 d) NAS nhanh hơn block storage vì dùng cache
 
@@ -304,7 +304,7 @@ d) NAS nhanh hơn block storage vì dùng cache
 
 a) Database OLTP với nhiều random write nhỏ  
 b) OS boot disk của VM  
-c) Backup, log archive, static asset (image/video) — workload write-once, read-many, không cần update tại chỗ  
+c) Backup, log archive, static asset (image/video)
 d) Real-time log streaming cần latency sub-millisecond
 
 **Đáp án: c** — Object storage có latency cao (HTTP overhead), không hỗ trợ update partial (phải replace toàn object), nhưng scale out cực tốt (billions objects), chi phí thấp, và API HTTP đơn giản. Backup (write job xong rồi thôi), archive, static asset như image/video của web app — đây là use case tối ưu. Không bao giờ dùng object storage cho OS disk hoặc database.
@@ -314,7 +314,7 @@ d) Real-time log streaming cần latency sub-millisecond
 **Câu 4**: iSCSI và Fibre Channel đều là protocol SAN block storage — iSCSI có ưu điểm gì so với FC?
 
 a) iSCSI có latency thấp hơn FC  
-b) iSCSI dùng TCP/IP Ethernet thông thường — tận dụng network infrastructure có sẵn, chi phí thấp hơn (không cần HBA FC, FC switch), dễ triển khai hơn  
+b) iSCSI dùng TCP/IP Ethernet thông thường
 c) FC chỉ dùng được trên Windows  
 d) iSCSI hỗ trợ nhiều LUN hơn FC
 
@@ -327,7 +327,7 @@ d) iSCSI hỗ trợ nhiều LUN hơn FC
 a) Cần reboot server  
 b) Cần restart NFS service  
 c) LUN chỉ hiện sau 10 phút theo timer tự động của kernel  
-d) Linux SCSI subsystem không tự poll phát hiện thiết bị mới — cần trigger rescan SCSI bus thủ công (`echo "- - -" > /sys/class/scsi_host/host0/scan`) hoặc dùng tool như `rescan-scsi-bus.sh`
+d) Linux SCSI subsystem không tự poll phát hiện thiết bị mới
 
 **Đáp án: d** — Linux SCSI stack không liên tục poll storage để phát hiện thiết bị mới (sẽ tốn CPU và tạo I/O). Khi SAN admin gán LUN mới cho server, server phải chủ động rescan để kernel discover thiết bị. Với multipath (dm-multipath), cần `multipathd reconfigure` thêm. Không cần reboot — rescan là operation online an toàn.
 

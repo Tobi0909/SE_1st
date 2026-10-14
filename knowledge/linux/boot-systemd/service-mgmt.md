@@ -199,8 +199,7 @@ applicable". Bước tiếp theo hợp lý là gì, và vì sao `restart` không
 trong mọi trường hợp?
 
 a) Dùng `systemctl kill` rồi `start` lại — đây là cách duy nhất khi `reload` báo lỗi này
-b) Dùng `systemctl restart nginx.service` thay thế; khác biệt quan trọng là `reload` không tắt
-   process (không mất kết nối đang xử lý) còn `restart` tắt hẳn rồi chạy lại, có downtime
+b) Dùng `systemctl restart nginx.service` thay thế; khác biệt quan trọng là `reload` không tắt process
 c) Lỗi này nghĩa là nginx đã bị gỡ cài đặt, cần cài lại trước khi thao tác tiếp
 d) Dùng `systemctl daemon-reexec` thay thế — lệnh này an toàn hơn cả `reload` và `restart`
 
@@ -232,8 +231,7 @@ nhìn vào output lỗi (stderr), không chỉ dựa vào exit code của status
 KHÔNG tự chạy. Hai khả năng hợp lý nhất cần kiểm tra trước là gì?
 
 a) (1) Service đã bị `mask` trước đó mà không ai nhớ; (2) ổ đĩa chứa unit file bị hỏng
-b) (1) File service không có `WantedBy=` đúng target thực sự được kích hoạt lúc boot; (2)
-   service tự fail ngay khi khởi động rồi dừng ở trạng thái failed mà không ai để ý
+b) (1) File service không có `WantedBy=` đúng target thực sự được kích hoạt lúc boot
 c) (1) Thiếu `systemctl daemon-reload` sau lần `enable`; (2) tên service bị gõ sai hoa/thường
 d) (1) `systemctl enable` chỉ hoạt động với unit scope `--user`; (2) server chưa được reboot
    đủ số lần cần thiết để áp dụng
@@ -252,9 +250,7 @@ boot hiện tại).
 chọn cái thứ hai?
 
 a) `disable` và `mask` giống nhau, chỉ khác tên lệnh
-b) `disable` chỉ xoá symlink trong `*.target.wants/` — service vẫn start được bằng tay hoặc bị
-   kéo dậy qua `Requires=`. `mask` trỏ unit sang `/dev/null`, không ai khởi động được nó cho
-   tới khi `unmask`. Chọn `mask` khi cần đảm bảo tuyệt đối service không được chạy
+b) `disable` chỉ xoá symlink trong `*.target.wants/` — service vẫn start được bằng tay hoặc bị kéo dậy qua `Requires=`. `mask` trỏ unit sang `/dev/null`, không ai khởi động được nó cho tới khi `unmask`
 c) `mask` chỉ tạm dừng service trong phiên hiện tại, tự hết hiệu lực sau reboot, còn `disable`
    là vĩnh viễn
 d) `disable` dùng cho `.service`, `mask` dùng cho `.timer` — hai lệnh áp dụng cho loại unit
@@ -272,8 +268,7 @@ service khác và không muốn rủi ro bị dependency kéo dậy nhầm).
 tự động, thay vì `systemctl status foo.service | grep "running"`?
 
 a) Vì `is-active` chạy nhanh hơn `status` về mặt hiệu năng, không liên quan tới độ tin cậy
-b) Vì `is-active` trả về đúng một từ chuẩn hoá và exit code tương ứng, ổn định để script dựa
-   vào; parse chuỗi output của `status` (cho người đọc, có thể đổi định dạng/ngôn ngữ) dễ gãy
+b) Vì `is-active` trả về đúng một từ chuẩn hoá và exit code tương ứng, ổn định để script dựa vào
 c) Vì `grep` không hoạt động được trên output của `systemctl status`
 d) Vì `is-active` là lệnh duy nhất hoạt động đúng khi chạy trong một script không tương tác
 

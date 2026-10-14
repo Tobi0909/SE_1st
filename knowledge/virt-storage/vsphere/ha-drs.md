@@ -239,7 +239,7 @@ off hoàn toàn. 8 VM đang chạy trên đó (bao gồm 2 VM production databas
 **Câu 1**: vSphere HA cần gì để tự động restart VM khi host fail?
 
 a) vMotion license và storage vSAN  
-b) Shared storage (tất cả host cùng thấy datastore) và ít nhất 2 host trong cluster; vCenter cần thiết để cấu hình nhưng HA tiếp tục hoạt động khi vCenter down  
+b) Shared storage (tất cả host cùng thấy datastore) và ít nhất 2 host trong cluster
 c) Host phải có redundant power supply  
 d) FT (Fault Tolerance) phải được bật trước khi HA hoạt động
 
@@ -251,7 +251,7 @@ d) FT (Fault Tolerance) phải được bật trước khi HA hoạt động
 
 a) Để backup VM tự động  
 b) Để đo performance storage  
-c) Để phân biệt "host thực sự down" khỏi "host chỉ mất management network" — nếu network heartbeat mất nhưng datastore heartbeat còn thì host được xem là isolated, không phải failed  
+c) Để phân biệt "host thực sự down" khỏi "host chỉ mất management network"
 d) Để đồng bộ VM config giữa các host
 
 **Đáp án: c** — Nếu HA chỉ dùng network heartbeat, một NIC fail sẽ khiến HA tưởng host down và restart VM không cần thiết. Datastore heartbeat (agent ghi file nhỏ trên shared datastore) là kênh thứ hai độc lập với network. Host thực sự down = mất cả hai kênh. Host chỉ mất management NIC = còn datastore heartbeat → HA xử lý khác (isolation response, không phải restart toàn bộ VM).
@@ -262,7 +262,7 @@ d) Để đồng bộ VM config giữa các host
 
 a) Fully Automated backup VM tự động, Manual thì không  
 b) Không có sự khác biệt về tính năng, chỉ khác về giao diện  
-c) Manual chỉ hiển thị gợi ý migration — bạn phải manually approve; Fully Automated tự thực hiện vMotion khi imbalance vượt ngưỡng, không cần approval  
+c) Manual chỉ hiển thị gợi ý migration — bạn phải manually approve
 d) Manual chạy nhanh hơn vì không phải tính toán
 
 **Đáp án: c** — Với Manual, DRS vẫn tính toán imbalance và gợi ý "di chuyển VM X từ host A sang host B" — nhưng bạn phải click "Apply Recommendation". Fully Automated thực hiện ngay khi DRS score đủ cao. Cho production cluster với SLA cao, Fully Automated tốt hơn vì rebalance xảy ra ngay trong đêm không cần người thức dậy approve.
@@ -271,7 +271,7 @@ d) Manual chạy nhanh hơn vì không phải tính toán
 
 **Câu 4**: HA Admission Control làm gì khi bật?
 
-a) Đảm bảo cluster giữ đủ resource dự phòng để restart VM nếu N host fail — từ chối power-on VM mới nếu làm vậy vi phạm failover capacity  
+a) Đảm bảo cluster giữ đủ resource dự phòng để restart VM nếu N host fail
 b) Block tất cả snapshot  
 c) Ngăn không cho bật HA  
 d) Giới hạn số VM tối đa trong cluster
@@ -285,7 +285,7 @@ d) Giới hạn số VM tối đa trong cluster
 a) FT đắt hơn HA về license  
 b) FT cần hardware đặc biệt (IBM/HP certified)  
 c) FT chỉ hoạt động với Windows VM  
-d) FT có hạn chế nghiêm trọng: tối đa 4 vCPU per VM, overhead network cao (replicate toàn bộ CPU execution state), không thể snapshot hay storage vMotion — chỉ phù hợp cho rất ít workload thực sự cần zero downtime
+d) FT có hạn chế nghiêm trọng: tối đa 4 vCPU per VM, overhead network cao
 
 **Đáp án: d** — HA restart VM trong 1-3 phút — acceptable cho phần lớn workload. FT duy trì secondary VM song song liên tục, không bao giờ có downtime, nhưng với overhead cực cao: network phải replicate toàn bộ CPU execution state realtime. Với VM 4 vCPU, FT gần như double network bandwidth cần thiết. Snapshot, storage vMotion đều không được với FT. Hầu hết team dùng HA + application-level HA (database cluster, load balancer) thay vì FT.
 

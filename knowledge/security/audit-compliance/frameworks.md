@@ -248,8 +248,7 @@ Sau 6 tháng duy trì nhất quán, auditor có evidence thật để cấp SOC 
 **Câu 1**: Sự khác biệt giữa SOC 2 Type I và Type II là gì?
 
 a) Type I kiểm tra hệ thống production, Type II kiểm tra staging  
-b) Type I kiểm tra controls được thiết kế đúng tại một thời điểm; Type II kiểm tra controls
-   vận hành hiệu quả trong một khoảng thời gian (thường 6–12 tháng)  
+b) Type I kiểm tra controls được thiết kế đúng tại một thời điểm
 c) Type I dành cho SaaS, Type II dành cho on-premises  
 d) Type I rẻ hơn và đủ cho enterprise customer
 
@@ -265,8 +264,7 @@ chỉ cleanup trước audit.
 
 a) CDE scope càng lớn thì audit càng rẻ vì có nhiều system để show  
 b) CDE là chỉ áp dụng cho team phát triển, không liên quan đến vận hành  
-c) CDE scope lớn = nhiều hệ thống phải comply tất cả 12 requirements — phân đoạn mạng đúng
-   để thu hẹp CDE giảm đáng kể effort compliance  
+c) CDE scope lớn = nhiều hệ thống phải comply tất cả 12 requirements
 d) CDE không liên quan đến network segmentation
 
 **Đáp án: c** — CDE (Cardholder Data Environment) là mọi hệ thống xử lý/lưu trữ/truyền dẫn
@@ -296,8 +294,7 @@ sang centralized storage với retention ≥ 12 tháng, không chỉ rotate sau 
 nghĩa gì về mặt security?
 
 a) Password authentication bị tắt vì dòng bị comment  
-b) Password authentication đang BẬT — mặc định của OpenSSH là `yes`, comment chỉ là ghi chú
-   không có hiệu lực; cần thêm dòng `PasswordAuthentication no` không có `#`  
+b) Password authentication đang BẬT
 c) Config không hợp lệ vì có `#`  
 d) Bị tắt trên một số phiên bản OpenSSH và bật trên phiên bản khác
 
@@ -311,8 +308,7 @@ dòng mới không có `#`: `PasswordAuthentication no`. Đây là lỗi rất p
 **Câu 5**: Auditor hỏi: "Chứng minh rằng patch được áp trong thời hạn." Evidence nào tốt nhất?
 
 a) Chạy `apt list --upgradable` để show không có pending update  
-b) Ticket per CVE: ngày CVE published, ngày assess, ngày patch apply, ngày verify — cho thấy
-   process nhất quán và trong SLA  
+b) Ticket per CVE: ngày CVE published, ngày assess, ngày patch apply, ngày verify
 c) Chạy Trivy scan và show kết quả "0 CRITICAL"  
 d) Show `/var/log/dpkg.log` để prove package đã được install
 

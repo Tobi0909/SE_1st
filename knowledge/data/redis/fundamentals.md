@@ -229,10 +229,7 @@ Sau 1 giờ: `evicted_keys` trở về 0, latency về bình thường.
 **Câu 1**: Redis có phải là in-memory database thuần túy không? Dữ liệu có mất khi restart
 không?
 
-a) Không hoàn toàn thuần túy — Redis có persistence tùy chọn (RDB và/hoặc AOF). Với cấu hình
-   mặc định RDB, data có thể mất từ lần snapshot cuối đến khi crash (vài phút). Với AOF
-   everysec, mất tối đa 1 giây data. Nếu tắt cả hai, data mất hoàn toàn khi restart. Redis
-   thường được dùng như cache (mất data chấp nhận được) hoặc session store (cần AOF)
+a) Không hoàn toàn thuần túy — Redis có persistence tùy chọn (RDB và/hoặc AOF)
 b) Có, Redis luôn là in-memory thuần túy, không có bất kỳ cơ chế persistence nào, mọi data
    luôn mất khi restart
 c) Không, Redis luôn ghi mọi write xuống disk đồng bộ ngay lập tức theo mặc định, không bao
@@ -253,9 +250,7 @@ phải topology (loại d).
 **Câu 2**: Tại sao không nên dùng `KEYS *` trên Redis production?
 
 a) Vì KEYS * chỉ hoạt động được trên Redis Cluster, không hoạt động trên instance đơn
-b) KEYS có độ phức tạp O(n) — nó phải duyệt toàn bộ keyspace. Redis là single-thread, nên
-   KEYS * với 10M key có thể block server hàng chục ms, khiến mọi request khác phải chờ. Thay
-   bằng SCAN — trả về cursor và batch nhỏ, không block server
+b) KEYS có độ phức tạp O(n) — nó phải duyệt toàn bộ keyspace
 c) Vì KEYS * đã bị loại bỏ hoàn toàn khỏi Redis từ phiên bản mới nhất, lệnh không còn tồn tại
 d) Vì KEYS * yêu cầu quyền admin đặc biệt mà hầu hết client không có, nên luôn báo lỗi
    permission
@@ -273,10 +268,7 @@ năng chứ không phải permission (loại d).
 
 a) RDB log mọi write command; AOF snapshot định kỳ toàn bộ dataset
 b) Cả hai hoàn toàn giống nhau về cơ chế, chỉ khác định dạng file lưu trên disk
-c) RDB snapshot toàn bộ dataset theo định kỳ — ít mất data, nhưng có thể mất từ lần snapshot
-   cuối. AOF log mọi write command — với appendfsync everysec chỉ mất tối đa 1 giây data.
-   Dùng AOF khi data quan trọng (session, cart, user state) không thể mất nhiều hơn 1 giây.
-   Cache thuần (HTML rendered, DB query result) không cần AOF
+c) RDB snapshot toàn bộ dataset theo định kỳ — ít mất data, nhưng có thể mất từ lần snapshot cuối. AOF log mọi write command
 d) Nên luôn dùng cả RDB và AOF cùng lúc cho mọi loại dữ liệu, không có trường hợp nào chỉ cần
    1 trong 2
 
@@ -294,10 +286,7 @@ a) allkeys-lru chỉ xoá key có TTL; volatile-lru xoá cả key không có TTL
 b) Cả hai chính sách hoàn toàn tương đương, chỉ khác tên gọi theo phiên bản Redis cũ/mới
 c) volatile-lru áp dụng cho toàn bộ keyspace kể cả không TTL; allkeys-lru chỉ áp dụng cho key
    có TTL
-d) allkeys-lru áp dụng trên toàn bộ keyspace — key nào ít dùng nhất sẽ bị xoá, kể cả key
-   không có TTL. volatile-lru chỉ xoá trong số các key đã set TTL; nếu không còn key có TTL,
-   Redis trả lỗi OOM thay vì xoá key không có TTL. volatile-lru an toàn hơn khi mix cache (có
-   TTL) và persistent data (không TTL) trong cùng instance
+d) allkeys-lru áp dụng trên toàn bộ keyspace — key nào ít dùng nhất sẽ bị xoá, kể cả key không có TTL. volatile-lru chỉ xoá trong số các key đã set TTL
 
 **Đáp án: d** — `allkeys-lru` áp dụng toàn keyspace (kể cả không TTL); `volatile-lru` chỉ xoá
 key có TTL, nếu hết thì OOM error. Vai trò bị đảo ngược hoàn toàn trong lựa chọn a (loại a);
@@ -308,10 +297,7 @@ hai policy có phạm vi áp dụng khác nhau rõ rệt (toàn keyspace vs ch�
 
 **Câu 5**: Khi nào nên dùng Redis Sentinel, khi nào nên dùng Redis Cluster?
 
-a) Sentinel: khi cần high availability (auto-failover master→replica) mà không cần scale-out
-   — dataset vừa vào 1 master. Cluster: khi dataset quá lớn cho 1 instance, hoặc cần scale
-   write throughput theo chiều ngang — data tự động sharding qua 16384 hash slots. Cluster
-   phức tạp hơn, đặc biệt với multi-key operations (cross-slot bị cấm)
+a) Sentinel: khi cần high availability (auto-failover master→replica) mà không cần scale-out — dataset vừa vào 1 master
 b) Sentinel dùng khi cần sharding dữ liệu qua nhiều node; Cluster dùng khi chỉ cần
    auto-failover đơn giản
 c) Cả hai hoàn toàn thay thế được cho nhau trong mọi tình huống, chọn cái nào cũng được

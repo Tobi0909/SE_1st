@@ -182,9 +182,7 @@ không tăng.
 Thuật toán nào PHÙ HỢP HƠN round-robin cho tình huống này, và vì sao?
 
 a) round-robin vẫn là lựa chọn tốt nhất vì đơn giản và luôn chia đều tải bất kể thời gian xử lý
-b) least_conn — vì nó chọn backend theo SỐ KẾT NỐI ĐANG XỬ LÝ thực tế, tự tránh dồn request mới
-   vào backend đang "mắc" request B (xử lý lâu), khác với round-robin chỉ xoay vòng theo thứ tự
-   mà không quan tâm backend nào đang bận hơn
+b) least_conn — vì nó chọn backend theo SỐ KẾT NỐI ĐANG XỬ LÝ thực tế, tự tránh dồn request mới vào backend đang "mắc" request B
 c) ip_hash phù hợp hơn vì đảm bảo cùng client luôn vào cùng backend đang xử lý nhanh
 d) weighted round-robin với weight cố định theo endpoint, không cần quan tâm số kết nối hiện tại
 
@@ -203,9 +201,7 @@ c); weight cố định không tự điều chỉnh theo tải thực tế đang
 a) Traffic sẽ được chia đều ngẫu nhiên giữa các backend vì ip_hash tính theo port nguồn, không
    theo IP
 b) ip_hash sẽ tự phát hiện NAT và chuyển sang round-robin để tránh dồn tải
-c) TẤT CẢ request từ 200 nhân viên sẽ hash vào CÙNG một backend (vì cùng IP nguồn), dồn hết tải
-   vào một server dù có nhiều backend khác đang rảnh — "cân bằng tải" theo tên nhưng thực tế
-   không cân bằng trong tình huống NAT chung IP
+c) TẤT CẢ request từ 200 nhân viên sẽ hash vào CÙNG một backend
 d) Mỗi nhân viên sẽ được cấp một backend riêng vì ip_hash phân biệt theo session cookie, không
    theo IP
 
@@ -223,10 +219,7 @@ theo session cookie (loại d).
 a) Vì TCP connect luôn thất bại ngẫu nhiên do lỗi mạng, không phản ánh đúng trạng thái backend
 b) Vì port có thể bị đổi bất kỳ lúc nào mà health check không theo dõi được
 c) Vì TCP connect chỉ hoạt động với IPv4, backend chạy IPv6 sẽ luôn báo sai
-d) Process/port có thể vẫn đang chạy (TCP connect vẫn thành công) nhưng LOGIC XỬ LÝ bên trong
-   ứng dụng đã treo/deadlock — health check "nông" chỉ xác nhận tầng TCP, không phản ánh đúng
-   khả năng ứng dụng THỰC SỰ xử lý request. Cần health check gọi đúng endpoint ứng dụng tự kiểm
-   tra và trả lời
+d) Process/port có thể vẫn đang chạy (TCP connect vẫn thành công) nhưng LOGIC XỬ LÝ bên trong ứng dụng đã treo/deadlock
 
 **Đáp án: d** — Process/port có thể vẫn đang chạy (TCP connect vẫn thành công) nhưng LOGIC XỬ
 LÝ bên trong ứng dụng đã treo/deadlock — health check "nông" chỉ xác nhận tầng TCP, không phản
@@ -240,8 +233,7 @@ giới hạn (loại c).
 **Câu 4**: Trong cấu hình Nginx `server 10.0.0.1:8080 weight=3;` và `server 10.0.0.2:8080
 weight=1;`, tỷ lệ traffic mỗi server nhận là bao nhiêu?
 
-a) Server đầu (weight=3) nhận khoảng 3/4 (75%) traffic, server sau (weight=1) nhận khoảng 1/4
-   (25%) — tỷ lệ theo đúng trọng số tương đối giữa các server
+a) Server đầu (weight=3) nhận khoảng 3/4 (75%) traffic, server sau (weight=1) nhận khoảng 1/4 (25%)
 b) Cả hai nhận tỷ lệ bằng nhau 50/50 vì weight chỉ ảnh hưởng thứ tự chọn, không ảnh hưởng tỷ lệ
 c) Server đầu nhận 100% traffic, server sau chỉ nhận request khi server đầu down (weight dùng
    làm failover priority)
@@ -261,11 +253,7 @@ store chung). Đổi từ round-robin sang `ip_hash` có giải quyết được
 liên tục" không? Đây có phải giải pháp TỐT NHẤT không?
 
 a) Có giải quyết được và đây CHÍNH LÀ giải pháp tốt nhất, không cần làm gì thêm
-b) Có giải quyết được (vì cùng client luôn rơi vào cùng backend, nơi session của họ được lưu) —
-   NHƯNG không phải giải pháp tốt nhất về dài hạn, vì vẫn giữ nhược điểm của ip_hash (lệch tải
-   khi nhiều client dùng chung IP qua NAT). Giải pháp tốt hơn là chuyển session sang store
-   CHUNG (Redis/Memcached), để mọi thuật toán load balancing đều hoạt động đúng mà không cần
-   "dính" theo IP
+b) Có giải quyết được (vì cùng client luôn rơi vào cùng backend, nơi session của họ được lưu)
 c) Không giải quyết được gì cả vì ip_hash không liên quan tới việc giữ session ổn định theo
    client
 d) Có giải quyết được, nhưng chỉ vì ip_hash tự đồng bộ session giữa các backend qua mạng nội bộ

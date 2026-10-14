@@ -183,8 +183,7 @@ Một ứng dụng nội bộ ghi log vào `/var/log/myapp/app.log`, chạy dư�
 `ls` được danh sách file bên trong không? Có đọc được NỘI DUNG một file cụ thể bên trong (giả
 sử file đó có quyền `rw-------` và cùng owner) không?
 
-a) Có thể `ls` (có `r` trên thư mục — liệt kê được tên). Có đọc được nội dung file (có `x`
-   trên thư mục để truy cập được vào, và file đó có `r` cho owner)
+a) Có thể `ls` (có `r` trên thư mục — liệt kê được tên). Có đọc được nội dung file
 b) Không `ls` được, vì thiếu quyền `w` trên thư mục để liệt kê nội dung
 c) Có `ls` được nhưng không đọc được nội dung file, vì thiếu `x` trên chính file đó
 d) Không `ls` được và cũng không đọc được gì, vì thư mục thiếu quyền `x`
@@ -217,8 +216,6 @@ a) Vì `/usr` và `/bin` luôn có kích thước quá lớn, backup sẽ tốn 
    lượng lưu trữ
 b) Vì `/usr` và `/bin` chỉ chứa file tạm, tự động bị xoá mỗi khi reboot nên backup vô nghĩa
 c) `/usr`/`/bin` chứa chương trình/thư viện có thể TÁI TẠO LẠI hoàn toàn từ package manager
-   (cài lại gói). `/etc`/`/home`/`/var` chứa thông tin KHÔNG tái tạo được từ bất kỳ đâu khác
-   ngoài chính bản backup
 d) Vì `/etc`, `/home`, `/var` được mount read-only trên hầu hết server, nên các thư mục còn
    lại mới cần backup
 
@@ -236,9 +233,7 @@ a) `t` là setgid bit — khiến mọi file mới tạo trong thư mục tự �
    cha
 b) `t` là setuid bit — khiến mọi file thực thi trong thư mục chạy với quyền của owner thư mục
 c) `t` chỉ có ý nghĩa hiển thị cho người đọc, không ảnh hưởng gì tới hành vi xoá file thực tế
-d) `t` là sticky bit. Không có nó, bất kỳ ai có quyền `w` trên thư mục đều xoá được MỌI file
-   bên trong, bất kể owner. Có sticky bit, chỉ owner của TỪNG FILE (hoặc root) mới xoá/rename
-   được, dù thư mục vẫn cho phép mọi người viết file mới vào
+d) `t` là sticky bit. Không có nó, bất kỳ ai có quyền `w` trên thư mục đều xoá được MỌI file bên trong, bất kể owner
 
 **Đáp án: d** — `t` là sticky bit. Không có nó, bất kỳ ai có quyền `w` trên thư mục đều xoá
 được MỌI file bên trong, bất kể ai là owner của file đó. Có sticky bit, chỉ owner của TỪNG
@@ -251,9 +246,7 @@ vào.
 thư mục log vừa được tạo bằng `mkdir -p` bởi một kỹ sư dùng user cá nhân của họ. Nguyên nhân
 khả năng cao nhất là gì, và lệnh nào sửa đúng vấn đề đó?
 
-a) Thư mục được tạo với owner là user cá nhân của kỹ sư (vì `mkdir` không tự biết service nào
-   sẽ dùng thư mục), không phải `svc_app` — service không có quyền viết. Sửa bằng
-   `chown svc_app:svc_app <thư-mục>`
+a) Thư mục được tạo với owner là user cá nhân của kỹ sư (vì `mkdir` không tự biết service nào sẽ dùng thư mục), không phải `svc_app`
 b) Nguyên nhân là SELinux chặn mặc định mọi thư mục mới tạo — sửa bằng
    `restorecon -R <thư-mục>`
 c) Nguyên nhân là thư mục thiếu quyền `x` cho group — sửa bằng `chmod g+x <thư-mục>`

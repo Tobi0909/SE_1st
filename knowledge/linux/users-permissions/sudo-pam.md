@@ -179,8 +179,7 @@ a) Chỉ user tên "ops" (không phải group) được chạy đúng lệnh `sy
    của chính họ
 b) Mọi user thuộc group `ops`, chỉ trên máy có tên "root", chạy được lệnh `systemctl` bất kỳ
    với quyền hiện tại của họ
-c) Mọi user thuộc group `ops` (`%ops`), trên mọi máy (`ALL`), được chạy bất kỳ lệnh con nào
-   của `/usr/bin/systemctl` (dấu `*`), với quyền của `root` (chỉ định trong `(root)`)
+c) Mọi user thuộc group `ops` (`%ops`), trên mọi máy (`ALL`), được chạy bất kỳ lệnh con nào của `/usr/bin/systemctl` (dấu `*`), với quyền của `root`
 d) Mọi user, trên mọi máy, được chạy mọi lệnh hệ thống với quyền root — dòng sudoers này cấp
    toàn quyền
 
@@ -199,9 +198,7 @@ b) Vì `visudo` tự động backup file cũ ra `/etc/sudoers.bak` trước mỗ
    không làm vậy
 c) Vì `visudo` mã hoá nội dung `sudoers` khi lưu để bảo vệ khỏi đọc trộm, còn `vi` lưu dạng
    văn bản thường
-d) `visudo` validate cú pháp TRƯỚC khi cho phép lưu, và khoá file tránh xung đột sửa đồng
-   thời. Sửa trực tiếp bằng editor thường không có bước kiểm tra này — một lỗi cú pháp nhỏ có
-   thể làm hỏng `sudo` hoàn toàn cho MỌI user
+d) `visudo` validate cú pháp TRƯỚC khi cho phép lưu, và khoá file tránh xung đột sửa đồng thời
 
 **Đáp án: d** — `visudo` validate cú pháp TRƯỚC khi cho phép lưu, và khoá file tránh xung đột
 sửa đồng thời. Sửa trực tiếp bằng editor thường không có bước kiểm tra này — một lỗi cú pháp
@@ -212,9 +209,7 @@ nhỏ khi lưu có thể làm hỏng `sudo` hoàn toàn cho MỌI user, kể c�
 **Câu 3**: Phân biệt control flag `required` và `requisite` trong PAM — khác nhau ở điểm nào
 khi module đó FAIL?
 
-a) Cả hai đều coi module đó là BẮT BUỘC phải thành công để cả stack qua được. Khác biệt:
-   `required` fail thì KHÔNG dừng ngay — vẫn chạy hết các module khác trong stack trước khi
-   báo lỗi cuối cùng. `requisite` fail thì DỪNG NGAY, trả lỗi về ứng dụng ngay lập tức
+a) Cả hai đều coi module đó là BẮT BUỘC phải thành công để cả stack qua được. Khác biệt: `required` fail thì KHÔNG dừng ngay
 b) `required` fail dừng ngay lập tức; `requisite` fail thì vẫn chạy hết các module khác rồi
    mới báo lỗi
 c) `required` là tuỳ chọn (có thể fail mà vẫn qua được stack); `requisite` mới là bắt buộc
@@ -235,7 +230,6 @@ KHÔNG bị hỏi lại mật khẩu. Đây có phải lỗ hổng bảo mật k
 a) Có, đây là lỗ hổng nghiêm trọng cần báo cáo CVE ngay — mọi lệnh `sudo` phải hỏi lại mật
    khẩu
 b) Không, đây là hành vi THIẾT KẾ của `sudo` — cache xác thực trong một khoảng thời gian
-   (mặc định 15 phút, cấu hình qua `timestamp_timeout`)
 c) Không, nhưng vì máy đang chạy trong mạng nội bộ nên `sudo` tự tắt yêu cầu xác thực lặp lại
 d) Có, lỗ hổng do thiếu patch bảo mật — cần cập nhật `sudo` lên bản mới nhất ngay
 
@@ -253,9 +247,7 @@ trong sudoers?
 a) Thêm vào group `sudo` — đơn giản hơn và đủ an toàn vì tài khoản service không có mật khẩu
    đăng nhập trực tiếp
 b) Cả hai phương án tương đương về mức độ rủi ro — chọn phương án nào tiện hơn cho pipeline
-c) Viết rule riêng, hẹp phạm vi, CHỈ cho đúng lệnh cần (ví dụ với `NOPASSWD` cho riêng lệnh
-   đó). Thêm vào group `sudo` cấp toàn quyền root cho MỌI lệnh — vi phạm nguyên tắc least
-   privilege
+c) Viết rule riêng, hẹp phạm vi, CHỈ cho đúng lệnh cần (ví dụ với `NOPASSWD` cho riêng lệnh đó). Thêm vào group `sudo` cấp toàn quyền root cho MỌI lệnh
 d) Viết rule riêng nhưng cho phép `NOPASSWD` với `ALL` lệnh, để tránh phải sửa lại `sudoers`
    mỗi khi pipeline cần thêm lệnh mới
 

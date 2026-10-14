@@ -183,9 +183,7 @@ a) Hai lệnh hoàn toàn tương đương về cơ chế, chỉ khác cú pháp
 b) `disown` tác động ở TẦNG PROCESS (chặn SIGHUP ngay từ lúc khởi động), còn `nohup` tác động
    ở TẦNG SHELL (gỡ job khỏi bảng theo dõi)
 c) `nohup` chỉ hoạt động với lệnh chạy qua kết nối SSH, `disown` hoạt động với mọi loại session
-d) `nohup` tác động ở TẦNG PROCESS — chặn `SIGHUP` ngay từ lúc khởi động process. `disown` tác
-   động ở TẦNG SHELL — chỉ gỡ job khỏi bảng theo dõi của shell hiện tại, không tự chặn SIGHUP
-   ở tầng process
+d) `nohup` tác động ở TẦNG PROCESS — chặn `SIGHUP` ngay từ lúc khởi động process. `disown` tác động ở TẦNG SHELL
 
 **Đáp án: d** — `nohup` tác động ở TẦNG PROCESS — chặn `SIGHUP` ngay từ lúc khởi động process.
 `disown` tác động ở TẦNG SHELL — chỉ gỡ job khỏi bảng theo dõi của shell hiện tại, không tự
@@ -198,9 +196,7 @@ thường tương tự, nhưng cơ chế bên dưới khác nhau).
 từ một session TRƯỚC đó, dù `ps aux` vẫn thấy process đang chạy. Đây có phải lỗi không?
 
 a) Có, lỗi do quên export biến môi trường của job sang session mới
-b) Không phải lỗi. Bảng job (`jobs`) thuộc về MỘT shell instance cụ thể — mỗi session mới có
-   bảng job riêng, rỗng từ đầu, không "nhìn thấy" job của session khác dù process đó vẫn đang
-   chạy thật
+b) Không phải lỗi. Bảng job (`jobs`) thuộc về MỘT shell instance cụ thể
 c) Không phải lỗi, vì `nohup` tự ẩn job khỏi `jobs -l` trên mọi session, kể cả session đã tạo
    ra job đó
 d) Có, lỗi do process đã bị kernel tự chuyển sang chế độ daemon ẩn danh
@@ -236,9 +232,7 @@ b) `tmux`/`screen` mạnh hơn vì luôn chạy với quyền root, còn `nohup`
    thường
 c) `nohup` thực ra mạnh hơn vì không cần cài thêm phần mềm, còn `tmux`/`screen` chỉ là tiện
    ích phụ không cần thiết
-d) `nohup` chỉ giúp process không bị `SIGHUP` giết khi terminal đóng, output phải đọc qua file
-   log sau đó. `tmux`/`screen` tạo một session giả lập ĐỘC LẬP khỏi kết nối SSH — có thể
-   "detach" rồi "attach" lại và nhìn TRỰC TIẾP đúng màn hình terminal như lúc rời đi
+d) `nohup` chỉ giúp process không bị `SIGHUP` giết khi terminal đóng, output phải đọc qua file log sau đó. `tmux`/`screen` tạo một session giả lập ĐỘC LẬP khỏi kết nối SSH
 
 **Đáp án: d** — `nohup` chỉ giúp process không bị `SIGHUP` giết khi terminal đóng, output
 phải đọc qua file log sau đó. `tmux`/`screen` tạo một session giả lập ĐỘC LẬP khỏi kết nối SSH

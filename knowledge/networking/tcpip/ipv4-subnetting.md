@@ -181,9 +181,7 @@ Team mạng báo "máy chủ mới (IP `192.168.25.50/24`) không ping được 
 
 a) Không, vì octet thứ ba khác nhau (5 vs 6) nên luôn thuộc hai subnet khác nhau trừ khi dùng
    VLSM đặc biệt
-b) Có — `/22` gộp 4 octet thứ-3 liên tiếp (4, 5, 6, 7 đều rơi vào cùng một block) vào một mạng;
-   `AND` cả hai IP với mask `/22` đều ra network address `10.0.4.0`, xác nhận cùng mạng dù octet
-   thứ 3 khác nhau
+b) Có — `/22` gộp 4 octet thứ-3 liên tiếp (4, 5, 6, 7 đều rơi vào cùng một block) vào một mạng
 c) Không thể xác định nếu không biết thêm địa chỉ gateway của mạng
 d) Có, nhưng chỉ vì hai địa chỉ nằm trong cùng dải `/24` kề nhau (`10.0.5.0/24` và
    `10.0.6.0/24`)
@@ -202,8 +200,7 @@ sai về nguyên lý: khối `/22` không phải lúc nào cũng là 2 dải `/2
 
 a) Tổng 64 địa chỉ, host dùng được 62
 b) Tổng 32 địa chỉ, host dùng được 32
-c) Tổng 32 địa chỉ (`2^(32-27) = 2^5 = 32`), host dùng được 30 (trừ network address và broadcast
-   address)
+c) Tổng 32 địa chỉ (`2^(32-27) = 2^5 = 32`), host dùng được 30
 d) Tổng 16 địa chỉ, host dùng được 14
 
 **Đáp án: c** — Tổng `2^(32-27) = 2^5 = 32` địa chỉ. Host dùng được: `32 - 2 = 30` (trừ network
@@ -218,8 +215,7 @@ gateway để ping được máy B không?
 a) Có, mọi gói tin luôn phải qua default gateway trước khi tới bất kỳ máy nào trong mạng
 b) Chỉ cần gateway nếu hai máy nằm trên hai switch vật lý khác nhau, dù cùng subnet logic
 c) Không cần, nhưng chỉ vì cả hai máy dùng cùng một dải DHCP nên switch tự định tuyến nội bộ
-d) Không cần — cùng subnet giao tiếp trực tiếp qua Ethernet/ARP, không đi qua gateway; default
-   gateway chỉ cần cho giao tiếp ra ngoài subnet hiện tại
+d) Không cần — cùng subnet giao tiếp trực tiếp qua Ethernet/ARP, không đi qua gateway
 
 **Đáp án: d** — Không cần. Cùng subnet thì giao tiếp TRỰC TIẾP qua Ethernet/ARP, không đi qua
 gateway — default gateway chỉ cần cho giao tiếp RA NGOÀI subnet hiện tại. Gói tin trong cùng
@@ -231,9 +227,7 @@ liên quan tới việc dùng chung dải DHCP (loại c).
 
 **Câu 4**: Vì sao CIDR (classless) được coi là cải tiến so với hệ thống Class A/B/C cũ?
 
-a) Class cũ chỉ có 3 kích thước mạng cố định (`/8`, `/16`, `/24`), buộc tổ chức cần số lượng địa
-   chỉ nằm giữa các mức đó phải lấy dư thừa rất nhiều; CIDR cho phép chọn chính xác prefix
-   length cần, linh hoạt và tiết kiệm địa chỉ hơn
+a) Class cũ chỉ có 3 kích thước mạng cố định (`/8`, `/16`, `/24`), buộc tổ chức cần số lượng địa chỉ nằm giữa các mức đó phải lấy dư thừa rất nhiều
 b) Vì CIDR cho phép bỏ hoàn toàn subnet mask, router tự suy ra kích thước mạng từ địa chỉ IP
 c) Vì CIDR chỉ áp dụng cho mạng nội bộ private, không ảnh hưởng tới cấp phát địa chỉ public
 d) Vì Class A/B/C vẫn linh hoạt tương đương CIDR, chỉ khác ở cách ghi ký hiệu mask
@@ -253,8 +247,6 @@ prefix length nào, và vì sao không nên chọn đúng mức tối thiểu ch
 a) Nên chọn `/25` (126 host) vì đã đủ hơn 100 máy hiện tại, mở rộng sau bằng cách cấp thêm
    subnet mới liền kề
 b) Nên chọn `/24` (254 host dùng được, đủ cho cả 100 hiện tại và 150 dự kiến), không chọn `/25`
-   (126 host — chỉ hơn 100 một chút, không đủ khi tăng lên 150); luôn tính trước nhu cầu mở rộng
-   khi quy hoạch subnet
 c) Nên chọn `/23` để chắc chắn dư thừa gấp nhiều lần nhu cầu, tránh phải tính toán lại trong
    tương lai
 d) Nên chọn `/26` (62 host) và chia thành 2 subnet riêng cho 100 máy hiện tại, nâng cấp khi cần

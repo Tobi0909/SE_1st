@@ -145,8 +145,7 @@ không đúng như mong đợi:
 **Câu 1**: Vì sao `[ "$BIEN" = "5" ]` và `[ "$BIEN" -eq 5 ]` có thể cho kết quả KHÁC NHAU nếu
 `BIEN="05"`?
 
-a) `=` so sánh CHUỖI ký tự ("05" khác "5" về mặt ký tự) nên trả về SAI; `-eq` so sánh SỐ (05
-   bằng 5 về giá trị số) nên trả về ĐÚNG
+a) `=` so sánh CHUỖI ký tự ("05" khác "5" về mặt ký tự) nên trả về SAI; `-eq` so sánh SỐ
 b) `=` so sánh số, `-eq` so sánh chuỗi — ngược lại hoàn toàn với tên gọi thường gặp
 c) Cả hai đều so sánh số, không có khác biệt nào khi `BIEN="05"`
 d) Cả hai đều cho cùng kết quả vì bash tự động ép kiểu số trước khi so sánh trong mọi trường

@@ -219,8 +219,7 @@ thay đổi nhưng cấu hình bootloader không tự cập nhật theo.
 **Câu 2**: Vì sao kernel cần một initramfs trung gian thay vì mount trực tiếp root filesystem
 thật ngay khi GRUB nạp xong kernel?
 
-a) Vì kernel chưa có driver/module cho thiết bị storage cụ thể (NVMe/RAID/LVM/mã hoá...) tại
-   thời điểm đó — initramfs chứa sẵn driver cần thiết để mount được root thật
+a) Vì kernel chưa có driver/module cho thiết bị storage cụ thể
 b) Vì root filesystem luôn được mã hoá và bắt buộc cần initramfs để giải mã trước khi mount
 c) Vì GRUB không có khả năng đọc trực tiếp bất kỳ loại filesystem nào
 d) Vì initramfs là bước bắt buộc để kiểm tra chữ ký số của kernel trước khi chạy
@@ -252,9 +251,7 @@ gần nhất, và dùng khi nào thì hợp lý hơn so với đọc `journalctl
 
 a) `journalctl -b --reverse` — vì nó hiển thị log theo thứ tự mới nhất lên trước
 b) `systemctl list-dependencies` — vì nó liệt kê toàn bộ cây phụ thuộc của một unit
-c) `systemd-analyze blame` (và `systemd-analyze critical-chain` để thấy chuỗi phụ thuộc găng) —
-   hợp lý hơn khi cần xếp hạng unit theo thời gian chiếm dụng, còn `journalctl -b` phù hợp hơn
-   khi cần tái hiện đúng trình tự sự kiện để tìm lỗi logic
+c) `systemd-analyze blame` (và `systemd-analyze critical-chain` để thấy chuỗi phụ thuộc găng)
 d) `dmesg | grep boot` — vì đây là nguồn log boot duy nhất đáng tin cậy
 
 **Đáp án: c** — `systemd-analyze blame` (và `systemd-analyze critical-chain` để thấy chuỗi phụ
@@ -268,8 +265,7 @@ tìm lỗi logic (unit nào fail trước, unit nào phụ thuộc bị ảnh h�
 đang offline. Điều gì xảy ra với quá trình boot?
 
 a) Boot vẫn tiếp tục bình thường, mount đó chỉ bị bỏ qua và ghi log cảnh báo
-b) Boot bị chặn (hoặc kéo dài rồi rơi vào emergency shell) vì systemd coi mount đó là điều kiện
-   cần cho `local-fs.target`; phòng tránh bằng thêm `nofail`/`x-systemd.device-timeout=`
+b) Boot bị chặn (hoặc kéo dài rồi rơi vào emergency shell) vì systemd coi mount đó là điều kiện cần cho `local-fs.target`
 c) Hệ thống tự động mount lại bằng NFS version cũ hơn để tương thích
 d) Chỉ riêng service nào dùng trực tiếp thư mục đó bị treo, boot và service khác không bị
    ảnh hưởng gì

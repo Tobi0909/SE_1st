@@ -187,8 +187,7 @@ nhớ rõ mới dọn dẹp ổ đĩa tuần trước và `df -h` lúc đó còn
 space left on device". Giả thuyết hợp lý nhất cần kiểm tra ĐẦU TIÊN là gì?
 
 a) Giả thuyết đầu tiên là đĩa vật lý sắp hỏng, cần chạy `smartctl` kiểm tra ngay
-b) Hết INODE, không phải hết dung lượng byte — kiểm tra ngay bằng `df -i`. Hai loại tài
-   nguyên độc lập, "còn dư GB" không đảm bảo còn inode để tạo file mới
+b) Hết INODE, không phải hết dung lượng byte — kiểm tra ngay bằng `df -i`
 c) Giả thuyết đầu tiên là filesystem đã bị mount lại ở chế độ read-only, kiểm tra bằng
    `mount | grep ro`
 d) Giả thuyết đầu tiên là RAM đã đầy khiến kernel không cache được ghi file mới, cần kiểm tra
@@ -204,9 +203,7 @@ báo dung lượng y hệt trước khi xoá. Điều gì có khả năng đang 
 
 a) `rm` không thực sự xoá file ngay — cần chạy `sync` để kernel cập nhật lại số liệu `df -h`
 b) `df -h` có cơ chế cache riêng, cần đợi tối đa 5 phút để tự cập nhật theo dung lượng mới
-c) Một process (thường chính service đang ghi vào file log đó) vẫn giữ file descriptor mở
-   tới file đã bị `rm` — kernel chưa giải phóng block đĩa cho tới khi TẤT CẢ file descriptor
-   trỏ tới file đó được đóng
+c) Một process (thường chính service đang ghi vào file log đó) vẫn giữ file descriptor mở tới file đã bị `rm`
 d) `rm` chỉ xoá ngay với file nhỏ hơn 1GB — file lớn hơn cần dùng `shred` để xoá thật
 
 **Đáp án: c** — Một process (thường chính service đang ghi vào file log đó) vẫn giữ file
@@ -223,9 +220,7 @@ a) Vì file 10GB chiếm nhiều inode tương ứng với kích thước của 
 b) Vì inode chỉ được giải phóng khi xoá ít nhất 100 file cùng lúc, xoá 1 file không đủ ngưỡng
 c) Vì file 10GB thường nằm trên một filesystem khác, không chia sẻ chung số inode với phần
    còn lại
-d) Mỗi file (bất kể kích thước) chỉ chiếm ĐÚNG MỘT inode. Xoá một file 10GB giải phóng nhiều
-   dung lượng byte nhưng cũng chỉ giải phóng MỘT inode — không giúp ích nếu vấn đề thật là có
-   hàng triệu file NHỎ chiếm hết số inode cho phép
+d) Mỗi file (bất kể kích thước) chỉ chiếm ĐÚNG MỘT inode. Xoá một file 10GB giải phóng nhiều dung lượng byte nhưng cũng chỉ giải phóng MỘT inode
 
 **Đáp án: d** — Mỗi file (bất kể kích thước) chỉ chiếm ĐÚNG MỘT inode. Xoá một file 10GB giải
 phóng nhiều dung lượng byte nhưng cũng chỉ giải phóng MỘT inode — không giúp ích nếu vấn đề
@@ -236,9 +231,7 @@ thật là có hàng triệu file NHỎ chiếm hết số inode cho phép.
 **Câu 4**: Vì sao không nên chạy `fsck` trực tiếp trên root filesystem (`/`) đang mount và
 đang hoạt động bình thường?
 
-a) `fsck` cần toàn quyền sửa cấu trúc filesystem — chạy trên filesystem đang mount và đang có
-   ghi/đọc diễn ra có thể gây xung đột, làm hỏng thêm thay vì sửa. Với root filesystem, cách
-   an toàn là boot vào chế độ rescue/single-user hoặc để fsck tự chạy ở lần boot tiếp theo
+a) `fsck` cần toàn quyền sửa cấu trúc filesystem — chạy trên filesystem đang mount và đang có ghi/đọc diễn ra có thể gây xung đột, làm hỏng thêm thay vì sửa
 b) Vì `fsck` luôn xoá sạch toàn bộ dữ liệu trên filesystem trước khi kiểm tra lại từ đầu
 c) Vì `fsck` chỉ hoạt động đúng trên filesystem FAT32, không tương thích với ext4/XFS khi
    đang mount

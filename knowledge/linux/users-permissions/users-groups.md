@@ -168,9 +168,7 @@ group `appteam` mà trước đó họ ĐÃ được thêm vào bởi một đ�
 **Câu 1**: Vì sao mật khẩu hash không còn lưu trực tiếp trong `/etc/passwd` dù file này vẫn
 có một trường ở vị trí đó (hiện là `x`)?
 
-a) `/etc/passwd` cần đọc được bởi MỌI user (để các lệnh như `ls -l`/`id` hoạt động), nên lưu
-   hash mật khẩu trực tiếp ở đây sẽ lộ cho mọi người đọc được. Hash thật được tách sang
-   `/etc/shadow`, chỉ root đọc được; trường `x` chỉ là placeholder báo "xem /etc/shadow"
+a) `/etc/passwd` cần đọc được bởi MỌI user (để các lệnh như `ls -l`/`id` hoạt động), nên lưu hash mật khẩu trực tiếp ở đây sẽ lộ cho mọi người đọc được
 b) Vì `/etc/passwd` có giới hạn độ dài trường không đủ chứa hash dài, buộc phải tách sang
    `/etc/shadow`
 c) Vì `/etc/shadow` được mã hoá bằng khoá riêng của root, còn `/etc/passwd` không hỗ trợ cơ
@@ -206,9 +204,7 @@ chạy được `docker` trong terminal ĐANG MỞ. Đây có phải lỗi của
 a) Có, `usermod -aG` chỉ hoạt động khi user đang offline — cần logout toàn hệ thống trước khi
    chạy lệnh
 b) Không, nhưng vì `docker.service` cần được restart để nhận diện user mới thuộc group
-c) Không. Lệnh đã đúng, chỉ là session/terminal đang mở đã "chốt" danh sách group từ lúc
-   đăng nhập, không tự đọc lại `/etc/group`. Cần đăng nhập lại hoặc dùng `newgrp docker` cho
-   session hiện tại
+c) Không. Lệnh đã đúng, chỉ là session/terminal đang mở đã "chốt" danh sách group từ lúc đăng nhập, không tự đọc lại `/etc/group`
 d) Có, đây là bug đã biết của `usermod -aG` — luôn cần chạy thêm `newgrp` ngay sau đó mới có
    hiệu lực
 
@@ -224,7 +220,6 @@ a) Tối đa 1 group chính và tối đa 16 group phụ, theo giới hạn cứ
 b) Có thể thuộc nhiều group chính cùng lúc, nhưng chỉ 1 group phụ duy nhất
 c) Không có khái niệm group chính trên Linux — chỉ Windows mới phân biệt group chính/phụ
 d) Đúng MỘT group chính (ghi trong `/etc/passwd`, trường GID). Có thể thuộc NHIỀU group phụ
-   (ghi trong `/etc/group`, không giới hạn cố định ngoài giới hạn hệ thống rất lớn)
 
 **Đáp án: d** — Đúng MỘT group chính (ghi trong `/etc/passwd`, trường GID). Có thể thuộc
 NHIỀU group phụ (ghi trong `/etc/group`, không giới hạn cố định ngoài giới hạn hệ thống rất
@@ -235,9 +230,7 @@ lớn).
 **Câu 5**: Vì sao nên dùng `getent passwd <user>` thay vì `grep <user> /etc/passwd` để tra
 cứu thông tin user trên một hệ thống lớn?
 
-a) `getent` tra cứu qua đúng cơ chế NSS (Name Service Switch) của hệ thống — hoạt động đúng
-   cả khi thông tin user không chỉ nằm trong file local mà còn ở LDAP/NIS/AD. `grep` trực
-   tiếp file CHỈ thấy được user cục bộ, bỏ lọt user quản lý qua hệ thống tập trung
+a) `getent` tra cứu qua đúng cơ chế NSS (Name Service Switch) của hệ thống
 b) Vì `getent` luôn chạy nhanh hơn `grep` về mặt hiệu năng xử lý text
 c) Vì `grep` không hỗ trợ tìm kiếm chính xác theo tên user, dễ khớp nhầm chuỗi con
 d) Vì `/etc/passwd` trên hệ thống hiện đại không còn chứa thông tin user nào, mọi thứ đã

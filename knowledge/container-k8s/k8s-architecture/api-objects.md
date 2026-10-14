@@ -264,10 +264,7 @@ a) requests là ngưỡng kernel enforce (OOMKill khi vượt); limits là giá 
    đặt Pod
 b) Cả hai đều do kernel enforce như nhau, chỉ khác nhau ở đơn vị đo (requests theo m, limits
    theo byte)
-c) requests là lượng tài nguyên SCHEDULER dùng để quyết định có đủ chỗ để đặt Pod trên node
-   không — nếu node có CPU allocatable còn lại ít hơn requests.cpu, scheduler không đặt Pod đó
-   lên đó. limits là ngưỡng trên kernel sẽ enforce: vượt limits.memory → OOMKill; vượt
-   limits.cpu → CPU throttle (không kill). Scheduler dùng requests, kernel enforce limits
+c) requests là lượng tài nguyên SCHEDULER dùng để quyết định có đủ chỗ để đặt Pod trên node không — nếu node có CPU allocatable còn lại ít hơn requests.cpu, scheduler không đặt Pod đó lên đó. limits là ngưỡng trên kernel sẽ enforce: vượt limits.memory → OOMKill
 d) requests chỉ áp dụng cho CPU, limits chỉ áp dụng cho memory, không có chiều ngược lại
 
 **Đáp án: c** — `requests` là lượng tài nguyên SCHEDULER dùng để quyết định đặt Pod lên node
@@ -283,10 +280,7 @@ ngược hoàn toàn trong lựa chọn a (loại a); hai khái niệm có vai t
 a) Vì Pod tạo trực tiếp không hỗ trợ gán resources.requests/limits, chỉ Deployment mới hỗ trợ
 b) Vì kubectl không cho phép tạo Pod trực tiếp trong namespace production theo policy mặc định
 c) Vì Pod tạo trực tiếp chỉ chạy được tối đa 1 container, Deployment mới hỗ trợ nhiều container
-d) Pod là ephemeral — khi bị xoá (node fail, eviction, tay sai) không tự tạo lại. Deployment
-   tạo ReplicaSet để đảm bảo số lượng replica; khi Pod die, controller tự tạo Pod thay thế
-   (self-healing). Deployment còn quản lý rolling update (deploy phiên bản mới không downtime)
-   và rollback. Pod thủ công không có bất kỳ tính năng nào trong số này
+d) Pod là ephemeral — khi bị xoá (node fail, eviction, tay sai) không tự tạo lại
 
 **Đáp án: d** — Pod là ephemeral, không tự tạo lại khi bị xoá. Deployment tạo ReplicaSet đảm
 bảo self-healing, quản lý rolling update và rollback. Pod tạo trực tiếp vẫn gán được
@@ -299,10 +293,7 @@ policy mặc định nào cấm tạo Pod trực tiếp (loại b); Pod (cả t�
 
 **Câu 3**: `kubectl apply -f deployment.yaml` lần 2 với file không thay đổi — chuyện gì xảy ra?
 
-a) kubectl so sánh manifest với state hiện tại của object trong cluster (client-side apply
-   dùng annotation kubectl.kubernetes.io/last-applied-configuration lưu lần apply trước). Nếu
-   không có diff, kubectl không gửi patch và in deployment.apps/my-app unchanged. Đây là lý do
-   apply là idempotent và an toàn để chạy nhiều lần (ví dụ trong CI/CD pipeline mỗi deploy)
+a) kubectl so sánh manifest với state hiện tại của object trong cluster
 b) kubectl luôn gửi lại toàn bộ manifest và restart Deployment dù không có thay đổi gì
 c) kubectl báo lỗi vì không cho phép apply trùng manifest lần thứ hai
 d) kubectl tự động tăng version Deployment lên 1 mỗi lần apply, bất kể có thay đổi hay không

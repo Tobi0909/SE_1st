@@ -202,10 +202,7 @@ Chuỗi debug hoàn chỉnh — "Web application không trả về response, cli
 cần xác nhận điều gì?
 
 a) Cần xác nhận DNS record của domain đã trỏ đúng IP server chưa
-b) Service có thực sự LISTEN trên port đó không, và LISTEN trên interface nào — dùng
-   `ss -tln | grep <port>`. Nếu không thấy dòng nào, service chưa start hoặc LISTEN sai
-   port. Nếu thấy `127.0.0.1:<port>` thay vì `0.0.0.0:<port>`, đây không phải vấn đề
-   firewall
+b) Service có thực sự LISTEN trên port đó không, và LISTEN trên interface nào — dùng `ss -tln | grep <port>`
 c) Cần xác nhận client có đúng cấu hình proxy không, vì có thể client định tuyến sai
 d) Cần xác nhận switch/router trung gian có bị lỗi phần cứng không
 
@@ -222,9 +219,7 @@ nội bộ — đây không phải vấn đề firewall.
 a) Dẫn hướng kiểm tra tài liệu thiết kế ban đầu xem hệ thống có được thiết kế đúng từ đầu
    không
 b) Dẫn hướng kiểm tra log hệ thống trong 1 năm qua để tìm pattern lặp lại theo mùa
-c) Tìm điều gì ĐÃ THAY ĐỔI gần nhất — deploy mới, update package, thay đổi cấu hình, thêm
-   user, sửa firewall rule... Câu hỏi cốt lõi là "regression", không phải "tìm thứ còn
-   thiếu"
+c) Tìm điều gì ĐÃ THAY ĐỔI gần nhất — deploy mới, update package, thay đổi cấu hình, thêm user, sửa firewall rule..
 d) Dẫn hướng liên hệ ngay với vendor phần cứng để kiểm tra bảo hành thiết bị
 
 **Đáp án: c** — Tìm điều gì ĐÃ THAY ĐỔI gần nhất — deploy mới, update package, thay đổi cấu

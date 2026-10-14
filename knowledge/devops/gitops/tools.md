@@ -276,10 +276,7 @@ Audit trail đầy đủ: Git log ghi ai approve PR, lúc mấy giờ, ArgoCD lo
 
 a) OutOfSync và Healthy luôn đi cùng nhau, không thể có OutOfSync mà vẫn Healthy
 b) Healthy nghĩa là config khớp Git; OutOfSync nghĩa là resource đang lỗi
-c) OutOfSync nghĩa là config trên cluster khác với desired state trong Git (ví dụ: replicas
-   bị scale thủ công). Healthy nghĩa là các resource đang chạy bình thường (Pod running,
-   service reachable). Hai trạng thái này độc lập nhau — app có thể healthy nhưng lệch khỏi
-   Git. Cần sync để đưa cluster về đúng desired state
+c) OutOfSync nghĩa là config trên cluster khác với desired state trong Git (ví dụ: replicas bị scale thủ công)
 d) OutOfSync chỉ xảy ra khi ArgoCD mất kết nối tới Git repo, không liên quan tới config trên
    cluster
 
@@ -298,10 +295,7 @@ a) Luôn dùng selfHeal: true cho mọi môi trường bao gồm cả lúc debug
 b) selfHeal: true chỉ ảnh hưởng tới tốc độ sync, không liên quan tới việc ghi đè thay đổi
    thủ công
 c) Chỉ dùng selfHeal: true cho môi trường staging, tuyệt đối không dùng cho production
-d) Dùng selfHeal: true (ArgoCD) / prune: true (Flux) cho môi trường production khi muốn
-   GitOps là nguồn sự thật tuyệt đối — mọi thay đổi trực tiếp lên cluster đều bị ghi đè.
-   Không dùng khi cần cho phép can thiệp thủ công tạm thời (debug khẩn cấp) hoặc khi có
-   resource tự-mutate mà khó cấu hình ignoreDifferences
+d) Dùng selfHeal: true (ArgoCD) / prune: true (Flux) cho môi trường production khi muốn GitOps là nguồn sự thật tuyệt đối
 
 **Đáp án: d** — Dùng cho production khi muốn GitOps là nguồn sự thật tuyệt đối. Không dùng
 khi cần can thiệp thủ công tạm thời hoặc resource tự-mutate khó cấu hình. Không nên luôn bật
@@ -315,10 +309,7 @@ khi đang debug khẩn cấp — đó chính là trường hợp CẦN TẠM T�
 **Câu 3**: Sự khác biệt giữa `targetRevision: main` và `targetRevision: v1.2.3` trong ArgoCD
 Application là gì?
 
-a) main là mutable reference (branch): ArgoCD poll và theo commit mới nhất trên branch đó —
-   mỗi merge đều trigger sync. v1.2.3 là immutable reference (tag): ArgoCD chỉ deploy đúng
-   commit đó và không thay đổi trừ khi sửa Application manifest. Môi trường production
-   thường dùng tag bất biến để kiểm soát deploy, staging dùng branch để tự động theo main
+a) main là mutable reference (branch): ArgoCD poll và theo commit mới nhất trên branch đó — mỗi merge đều trigger sync. v1.2.3 là immutable reference
 b) main là immutable tag; v1.2.3 là mutable branch
 c) Cả hai hoàn toàn tương đương về hành vi sync, chỉ khác cách hiển thị trên UI ArgoCD
 d) targetRevision chỉ nhận branch, không hỗ trợ version tag như v1.2.3
@@ -336,11 +327,7 @@ thiết kế này là gì?
 
 a) Vì Flux yêu cầu bắt buộc phải tách 2 CRD theo giới hạn kỹ thuật của Kubernetes CRD,
    không phải lựa chọn thiết kế
-b) Một GitRepository có thể được tham chiếu bởi nhiều Kustomization — ví dụ: cùng một repo
-   nhưng deploy path apps/api vào namespace production và path apps/api vào namespace
-   staging qua hai Kustomization khác nhau. Ngoài ra, GitRepository có thể được thay thế
-   bằng HelmRepository hoặc OCIRepository mà không cần đổi Kustomization — loose coupling
-   giữa source và apply
+b) Một GitRepository có thể được tham chiếu bởi nhiều Kustomization
 c) Tách 2 CRD giúp Flux chạy nhanh hơn do giảm số lượng field trong 1 object duy nhất
 d) GitRepository và Kustomization bắt buộc phải có tỉ lệ 1:1, tách riêng chỉ để dễ đọc YAML
    hơn
@@ -357,11 +344,7 @@ lệ chính xác là 1-NHIỀU (1 GitRepository nhiều Kustomization), không b
 
 a) Giải quyết vấn đề giới hạn số lượng Application tối đa mà 1 cluster ArgoCD có thể chạy
 b) App-of-Apps chỉ dùng để tăng tốc độ sync khi có nhiều Application cùng lúc
-c) Khi có nhiều Application, bootstrap thủ công (kubectl apply từng file) dễ sót và không
-   traceable. App-of-Apps tạo một Application "root" quản lý thư mục chứa nhiều Application
-   manifest khác — bootstrap toàn bộ cluster chỉ cần apply một root Application, và mọi
-   thêm/bớt Application sau này chỉ cần commit vào repo (root Application tự sync thêm
-   Application con). Đây là cách áp dụng GitOps cho chính cấu hình GitOps
+c) Khi có nhiều Application, bootstrap thủ công (kubectl apply từng file) dễ sót và không traceable
 d) App-of-Apps yêu cầu phải xoá hết Application cũ trước khi tạo root Application mới,
    không tương thích ngược
 

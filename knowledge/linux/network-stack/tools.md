@@ -174,8 +174,7 @@ dù team khẳng định "service đang chạy":
 
 **Câu 1**: Vì sao nên dùng `ss -tn` thay vì `ss -t` khi cần kết quả nhanh?
 
-a) `-n` bỏ qua việc resolve tên (reverse DNS) cho từng socket — nếu không có `-n`, lệnh có
-   thể chạy rất chậm khi DNS không phản hồi nhanh, vì phải tra tên cho MỖI socket
+a) `-n` bỏ qua việc resolve tên (reverse DNS) cho từng socket
 b) `-n` chỉ hiển thị thêm cột numeric PID, không ảnh hưởng gì tới tốc độ thực thi
 c) `-n` giới hạn số dòng kết quả hiển thị, giúp lệnh trả về nhanh hơn do ít dữ liệu hơn
 d) `-n` chuyển sang đọc từ cache cục bộ thay vì truy vấn trực tiếp kernel, nên luôn nhanh hơn
@@ -207,8 +206,7 @@ chỉ dùng khi KHÔNG route nào khác khớp.
 
 a) Không ảnh hưởng gì — `127.0.0.1` tự động NAT ra toàn bộ interface mạng của máy
 b) Client máy khác vẫn kết nối được nhưng chỉ qua IPv6, không qua IPv4
-c) Client từ máy KHÁC không thể kết nối — service chỉ bind vào loopback (`127.0.0.1`), chỉ
-   chấp nhận kết nối từ CHÍNH máy đó
+c) Client từ máy KHÁC không thể kết nối — service chỉ bind vào loopback
 d) Chỉ ảnh hưởng tới UDP — TCP từ máy khác vẫn kết nối bình thường qua `127.0.0.1`
 
 **Đáp án: c** — Client từ máy KHÁC không thể kết nối — service chỉ bind vào loopback

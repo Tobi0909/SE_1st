@@ -232,12 +232,7 @@ Thiết kế logging strategy cho microservices mới:
 **Câu 1**: Tại sao 12-Factor App khuyến nghị log ra `stdout` thay vì ghi file?
 
 a) Vì ghi ra file luôn chậm hơn stdout do phải chờ disk I/O đồng bộ mỗi dòng log
-b) App không nên quản lý rotation, compression, hay destination của log — đó là
-   responsibility của infra layer. Khi app log ra stdout: (1) container runtime (Docker/K8s)
-   tự capture; (2) systemd journal capture; (3) forwarder đọc từ container log path mà không
-   cần mount vào container; (4) app portable giữa local dev (stdout đến terminal), container
-   (stdout captured by runtime), và VM (stdout có thể redirect đến file). Nếu app ghi file
-   riêng, mỗi platform cần mount volume + collector riêng, phức tạp hơn
+b) App không nên quản lý rotation, compression, hay destination của log — đó là responsibility của infra layer
 c) Vì stdout được mã hoá tự động còn file log thì không, an toàn hơn cho dữ liệu nhạy cảm
 d) Vì hầu hết ngôn ngữ lập trình không hỗ trợ API ghi file, chỉ hỗ trợ stdout
 
@@ -256,13 +251,7 @@ a) Trace ID chỉ quan trọng trong monolith, không áp dụng cho microservic
    có log riêng
 b) Trace ID luôn do database tạo ra đầu tiên khi ghi transaction, không phải edge service hay
    client
-c) Trong microservices, 1 user request có thể qua 5-10 service. Không có trace ID, chỉ biết
-   "có lỗi" nhưng không biết lỗi xảy ra ở service nào trong chain và xảy ra lúc nào (timestamp
-   đủ để khớp không phải lúc nào cũng rõ ràng). Trace ID cho phép tìm trace_id="abc123" → thấy
-   toàn bộ lifecycle của 1 request qua mọi service. Ai tạo trace ID đầu tiên? Edge service
-   (API Gateway, Load Balancer) hoặc client — nếu request đã có X-Trace-ID header từ upstream,
-   forward tiếp; nếu không, tạo UUID mới. Standards: W3C Trace Context (traceparent header),
-   OpenTelemetry
+c) Trong microservices, 1 user request có thể qua 5-10 service
 d) Trace ID không cần thiết nếu mọi service đã dùng cùng timestamp format, timestamp đủ để
    khớp log
 
@@ -281,10 +270,7 @@ nhưng sẽ được retry?
 a) ERROR — mọi lần job fail đều phải log ERROR ngay cả khi sẽ retry thành công sau đó
 b) Không có khác biệt, WARNING và ERROR chỉ là tên gọi khác nhau cho cùng mức độ nghiêm trọng
 c) INFO — vì retry là hành vi bình thường của hệ thống, không cần log ở mức cao hơn INFO
-d) WARNING — vì app vẫn tiếp tục chạy và có cơ chế xử lý (retry). ERROR nên dùng khi fail
-   cuối cùng sau khi đã retry hết (ví dụ retry lần 3/3 vẫn fail → log ERROR + alert). Nguyên
-   tắc: level phản ánh severity THỰC TẾ sau khi app đã xử lý. Quá nhiều ERROR log từ chuyện
-   "retry thành công sau đó" = alert fatigue và team bỏ qua ERROR log thật sự quan trọng
+d) WARNING — vì app vẫn tiếp tục chạy và có cơ chế xử lý (retry). ERROR nên dùng khi fail cuối cùng sau khi đã retry hết
 
 **Đáp án: d** — WARNING vì app vẫn tiếp tục chạy, có cơ chế retry. ERROR dành cho fail cuối
 cùng sau khi đã retry hết. Dùng ERROR cho MỌI lần fail (kể cả retry thành công sau đó) gây

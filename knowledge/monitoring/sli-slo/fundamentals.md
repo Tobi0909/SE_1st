@@ -224,13 +224,7 @@ Thiết kế SLO cho team vừa nhận service mới:
 **Câu 1**: Sự khác biệt giữa SLO và SLA là gì? Tại sao SLO thường "nghiêm hơn" SLA?
 
 a) SLA là mục tiêu nội bộ, SLO là cam kết với khách hàng bên ngoài
-b) SLO là mục tiêu nội bộ (internal agreement giữa engineering và product/business); SLA là
-   cam kết bên ngoài với khách hàng (external, thường có penalty tài chính). SLO thường
-   nghiêm hơn (ví dụ SLO 99.9% vs SLA 99.5%) vì: (1) cần buffer để SLO vi phạm không kéo theo
-   vi phạm SLA luôn; (2) khi SLO vi phạm, team có thời gian phát hiện, điều tra, và fix trước
-   khi SLA bị vi phạm. Ví dụ: nếu SLO = SLA = 99.9% và có incident làm availability xuống
-   99.8%, cả SLO lẫn SLA đều vi phạm đồng thời — không có reaction time. Buffer giữa SLO và
-   SLA tạo ra "warning zone"
+b) SLO là mục tiêu nội bộ (internal agreement giữa engineering và product/business)
 c) SLO và SLA luôn bằng nhau theo định nghĩa, không có khái niệm "nghiêm hơn"
 d) SLO nghiêm hơn SLA chỉ vì lý do marketing, không có tác dụng kỹ thuật thực tế nào
 
@@ -249,12 +243,7 @@ a) Error budget 30 ngày = 0.1% × 30 = 3 giờ; đã dùng 40 phút thì còn r
    hành động gì
 b) Error budget đã hết hoàn toàn (0 phút) nên phải rollback ngay toàn bộ hệ thống về version
    cũ nhất
-c) Error budget 30 ngày = 0.1% × 30 × 24 × 60 = 43.2 phút. Đã dùng 40 phút (93% budget cạn!)
-   và mới đến giữa tháng. Còn 3.2 phút. Hành động: (1) NGAY LẬP TỨC dừng deploy không khẩn cấp
-   vào checkout service; (2) điều tra nguyên nhân 40 phút downtime đã xảy ra; (3) ưu tiên
-   ticket reliability thay vì feature; (4) nếu budget đã hết trước cuối tháng → xem xét freeze
-   mọi thay đổi risky đến checkout. Error budget không phải phạt — nó là tín hiệu để cân bằng
-   velocity vs reliability
+c) Error budget 30 ngày = 0.1% × 30 × 24 × 60 = 43.2 phút. Đã dùng 40 phút (93% budget cạn!) và mới đến giữa tháng. Còn 3.2 phút
 d) Error budget được reset lại ngay giữa tháng nếu team fix xong nguyên nhân downtime
 
 **Đáp án: c** — Tổng budget 43.2 phút (0.1% × 30 ngày tính ra phút), đã dùng 40 phút, còn 3.2
@@ -272,12 +261,7 @@ a) Vì uptime server luôn đo bằng %, trong khi SLI bắt buộc phải đo b
 b) Vì server uptime chỉ áp dụng được cho bare-metal, không áp dụng được cho cloud/VM
 c) Vì "uptime" là thuật ngữ cũ đã bị thay thế hoàn toàn bằng SLO, không còn dùng trong SRE
    hiện đại
-d) Server "up" (process chạy, port mở) không đảm bảo: (1) app đang trả response đúng (server
-   có thể chạy nhưng app crash internal và trả 500); (2) user có thể kết nối được (network
-   issue giữa user và server); (3) response đủ nhanh (server up nhưng query DB timeout → user
-   thấy 30s loading). SLI đo user experience cần đo từ phía user: black-box health check từ
-   nơi user truy cập (synthetic monitoring), hoặc đo real user traffic tại ingress/load
-   balancer. "Uptime server" là cause metric, không phải symptom metric
+d) Server "up" (process chạy, port mở) không đảm bảo: (1) app đang trả response đúng
 
 **Đáp án: d** — Server up không đảm bảo app trả response đúng, user kết nối được, hay đủ
 nhanh. SLI nên đo từ phía user (symptom), không phải cause metric nội bộ. SLI không bị giới

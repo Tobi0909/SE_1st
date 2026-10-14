@@ -238,8 +238,6 @@ b) Vì biến `local` luôn nhanh hơn biến global khi đọc trong trap, lý 
 c) Vì `trap EXIT` reset `$?` về 0 ngay khi hàm `cleanup` bắt đầu chạy, nên phải lưu trước
    khi vào hàm
 d) Vì `$?` luôn phản ánh exit code của LỆNH VỪA CHẠY GẦN NHẤT — nếu chạy một lệnh khác
-   (như `rm`) trước khi đọc, `$?` sẽ bị ghi đè thành exit code của lệnh đó, mất giá trị gốc
-   cho biết TẠI SAO script dừng
 
 **Đáp án: d** — Vì `$?` luôn phản ánh exit code của LỆNH VỪA CHẠY GẦN NHẤT — nếu chạy một
 lệnh khác (như `rm`) trước khi đọc, `$?` sẽ bị ghi đè thành exit code của lệnh đó, mất giá
@@ -250,9 +248,7 @@ trị gốc cho biết TẠI SAO script dừng.
 **Câu 3**: Pipeline `a | b` với `a` lỗi, `b` thành công, KHÔNG có `pipefail`. Exit code của
 pipeline là gì, và vì sao đây là một "cạm bẫy"?
 
-a) Exit code là của `b` (lệnh CUỐI pipeline) — tức thành công (`0`) dù `a` đã lỗi. Đây là
-   cạm bẫy vì script/cron chỉ kiểm tra exit code cuối sẽ KHÔNG BIẾT lệnh đầu pipeline đã
-   thất bại, trừ khi bật `set -o pipefail`
+a) Exit code là của `b` (lệnh CUỐI pipeline) — tức thành công (`0`) dù `a` đã lỗi
 b) Exit code là của `a` (lỗi), vì bash luôn lấy exit code của lệnh ĐẦU TIÊN trong pipeline
    theo mặc định
 c) Exit code là giá trị lớn nhất giữa `a` và `b`, tự động chọn lỗi nghiêm trọng hơn

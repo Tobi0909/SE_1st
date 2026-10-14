@@ -261,10 +261,7 @@ chặn dần, vì dễ bỏ sót).
 **Câu 1**: Cluster dùng Flannel CNI. Apply NetworkPolicy chặn inbound traffic. Có thực sự chặn
 được không?
 
-a) Không — Flannel không enforce NetworkPolicy. Object apply thành công (K8s không báo lỗi)
-   nhưng rules bị bỏ qua hoàn toàn. Traffic vẫn đi bình thường. CNI phải hỗ trợ NetworkPolicy
-   (Calico, Cilium, Canal...) để rules thực sự có tác dụng — đây là lý do cần kiểm tra CNI
-   trước khi phụ thuộc vào NetworkPolicy cho security
+a) Không — Flannel không enforce NetworkPolicy. Object apply thành công
 b) Có, mọi CNI đều tự động enforce NetworkPolicy theo chuẩn Kubernetes bắt buộc
 c) Không, vì apply sẽ báo lỗi ngay và NetworkPolicy không được tạo nếu CNI không hỗ trợ
 d) Có, nhưng chỉ chặn được traffic UDP, traffic TCP vẫn đi qua bình thường với Flannel
@@ -280,10 +277,7 @@ UDP đều không bị enforce, không phải chỉ chặn UDP (loại d).
 **Câu 2**: NetworkPolicy có `policyTypes: [Egress]` không có rule `egress:`. Chuyện gì xảy ra?
 
 a) Không có gì thay đổi, thiếu rule egress: sẽ mặc định cho phép tất cả traffic ra ngoài
-b) TẤT CẢ egress traffic từ Pod bị chặn — Pod không gọi được đến bất kỳ đâu, kể cả DNS.
-   policyTypes: [Egress] mà không có egress: rules = explicit deny-all egress. Đây là cách tạo
-   "internet isolation" hoàn toàn cho một Pod: khai báo cả hai policyTypes: [Ingress, Egress]
-   không có rules = deny all in/out
+b) TẤT CẢ egress traffic từ Pod bị chặn — Pod không gọi được đến bất kỳ đâu, kể cả DNS. policyTypes: [Egress] mà không có egress: rules = explicit deny-all egress
 c) Chỉ chặn traffic tới địa chỉ IP ngoài cluster, traffic nội bộ cluster vẫn đi được bình thường
 d) NetworkPolicy này không hợp lệ và bị Kubernetes API từ chối ngay khi apply
 
@@ -302,11 +296,7 @@ rule?
 a) namespaceSelector và podSelector không thể dùng chung trong cùng 1 rule, Kubernetes sẽ từ
    chối cấu hình này
 b) AND và OR hoàn toàn tương đương về kết quả, chỉ ảnh hưởng tới hiệu năng xử lý của CNI
-c) AND (cùng một item trong list): traffic được phép chỉ khi ĐỒNG THỜI khớp cả namespace lẫn
-   Pod label — namespace "staging" VÀ Pod có label "tester". OR (hai item riêng biệt trong list
-   from:): traffic được phép khi khớp HOẶC namespace "staging" HOẶC bất kỳ Pod có label
-   "tester" ở mọi namespace. Nhầm AND/OR ở đây là lỗi rất phổ biến dẫn tới mở rộng policy hơn
-   dự định — luôn test sau khi viết
+c) AND (cùng một item trong list): traffic được phép chỉ khi ĐỒNG THỜI khớp cả namespace lẫn Pod label
 d) AND nghĩa là khớp HOẶC namespace HOẶC Pod label; OR nghĩa là phải khớp ĐỒNG THỜI cả hai
 
 **Đáp án: c** — AND (cùng item): phải khớp ĐỒNG THỜI cả namespace và Pod label. OR (item riêng

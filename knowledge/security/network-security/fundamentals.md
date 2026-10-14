@@ -282,7 +282,7 @@ blast radius trong DMZ.
 
 **Câu 3**: Theo NIST SP 800-207, điểm cốt lõi của Zero Trust là gì?
 
-a) Không có implicit trust dựa trên vị trí mạng — kể cả traffic từ bên trong mạng nội bộ  
+a) Không có implicit trust dựa trên vị trí mạng
 b) Dùng VPN cho tất cả remote access  
 c) Chỉ cho phép HTTPS, block tất cả HTTP  
 d) Mọi server phải đặt trong DMZ
@@ -299,7 +299,7 @@ xác thực và ủy quyền, bất kể nguồn gốc.
 a) Vì cloud không hỗ trợ IP trong security group rule  
 b) Vì IP rule tốn nhiều chi phí hơn group reference  
 c) Vì security group reference cho phép nhiều port hơn IP rule  
-d) Vì IP của instance có thể thay đổi khi scale/restart; group reference tự cập nhật theo
+d) Vì IP của instance có thể thay đổi khi scale/restart
 
 **Đáp án: d** — Trong auto-scaling, IP của instance thay đổi liên tục khi scale in/out hoặc
 restart. Rule "allow từ 10.0.2.15" sẽ không còn chính xác sau khi instance đó replace. Security

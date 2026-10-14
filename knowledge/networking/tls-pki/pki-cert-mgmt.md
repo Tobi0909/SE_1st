@@ -176,8 +176,7 @@ vào đúng 00:00 một ngày, dù không ai thay đổi gì trong cấu hình s
 **Câu 1**: Khi tạo CSR để xin CA ký chứng chỉ, file CSR có chứa private key của server không?
 
 a) Có, CSR cần đính kèm private key để CA xác minh quyền sở hữu domain
-b) Không. CSR chỉ chứa PUBLIC key và thông tin domain/organization — private key KHÔNG BAO
-   GIỜ được gửi đi trong bất kỳ bước nào của quy trình
+b) Không. CSR chỉ chứa PUBLIC key và thông tin domain/organization
 c) Có, nhưng private key trong CSR được mã hoá nên vẫn an toàn khi gửi đi
 d) Không, CSR hoàn toàn trống, chỉ là placeholder để CA tự sinh cả keypair mới
 
@@ -215,9 +214,7 @@ dù `openssl verify -CAfile ca.crt server.crt` trả `OK`. Vấn đề nằm ở
 a) Ở SERVER — chứng chỉ server thật ra bị lỗi định dạng mà openssl verify không phát hiện ra
 b) Cả hai đều có lỗi — cần sửa cấu hình song song ở server và client
 c) Ở SERVER — server đang gửi sai thứ tự chain khiến một số client không parse được
-d) Ở CLIENT — chứng chỉ server hoàn toàn hợp lệ (xác nhận qua verify thành công với đúng CA),
-   chỉ là client đó chưa cài CA nội bộ vào danh sách tin cậy của nó. Đây đúng như thiết kế PKI,
-   không phải lỗi server
+d) Ở CLIENT — chứng chỉ server hoàn toàn hợp lệ
 
 **Đáp án: d** — Ở CLIENT — chứng chỉ server hoàn toàn hợp lệ (xác nhận qua verify thành công
 với đúng CA), chỉ là client đó chưa cài CA nội bộ vào danh sách tin cậy của nó. Đây đúng như
@@ -230,9 +227,7 @@ verify thành công nghĩa là chain parse đúng, không phải vấn đề th�
 **Câu 4**: Vì sao hết hạn CA ROOT nội bộ nghiêm trọng hơn nhiều so với hết hạn một chứng chỉ
 server đơn lẻ?
 
-a) CA root hết hạn ảnh hưởng TOÀN BỘ chứng chỉ được CA đó ký (nhiều server/dịch vụ cùng lúc), và
-   quy trình khắc phục phức tạp hơn nhiều (phải tạo/gia hạn CA mới VÀ phân phối lại tới mọi máy
-   client đã tin cậy CA cũ), không chỉ renew một chứng chỉ đơn lẻ như trường hợp thông thường
+a) CA root hết hạn ảnh hưởng TOÀN BỘ chứng chỉ được CA đó ký
 b) Vì CA root không thể gia hạn được, phải xây dựng lại toàn bộ hệ thống PKI từ đầu
 c) Vì chứng chỉ server đơn lẻ không ảnh hưởng gì tới người dùng, chỉ CA root mới gây downtime
 d) Vì CA root hết hạn chỉ ảnh hưởng tới HTTPS, không ảnh hưởng tới các giao thức khác dùng TLS
@@ -251,9 +246,7 @@ LDAPS, SMTPS), nên ảnh hưởng rộng hơn, không giới hạn HTTPS (loạ
 thông thường?
 
 a) Vì CA private key luôn có độ dài bit lớn hơn, tốn chi phí tính toán hơn để bảo vệ
-b) Lộ private key của CA cho phép kẻ tấn công KÝ GIẢ bất kỳ chứng chỉ nào mà CA đó được tin
-   cậy — ảnh hưởng toàn bộ hệ thống dùng CA đó, nghiêm trọng hơn nhiều so với lộ key của một
-   server đơn lẻ (chỉ ảnh hưởng đúng server đó)
+b) Lộ private key của CA cho phép kẻ tấn công KÝ GIẢ bất kỳ chứng chỉ nào mà CA đó được tin cậy
 c) Vì CA private key dùng thuật toán mã hoá khác hoàn toàn so với key server thông thường
 d) Vì CA private key bị pháp luật quy định phải lưu trữ trong HSM, không liên quan tới mức độ
    rủi ro nếu lộ

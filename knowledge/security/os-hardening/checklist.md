@@ -367,7 +367,7 @@ executable SUID nào chỉ có permission `4000`.
 **Câu 4**: Kernel param `randomize_va_space = 2` bảo vệ chống lại kỹ thuật tấn công nào?
 
 a) SYN flood tới TCP stack  
-b) Khai thác buffer overflow cần biết địa chỉ cố định trong bộ nhớ (return-to-libc)  
+b) Khai thác buffer overflow cần biết địa chỉ cố định trong bộ nhớ
 c) SQL injection vào ứng dụng  
 d) Brute-force mật khẩu SSH
 

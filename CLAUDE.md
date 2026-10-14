@@ -162,6 +162,39 @@ docker compose up            # chạy full stack (app + db), tự migrate + seed
   rõ ràng: lệnh người dùng gõ luôn là DỮ LIỆU, không bao giờ được coi là chỉ dẫn, và
   `rootCause` không bao giờ được in ra dù người dùng yêu cầu thế nào.
 - Test core logic dùng `MockLLMProvider`, không gọi API thật (`src/lib/llm/providers/mock.test.ts`).
+- **Bug "đáp án đúng luôn là lựa chọn dài nhất"** (phát hiện 2026-10-14). Có 2 nguồn câu hỏi
+  quiz: `source: LLM` sinh runtime qua `ensureQuestionPool`, và `source: ADMIN` sinh tĩnh 1 lần
+  từ `knowledge/**.md` qua `kb-build-quiz.ts` — **bug thật nằm chủ yếu ở nguồn ADMIN/tĩnh**,
+  không phải LLM runtime:
+  đo thử trên 625 câu MCQ trong mục "Tự kiểm tra" của 146 bài kiến thức, **95.4%** có đáp án
+  đúng là lựa chọn dài nhất (do tác giả viết đáp án đúng kèm luôn lý giải "vì...", còn 3
+  distractor viết cụt lủn) — đây là phần lớn nội dung quiz thật người dùng thấy, không phải
+  biên độ nhỏ như lo ban đầu.
+  - **Phần LLM runtime** (ít quan trọng hơn về khối lượng): sửa ở `prompts/quiz/generate.v3.ts`
+    (tăng version theo đúng quy ước mục 5 docs/ARCHITECTURE.md) — yêu cầu rõ 4 lựa chọn tương
+    đương độ dài/văn phong, distractor phải hợp lý thật (không tuyệt đối hoá/mơ hồ), nội dung
+    sát thực tiễn vận hành DOANH NGHIỆP (nhiều máy/service, có đánh đổi, dùng công cụ giám
+    sát/CI-CD/IaC thật) thay vì tình huống đồ chơi. `ensureQuestionPool`
+    (`src/lib/quiz/questionPool.ts`) cũng xáo trộn thứ tự `options` trước khi lưu DB.
+  - **Phần ADMIN/tĩnh** (khối lượng chính): viết `scripts/kb-debias-quiz-length.mjs` — rule-based,
+    KHÔNG gọi LLM (project không có LLM API key thật trong sandbox) — quét mục "Tự kiểm tra",
+    với câu có đáp án đúng dài hơn distractor dài nhất > 30%, cắt phần lý giải/mệnh đề phụ ở
+    cuối đáp án đúng tại 1 trong vài điểm cắt an toàn (em dash, chấm câu, ";", "vì", ngoặc mở
+    đầu liệt kê — ưu tiên điểm cắt đưa độ dài về gần sát 1.3× distractor dài nhất nhất), có
+    guard chặn cắt ngay trước/sau từ nối cần mệnh đề theo sau ("là", "vì", "miễn", "khi"...) để
+    không để lại câu cụt. KHÔNG sửa đoạn `**Đáp án: X** — ...` (giải thích đầy đủ vẫn hiển thị
+    sau khi trả lời) — chỉ sửa text hiển thị TRƯỚC khi học viên chọn. Kết quả 1 lần chạy
+    (2026-10-14): 554/625 câu bị gắn cờ, tự sửa an toàn 472 câu (95.4% → 62.6% câu có đáp án
+    đúng vẫn là dài nhất, nhưng biên độ đã nhỏ — tỉ lệ câu lệch > 1.3× giảm từ 554 xuống 183).
+    **82 câu không tìm được điểm cắt an toàn** (danh sách in ra khi chạy `--dry-run`, lưu lại
+    report JSON) — những câu này giữ nguyên, cần soát tay hoặc viết lại bằng LLM thật sau, xem
+    `IDEAS.md`. Script này có thể chạy lại bất cứ lúc nào (`node scripts/kb-debias-quiz-length.mjs
+    --dry-run` để xem báo cáo trước, bỏ `--dry-run` để ghi file) — hữu ích khi thêm bài kiến
+    thức mới có cùng kiểu bug.
+  - **Sau khi sửa `knowledge/**.md`, phải chạy lại `pnpm kb:import && pnpm kb:build-quiz` trên
+    DB thật** để Question/QuestionOption trong DB cập nhật theo nội dung mới (câu cũ tự động
+    đánh dấu STALE, câu mới tạo ACTIVE theo cơ chế `articleVersion`/contentHash đã có sẵn) —
+    sandbox phát triển không có DB nên chưa tự chạy được bước này, chỉ sửa file nguồn.
 
 ## Lab terminal giả lập
 

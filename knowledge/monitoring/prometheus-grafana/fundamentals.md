@@ -248,11 +248,7 @@ Quy trình: xem error rate → xem P95 latency theo endpoint → xem resource us
 **Câu 1**: Metric `http_requests_total` là Counter hay Gauge? Tại sao cần `rate()` thay vì
 dùng value trực tiếp?
 
-a) Counter — tên _total suffix là convention đánh dấu counter. Value trực tiếp là tổng cộng
-   từ khi app start (có thể là 5 triệu request) — số này ít hữu ích. rate(http_requests_total[5m])
-   trả về số request/giây trong 5 phút gần nhất — con số có ý nghĩa cho monitoring và alert.
-   rate() cũng tự xử lý counter reset (khi app restart, counter về 0 nhưng rate không trả về
-   âm)
+a) Counter — tên _total suffix là convention đánh dấu counter. Value trực tiếp là tổng cộng từ khi app start (có thể là 5 triệu request)
 b) Gauge — tên _total chỉ là quy ước đặt tên tuỳ ý, không liên quan tới loại metric; rate()
    chỉ dùng để làm đẹp đồ thị
 c) Counter, nhưng dùng rate() chỉ để đổi đơn vị từ giây sang phút, không liên quan tới ý
@@ -273,11 +269,7 @@ vị thời gian hiển thị (loại c); Gauge không cần `rate()` để "có
 
 a) Vì user_id chứa dữ liệu nhạy cảm bị luật bảo mật cấm dùng làm label, không liên quan tới
    cardinality
-b) Mỗi unique combination của labels tạo 1 time series riêng trong TSDB. user_id có thể có
-   hàng triệu unique values → hàng triệu time series → TSDB phình to, query chậm, memory tăng
-   vô hạn (high cardinality problem). status HTTP chỉ có ~5-10 unique values (200, 201, 400,
-   404, 500, 503...) → ~10 time series — không vấn đề. Nguyên tắc: label nên có cardinality
-   thấp và bounded
+b) Mỗi unique combination của labels tạo 1 time series riêng trong TSDB. user_id có thể có hàng triệu unique values → hàng triệu time series → TSDB phình to, query chậm, memory tăng vô hạn
 c) Cả hai label đều nguy hiểm như nhau, chỉ khác tên gọi
 d) Vì status là số còn user_id là chuỗi, Prometheus chỉ hỗ trợ label dạng số
 
@@ -297,10 +289,7 @@ a) `rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])
    thiếu `sum by (service)`, chia theo từng time series lẻ chứ không gộp đúng theo service
 b) `sum(rate(http_requests_total{status=~"5.."}[5m])) by (service) * 100` — thiếu chia cho
    tổng số request, chỉ tính riêng tốc độ lỗi rồi nhân 100, sai công thức tỷ lệ
-c) `sum by (service) (rate(http_requests_total{status=~"5.."}[5m])) / sum by (service)
-   (rate(http_requests_total[5m])) * 100`. `status=~"5.."` dùng regex match (5 + 2 ký tự bất
-   kỳ). `sum by (service)` aggregate theo label service. Chia cho cùng dimension `by (service)`
-   để tính ratio đúng theo từng service
+c) `sum by (service) (rate(http_requests_total{status=~"5.."}[5m])) / sum by (service) (rate(http_requests_total[5m])) * 100`. `status=~"5.."` dùng regex match (5 + 2 ký tự bất kỳ). `sum by (service)` aggregate theo label service
 d) `count(http_requests_total{status=~"5.."}) / count(http_requests_total) * 100` — dùng
    count() trên counter tuyệt đối, không dùng rate(), tỷ lệ sai hoàn toàn vì counter chỉ tăng
 

@@ -169,8 +169,7 @@ lỗi về TÊN domain hay về CHUỖI tin cậy?
 
 a) Về TÊN domain — chứng chỉ không khớp hostname đang kết nối
 b) Về cả hai, lỗi 20 luôn đi kèm với lỗi tên domain trong thực tế
-c) Về CHUỖI tin cậy — không lần được chuỗi certificate tới một CA tin cậy (thiếu intermediate,
-   hoặc CA không được tin cậy), KHÔNG liên quan gì tới tên domain trong chứng chỉ
+c) Về CHUỖI tin cậy — không lần được chuỗi certificate tới một CA tin cậy
 d) Không liên quan tới cả tên domain hay chuỗi tin cậy, mà là lỗi mạng tạm thời
 
 **Đáp án: c** — Về CHUỖI tin cậy — không lần được chuỗi certificate tới một CA tin cậy (thiếu
@@ -187,9 +186,7 @@ chuỗi tin cậy. Điều này có nghĩa gì về trạng thái của chứng 
 a) Nghĩa là chứng chỉ đã hết hạn nhưng hostname cũ vẫn còn lưu trong cache
 b) Nghĩa là chuỗi tin cậy cũng có vấn đề nhưng openssl chỉ báo lỗi ưu tiên cao nhất (hostname)
 c) Nghĩa là CA đã thu hồi (revoke) chứng chỉ này, hostname chỉ là dấu hiệu phụ
-d) Chuỗi tin cậy HOÀN TOÀN ổn (CA hợp lệ, chain đầy đủ) — vấn đề DUY NHẤT là TÊN trong chứng
-   chỉ (CN/SAN) không khớp với hostname đang kiểm tra. Hai vấn đề độc lập, có thể có lỗi này mà
-   không có lỗi kia
+d) Chuỗi tin cậy HOÀN TOÀN ổn (CA hợp lệ, chain đầy đủ)
 
 **Đáp án: d** — Chuỗi tin cậy HOÀN TOÀN ổn (CA hợp lệ, chain đầy đủ) — vấn đề DUY NHẤT là TÊN
 trong chứng chỉ (CN/SAN) không khớp với hostname đang kiểm tra. Hai vấn đề độc lập. Hostname
@@ -205,9 +202,7 @@ server host NHIỀU domain trên cùng IP?
 a) Vì nếu không chỉ định, openssl s_client sẽ tự động quét toàn bộ domain trên server đó
 b) Vì -servername chỉ cần thiết khi dùng HTTP/2, không liên quan tới TLS thông thường
 c) Vì thiếu -servername khiến kết nối bị từ chối ngay ở bước TCP, không tới được TLS handshake
-d) Vì đó chính là cơ chế SNI — server cần biết TRƯỚC domain client muốn kết nối (gửi trong
-   ClientHello) để trả về ĐÚNG chứng chỉ tương ứng. Thiếu -servername, server có thể trả về
-   chứng chỉ SAI (của domain khác hoặc default), dễ gây hiểu lầm là lỗi cấu hình
+d) Vì đó chính là cơ chế SNI — server cần biết TRƯỚC domain client muốn kết nối
 
 **Đáp án: d** — Vì đó chính là cơ chế SNI — server cần biết TRƯỚC domain client muốn kết nối
 (gửi trong ClientHello) để trả về ĐÚNG chứng chỉ tương ứng. Thiếu `-servername`, server có thể
@@ -223,9 +218,7 @@ thành được bắt tay TCP và cả TLS handshake, chỉ là có thể nhận
 thấy chứng chỉ CŨ. Bước tiếp theo hợp lý nhất là gì?
 
 a) Xoá cache DNS trên máy client đang test, vì cert cache theo domain ở tầng DNS
-b) Reload/restart đúng service đang serve TLS (nginx/haproxy/application server) — service
-   đang chạy giữ chứng chỉ CŨ trong bộ nhớ, thay file trên đĩa không tự động áp dụng cho tới
-   khi service đọc lại
+b) Reload/restart đúng service đang serve TLS (nginx/haproxy/application server)
 c) Đổi port TLS sang port khác để buộc service đọc lại file chứng chỉ mới
 d) Chờ TTL của chứng chỉ cũ hết hạn tự nhiên, không có cách nào ép áp dụng sớm hơn
 
@@ -244,10 +237,7 @@ chỉ. Triệu chứng client sẽ thấy là gì, và vì sao KHÓ tái hiện 
 a) Lỗi xảy ra với MỌI request vì load balancer luôn dùng chung 1 chứng chỉ đại diện cho tất cả
    backend
 b) Không có triệu chứng gì vì load balancer tự động loại backend có chứng chỉ hết hạn khỏi pool
-c) Lỗi "certificate verify failed" NGẪU NHIÊN, chỉ xảy ra khi load balancer (theo thuật toán
-   round-robin/khác) tình cờ chuyển request tới ĐÚNG backend chưa gia hạn — các lần request rơi
-   vào backend khác (đã gia hạn) vẫn thành công bình thường, khiến lỗi "có lúc có, có lúc
-   không" khó tái hiện ổn định nếu chỉ test một lần
+c) Lỗi "certificate verify failed" NGẪU NHIÊN, chỉ xảy ra khi load balancer
 d) Lỗi chỉ xảy ra vào đúng thời điểm chứng chỉ hết hạn, sau đó tự hết vì backend tự gia hạn lại
 
 **Đáp án: c** — Lỗi "certificate verify failed" NGẪU NHIÊN, chỉ xảy ra khi load balancer tình

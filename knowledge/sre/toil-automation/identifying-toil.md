@@ -258,11 +258,7 @@ b) Toil chỉ gồm 2 đặc điểm: Manual và Strategic — SRE Book không n
    Automatable
 c) Toil là mọi công việc operations nói chung, không phân biệt có thể tự động hóa được hay
    không
-d) Toil là công việc vận hành mang tính manual, repetitive và có thể tự động hóa mà không
-   tạo ra giá trị kỹ thuật lâu dài. 3 đặc điểm chính: (1) Manual — phải thao tác tay, (2)
-   Repetitive — lặp lại giống nhau, (3) Automatable — có thể viết script thay thế. Ngoài ra
-   còn: Tactical (không chiến lược), No enduring value (không để lại gì), O(n) with growth
-   (tăng theo scale hệ thống)
+d) Toil là công việc vận hành mang tính manual, repetitive và có thể tự động hóa mà không tạo ra giá trị kỹ thuật lâu dài. 3 đặc điểm chính
 
 **Đáp án: d** — Toil manual, repetitive, automatable, không tạo giá trị kỹ thuật lâu dài; các
 đặc điểm khác: Tactical, No enduring value, O(n) with growth. Toil KHÔNG có giá trị chiến
@@ -276,9 +272,7 @@ nghĩa RÕ RÀNG là loại việc CÓ THỂ tự động hóa, không phải "m
 
 **Câu 2**: Google SRE Book đặt giới hạn toil là bao nhiêu % thời gian? Tại sao?
 
-a) Tối đa 50% thời gian SRE. Nếu vượt ngưỡng này: không còn thời gian engineering để cải
-   thiện hệ thống, toil tăng theo growth tạo vòng xoáy, và team burned out. Phần còn lại ≥50%
-   phải là project work tạo giá trị dài hạn: automation, reliability improvements, tooling
+a) Tối đa 50% thời gian SRE. Nếu vượt ngưỡng này: không còn thời gian engineering để cải thiện hệ thống, toil tăng theo growth tạo vòng xoáy, và team burned out
 b) Tối đa 20% thời gian SRE, vì phần còn lại 80% phải dành hoàn toàn cho on-call
 c) Không có giới hạn cụ thể nào được Google SRE Book đưa ra, chỉ là khuyến nghị "giảm toil
    khi có thể"
@@ -298,8 +292,7 @@ chất công việc SRE được THIẾT KẾ để GIẢM toil, không phải c
 xảy ra 2 lần/tuần.
 
 a) Break-even = 6h / 45min = 8 tuần, vì chỉ tính 1 lần sử dụng mỗi tuần thay vì 2 lần
-b) Break-even = 6h / (45min × 2 / 60h) = 6 / 1.5 = 4 tuần. Sau 4 tuần là lãi ròng 1.5h/tuần.
-   Sau 1 năm tiết kiệm 1.5 × 52 - 6 = 72h (trừ 6h đã đầu tư)
+b) Break-even = 6h / (45min × 2 / 60h) = 6 / 1.5 = 4 tuần. Sau 4 tuần là lãi ròng 1.5h/tuần. Sau 1 năm tiết kiệm 1.5 × 52 - 6 = 72h
 c) Break-even = 45min × 2 / 6h = 0.25 tuần, vì công thức đúng là lấy thời gian tiết kiệm chia
    cho thời gian đầu tư
 d) Không bao giờ có break-even vì 45 phút mỗi lần luôn nhỏ hơn 6 giờ đầu tư ban đầu
@@ -317,10 +310,7 @@ lần CỘNG DỒN qua nhiều lần/tuần và nhiều tuần sẽ vượt 6 gi
 a) Overhead là công việc có thể tự động hóa hoàn toàn; toil là công việc không thể tự động
    hóa
 b) Toil và overhead là từ đồng nghĩa, SRE Book dùng thay thế nhau không phân biệt
-c) Toil là công việc manual, repetitive, có thể tự động hóa — ví dụ restart service, deploy
-   thủ công. Overhead là công việc cần thiết cho tổ chức vận hành nhưng không tự động hóa
-   được hoàn toàn — ví dụ meeting, viết report, interview. Overhead không thể loại bỏ hoàn
-   toàn nhưng có thể giảm qua process tốt hơn; toil có thể loại bỏ hoàn toàn qua automation
+c) Toil là công việc manual, repetitive, có thể tự động hóa — ví dụ restart service, deploy thủ công
 d) Overhead chỉ áp dụng cho công việc kỹ thuật (deploy, restart); toil chỉ áp dụng cho công
    việc hành chính (meeting, report)
 
@@ -341,11 +331,7 @@ a) Luôn tự động hóa công việc có effort cao nhất trước, vì effo
 b) Chỉ dựa vào ý kiến cá nhân của SRE lead, không cần tính toán ROI hay break-even cụ thể
 c) Luôn ưu tiên công việc có frequency thấp nhất trước vì ít gây gián đoạn khi triển khai
    automation
-d) Dùng ROI: (Impact × Frequency) / Effort_to_automate. Ưu tiên "quick win" — tần suất cao,
-   dễ tự động hóa, break-even nhanh. Ví dụ: log cleanup (1h viết, tiết kiệm 15min × 4 lần/
-   tuần, break-even 1 tuần) ưu tiên hơn user provisioning (6h viết, tiết kiệm 20min × 4 lần/
-   tuần, break-even 7.5 tuần). Bắt đầu quick win để giải phóng thời gian, dùng thời gian tiết
-   kiệm được cho automation phức tạp hơn
+d) Dùng ROI: (Impact × Frequency) / Effort_to_automate. Ưu tiên "quick win" — tần suất cao, dễ tự động hóa, break-even nhanh
 
 **Đáp án: d** — ROI = (Impact × Frequency)/Effort; ưu tiên quick win (tần suất cao, dễ tự
 động, break-even nhanh). Effort cao KHÔNG đồng nghĩa giá trị cao — ROI mới là tiêu chí đúng,

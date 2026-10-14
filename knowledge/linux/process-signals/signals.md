@@ -187,8 +187,7 @@ d) `SIGSTOP` — vì đây chỉ là dừng tạm, không làm process exit th�
 **Câu 3**: Vì sao `systemctl stop` một service đôi khi mất tới gần 90 giây trước khi service
 biến mất hẳn?
 
-a) systemd gửi `SIGTERM` trước, đợi theo `TimeoutStopSec=` (mặc định 90 giây) để service tự
-   thoát; nếu không tự thoát trong khoảng đó, systemd mới gửi tiếp `SIGKILL`
+a) systemd gửi `SIGTERM` trước, đợi theo `TimeoutStopSec=` (mặc định 90 giây) để service tự thoát
 b) systemd luôn chờ đúng 90 giây cho mọi service, bất kể service đã thoát hay chưa, trước khi
    coi là dừng xong
 c) systemd gửi `SIGKILL` trước; nếu service không phản hồi mới gửi tiếp `SIGTERM` sau đó
@@ -206,8 +205,7 @@ trước đó, nhưng X lại dừng hẳn. Đây có phải lỗi hệ thống 
 
 a) Có, đây là lỗi hệ thống — `SIGHUP` luôn phải được ánh xạ thành reload trên mọi service
    hiện đại
-b) Không phải lỗi hệ thống — default action của `SIGHUP` là terminate; "SIGHUP = reload" chỉ
-   đúng với chương trình tự chọn implement lại hành vi này
+b) Không phải lỗi hệ thống — default action của `SIGHUP` là terminate
 c) Có, lỗi do thiếu khai báo `ExecReload=` trong unit file của X
 d) Không, nhưng chỉ vì X là chương trình không chạy qua systemd nên không nhận đúng tín hiệu
 
@@ -224,8 +222,7 @@ dùng `kill -9 <PID>` cho một service đang ghi dữ liệu xuống đĩa?
 a) Vì `kill` không kèm số hiệu thực chất gửi `SIGKILL` nhưng có độ trễ 5 giây, an toàn hơn
 b) Vì `kill -9` chỉ hoạt động với process có quyền root, còn `kill` thường thì không cần quyền
 c) Vì `SIGTERM` luôn làm process thoát nhanh hơn `SIGKILL` do ít bước xử lý hơn
-d) Vì `SIGTERM` CÓ THỂ bị chương trình bắt để tự flush buffer/đóng file/đóng kết nối database
-   đúng cách trước khi thoát; `SIGKILL` loại bỏ hoàn toàn cơ hội này
+d) Vì `SIGTERM` CÓ THỂ bị chương trình bắt để tự flush buffer/đóng file/đóng kết nối database đúng cách trước khi thoát
 
 **Đáp án: d** — Vì `SIGTERM` CÓ THỂ bị chương trình bắt để tự flush buffer/đóng file/đóng kết
 nối database đúng cách trước khi thoát — cho cơ hội "graceful shutdown" không làm hỏng dữ liệu

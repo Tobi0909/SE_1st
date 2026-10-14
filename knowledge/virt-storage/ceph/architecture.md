@@ -238,11 +238,7 @@ OSD crash vì disk đầy. Giải pháp:
 
 **Câu 1**: Ceph CRUSH map là gì? Tại sao nó quan trọng cho failure domain?
 
-a) CRUSH Map mô tả topology vật lý của cluster (host, rack, datacenter) và CRUSH rules xác
-   định cách phân phối data. Ví dụ: rule "mỗi replica trên một rack khác nhau" đảm bảo nếu một
-   rack mất điện, cluster vẫn còn đủ replica để phục vụ — đây là failure domain isolation.
-   Không có CRUSH topology đúng, tất cả replica có thể cùng trên 1 host và mất hết khi host đó
-   down
+a) CRUSH Map mô tả topology vật lý của cluster (host, rack, datacenter) và CRUSH rules xác định cách phân phối data
 b) CRUSH map là bảng ánh xạ object → OSD cố định, không liên quan tới topology vật lý
 c) CRUSH map chỉ dùng để load balance tốc độ đọc/ghi, không ảnh hưởng gì tới failure domain
 d) CRUSH map được Monitor tự sinh lại hoàn toàn ngẫu nhiên mỗi lần cluster restart, không cấu
@@ -261,9 +257,7 @@ restart (loại d).
 **Câu 2**: Tại sao Monitor cluster cần số lượng lẻ (3, 5, 7)? Điều gì xảy ra khi mất quorum?
 
 a) Vì Ceph yêu cầu số MON phải chia hết cho 3 theo thiết kế giao thức Paxos
-b) Quorum yêu cầu đa số (majority = floor(n/2)+1). Số lẻ tối ưu vì: 3 MON chịu được mất 1 (2/3
-   = quorum); 4 MON cũng chỉ chịu được mất 1 (3/4 = quorum) nhưng tốn thêm node. Khi mất
-   quorum, cluster không thể cập nhật OSDMap → trở thành read-only — client không thể write
+b) Quorum yêu cầu đa số (majority = floor(n/2)+1). Số lẻ tối ưu vì: 3 MON chịu được mất 1 (2/3 = quorum)
 c) Số lẻ chỉ là khuyến nghị thẩm mỹ, số chẵn hoạt động tốt y hệt mà không có nhược điểm gì
 d) Khi mất quorum, cluster vẫn đọc/viết bình thường vì OSD hoạt động độc lập với MON
 
@@ -280,9 +274,7 @@ write của client, không phải "vẫn hoạt động bình thường" (loại
 
 a) PG là bản sao backup đầy đủ của toàn bộ pool, dùng cho disaster recovery
 b) PG chỉ là khái niệm hiển thị trên dashboard, không ảnh hưởng tới cách data thực sự lưu trữ
-c) PG là layer trung gian aggregating nhiều object. Khi thêm/bớt OSD, Ceph chỉ cần remap PG →
-   OSD (hàng trăm) thay vì remap object → OSD (hàng triệu). Điều này giảm overhead rebalancing
-   và recovery granularity nhỏ hơn: recover theo PG, không phải từng object
+c) PG là layer trung gian aggregating nhiều object. Khi thêm/bớt OSD, Ceph chỉ cần remap PG → OSD
 d) Ceph map trực tiếp object → OSD, PG chỉ là tên gọi khác của OSD trong tài liệu cũ
 
 **Đáp án: c** — PG là layer trung gian aggregating nhiều object, giúp Ceph chỉ cần remap PG →
@@ -300,10 +292,7 @@ a) down = OSD bị xoá khỏi CRUSH map vĩnh viễn; out = OSD tạm ngừng n
    được
 b) down và out là hai tên gọi khác nhau cho CÙNG một trạng thái, dùng thay thế nhau tuỳ version
 c) down = disk đầy quá ngưỡng full_ratio; out = disk đầy quá ngưỡng nearfull_ratio
-d) down = OSD không phản hồi heartbeat (tiến trình crash hoặc máy mất kết nối). out = OSD
-   không còn được tính vào data placement (CRUSH bỏ qua nó). Mặc định: OSD down 10 phút sẽ tự
-   động được mark out, triggering recovery. OSD có thể down nhưng chưa out — cluster degraded
-   nhưng chưa bắt đầu copy data (chờ OSD có thể quay lại)
+d) down = OSD không phản hồi heartbeat (tiến trình crash hoặc máy mất kết nối). out = OSD không còn được tính vào data placement
 
 **Đáp án: d** — `down` = OSD không phản hồi heartbeat. `out` = OSD không còn được tính vào
 data placement. Mặc định OSD down 10 phút sẽ tự động mark `out`, triggering recovery. `down`
@@ -316,9 +305,7 @@ liên quan tới ngưỡng dung lượng disk (đó là `nearfull`/`full_ratio`,
 
 **Câu 5**: Công thức tính pg_num phù hợp cho pool mới là gì?
 
-a) pg_num ≈ (total_OSDs × 100) / replication_factor, round đến lũy thừa 2 gần nhất. Ví dụ: 12
-   OSD, RF=3 → 12×100/3=400 → làm tròn lên 512. Mục tiêu: 100-200 PG per OSD. Quá ít PG:
-   rebalancing không đều; quá nhiều: overhead MON/OSD
+a) pg_num ≈ (total_OSDs × 100) / replication_factor, round đến lũy thừa 2 gần nhất
 b) pg_num nên luôn đặt cố định 128 cho mọi cluster bất kể số OSD hay replication factor
 c) pg_num = số OSD × replication_factor (không chia, không làm tròn lũy thừa 2)
 d) pg_num nên đặt bằng số object dự kiến lưu trong pool, không liên quan tới số OSD

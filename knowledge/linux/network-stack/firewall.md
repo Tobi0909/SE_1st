@@ -212,9 +212,7 @@ a) Có, `ufw`/`firewalld` hoàn toàn thay thế `nftables`, chạy độc lập
    `nftables` nào
 b) Không liên quan gì tới nhau — `ufw`/`firewalld` và `nftables` là 2 hệ thống tách biệt
    chạy song song
-c) Không thay thế — `ufw`/`firewalld` là FRONTEND ở mức cao, tự SINH RA rule
-   `nftables`/`iptables` thật bên dưới. Kiểm tra `nft list ruleset` vẫn thấy rule thật dù chỉ
-   dùng lệnh `ufw`
+c) Không thay thế — `ufw`/`firewalld` là FRONTEND ở mức cao, tự SINH RA rule `nftables`/`iptables` thật bên dưới
 d) Có, nhưng chỉ trên các bản phân phối không dùng `nftables` — nếu có `nftables` thì
    `ufw`/`firewalld` bị vô hiệu hoá
 
@@ -231,9 +229,7 @@ a) Kiểm tra lại thứ tự chain `PREROUTING`/`POSTROUTING` trong `nftables`
    không liên quan tới NAT
 b) Kiểm tra DNS resolver trên máy, vì NAT cần phân giải tên miền trước khi forward
 c) Kiểm tra lại card mạng có hỗ trợ NAT offload bằng phần cứng không
-d) `/proc/sys/net/ipv4/ip_forward` — nếu `0`, kernel không chuyển tiếp packet giữa interface
-   bất kể rule firewall cho phép gì. Đây là điều kiện CẦN độc lập, ở tầng thấp hơn rule
-   firewall
+d) `/proc/sys/net/ipv4/ip_forward` — nếu `0`, kernel không chuyển tiếp packet giữa interface bất kể rule firewall cho phép gì
 
 **Đáp án: d** — `/proc/sys/net/ipv4/ip_forward` — nếu `0`, kernel không chuyển tiếp packet
 giữa interface bất kể rule firewall cho phép gì. Đây là điều kiện CẦN độc lập, ở tầng thấp
@@ -244,9 +240,7 @@ hơn rule firewall.
 **Câu 3**: Vì sao không nên sửa trực tiếp rule `nft`/`iptables` trên một máy đang dùng `ufw`
 quản lý?
 
-a) Vì `ufw` tự sinh lại TOÀN BỘ rule từ cấu hình của chính nó mỗi khi `reload`/restart —
-   thay đổi thủ công ở tầng `nft`/`iptables` mà `ufw` không biết tới sẽ bị GHI ĐÈ mất ở lần
-   reload tiếp theo
+a) Vì `ufw` tự sinh lại TOÀN BỘ rule từ cấu hình của chính nó mỗi khi `reload`/restart
 b) Vì sửa trực tiếp `nft`/`iptables` yêu cầu quyền cao hơn `ufw`, dễ gây lỗi cấp quyền hệ
    thống
 c) Vì `nft` và `ufw` dùng 2 cú pháp hoàn toàn không tương thích, sửa tay sẽ làm hỏng toàn bộ

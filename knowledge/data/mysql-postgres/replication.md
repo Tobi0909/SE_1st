@@ -251,7 +251,7 @@ d) Khi có nhiều hơn 2 replica
 **Câu 2**: `Seconds_Behind_Source = 0` trong MySQL SHOW REPLICA STATUS nghĩa là gì?
 
 a) Replica đang đồng bộ hoàn toàn, không có rủi ro mất data  
-b) Replica đang apply kịp tốc độ hiện tại của primary — không đảm bảo zero data loss nếu primary crash  
+b) Replica đang apply kịp tốc độ hiện tại của primary
 c) Replica không cần binlog file từ primary nữa  
 d) Replica đang ở chế độ read-only
 
@@ -262,7 +262,7 @@ d) Replica đang ở chế độ read-only
 **Câu 3**: GTID trong MySQL replication giải quyết vấn đề gì so với binlog position?
 
 a) GTID cho phép replication nhanh hơn vì không cần đọc binlog  
-b) GTID là ID duy nhất mỗi transaction, replica tự biết đã apply đến đâu mà không cần lưu binlog filename + position thủ công — dễ failover và tránh duplicate apply  
+b) GTID là ID duy nhất mỗi transaction, replica tự biết đã apply đến đâu mà không cần lưu binlog filename + position thủ công
 c) GTID bật semi-sync tự động  
 d) GTID chỉ dùng cho PostgreSQL
 

@@ -431,7 +431,7 @@ lại trực tiếp trong tài liệu này vì đã định hình toàn bộ ki�
   - **Quiz** (`ensureQuestionPool`, `lib/quiz/questionPool.ts`): `pickCurriculumAreas` chọn
     một tập mảng kiến thức (xoay vòng, ưu tiên mảng chưa dùng) truyền vào
     `generateQuizBatch` qua `curriculumAreas` — LLM vẫn sinh câu hỏi, nhưng được giao prompt
-    yêu cầu rải đều qua đúng các mảng đó (`prompts/quiz/generate.v2.ts`).
+    yêu cầu rải đều qua đúng các mảng đó (`prompts/quiz/generate.v3.ts`).
   - **Lab** (`ensureLabScenario`, `lib/lab/scenarioPool.ts`): tương tự, chọn 1 mảng kiến thức
     truyền vào `generateScenario` qua `curriculumArea` — rootCause của scenario phải xoay
     quanh đúng mảng đó (`prompts/lab/scenario-generate.v2.ts`).

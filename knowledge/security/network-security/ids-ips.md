@@ -294,7 +294,7 @@ thay đổi hoặc tấn công đến từ bên trong.
 
 a) IDS dùng signature-based, IPS dùng anomaly-based  
 b) IDS là open-source, IPS là thương mại  
-c) IDS passive (chỉ alert/log), IPS inline (có thể drop/block traffic ngay lập tức)  
+c) IDS passive (chỉ alert/log), IPS inline
 d) IDS giám sát host, IPS giám sát network
 
 **Đáp án: c** — IDS và IPS có thể dùng cùng kỹ thuật phát hiện (signature hay anomaly). Sự
@@ -324,7 +324,7 @@ Tuy nhiên anomaly-based phát hiện được 97/100 attack, còn signature-bas
 lý do tổ chức thường ưu tiên signature-based trước?
 
 a) Signature-based rẻ hơn  
-b) 50,000 alert/ngày không thể xử lý thủ công — team SOC bị quá tải, dẫn đến bỏ qua tất cả alert  
+b) 50,000 alert/ngày không thể xử lý thủ công
 c) Anomaly-based không hoạt động trên Linux  
 d) Signature-based phát hiện được zero-day tốt hơn
 

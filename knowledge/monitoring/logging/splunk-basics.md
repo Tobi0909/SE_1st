@@ -292,11 +292,7 @@ a) stats count by service sắp xếp kết quả; sort -count mới là bước
 b) index=production level=error là command tổng hợp, không phải base search lọc events
 c) sort -count sắp xếp tăng dần (ascending) theo count, dấu `-` chỉ là ký tự cú pháp không
    mang nghĩa thứ tự
-d) (1) index=production level=error: lọc events từ index "production" có field level=error —
-   đây là base search, không phải command trong pipe; (2) stats count by service: tổng hợp —
-   đếm số events nhóm theo giá trị của field "service", kết quả là bảng 2 cột: service và
-   count; (3) sort -count: sắp xếp bảng theo cột "count" giảm dần (dấu - = descending). Kết
-   quả cuối: danh sách service kèm số error log, nhiều nhất ở trên
+d) (1) index=production level=error: lọc events từ index "production" có field level=error — đây là base search, không phải command trong pipe
 
 **Đáp án: d** — Base search lọc events, `stats count by service` tổng hợp đếm, `sort -count`
 sắp xếp giảm dần. Vai trò của `stats` và `sort` bị đảo ngược trong lựa chọn a — `stats` làm
@@ -309,12 +305,7 @@ nghĩa là DESCENDING (giảm dần), có mang nghĩa thứ tự rõ ràng theo 
 **Câu 2**: Splunk schema-on-read vs Elasticsearch schema-on-write — ưu điểm của Splunk trong
 tình huống nào?
 
-a) Schema-on-read (Splunk) ưu điểm: (1) ingest log ngay mà không cần biết format trước — tốt
-   khi log format thay đổi thường xuyên hoặc chưa biết sẽ cần field nào; (2) có thể "back-fill"
-   extraction — định nghĩa field mới và Splunk sẽ extract từ data cũ khi search (không cần
-   re-index); (3) giảm friction khi onboard log source mới. Nhược điểm: search chậm hơn trên
-   field chưa được index. Schema-on-write (Elasticsearch) nhanh hơn khi field đã được index
-   sẵn, phù hợp khi format stable và cần low-latency search với cardinality cao
+a) Schema-on-read (Splunk) ưu điểm: (1) ingest log ngay mà không cần biết format trước — tốt khi log format thay đổi thường xuyên hoặc chưa biết sẽ cần field nào
 b) Schema-on-read luôn nhanh hơn schema-on-write trong mọi tình huống tìm kiếm, không có
    nhược điểm nào
 c) Splunk bắt buộc phải biết trước toàn bộ field ngay từ lúc ingest, giống schema-on-write
@@ -335,12 +326,7 @@ Universal?
 
 a) Universal Forwarder dùng khi cần mask PII trước khi gửi; Heavy Forwarder chỉ forward raw
    data
-b) Universal Forwarder (UF): chỉ forward raw data, chiếm rất ít tài nguyên (~30MB RAM) — dùng
-   cho 99% trường hợp cài trên server để ship log. Heavy Forwarder (HF): dùng khi cần (1)
-   parse/filter/mask data phía nguồn trước khi gửi (ví dụ mask PII như số thẻ tín dụng trong
-   log trước khi gửi ra ngoài data center); (2) routing điều kiện (log security → Splunk A,
-   log app → Splunk B); (3) aggregate từ nhiều UF trước khi gửi (Splunk Intermediate Forwarder
-   pattern cho network có bandwidth hạn chế)
+b) Universal Forwarder (UF): chỉ forward raw data, chiếm rất ít tài nguyên (~30MB RAM)
 c) Heavy Forwarder chỉ dùng được trên Windows, Universal Forwarder chỉ dùng được trên Linux
 d) Không có khác biệt thực tế, Heavy Forwarder chỉ là tên gọi thương mại khác của Universal
    Forwarder

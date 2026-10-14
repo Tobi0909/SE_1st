@@ -251,7 +251,7 @@ monitoring theo IP host, cần cập nhật trước khi maintenance để khôn
 **Câu 1**: Tại sao snapshot vSphere không phải là giải pháp backup?
 
 a) Vì snapshot không lưu được trạng thái RAM của VM  
-b) Vì delta disk của snapshot nằm trên cùng datastore với base disk — datastore hỏng sẽ mất cả base lẫn delta  
+b) Vì delta disk của snapshot nằm trên cùng datastore với base disk
 c) Vì snapshot chỉ lưu được VM đang tắt  
 d) Vì VMware tính phí thêm cho snapshot backup
 
@@ -262,7 +262,7 @@ d) Vì VMware tính phí thêm cho snapshot backup
 **Câu 2**: Khi deploy VM từ template, tại sao cần bật Guest Customization?
 
 a) Để VM khởi động nhanh hơn  
-b) Vì không có Customization, VM clone có cùng hostname/IP (static)/Windows SID với template — gây xung đột mạng và domain  
+b) Vì không có Customization, VM clone có cùng hostname/IP
 c) Để VMware Tools tự cập nhật  
 d) Để snapshot được tạo tự động sau khi deploy
 
@@ -294,7 +294,7 @@ d) Host đích phải cùng thế hệ CPU với host nguồn
 
 **Câu 5**: Trong vSphere, "Maintenance Mode" của ESXi host có ý nghĩa gì với HA cluster?
 
-a) HA sẽ không restart VM mới lên host đó, và host không nhận VM power-on mới — host được cô lập khỏi cluster workload trong khi bảo trì  
+a) HA sẽ không restart VM mới lên host đó, và host không nhận VM power-on mới
 b) Host sẽ bị tắt điện tự động sau 10 phút  
 c) Tất cả VM trên host đó bị tắt ngay lập tức  
 d) Host sẽ tự xóa khỏi inventory vCenter

@@ -107,8 +107,7 @@ Server database mới nối 2×10G vào switch, nhưng backup chỉ đạt kho�
 
 **Câu 1**: Một kết nối TCP có thể dùng băng thông cộng của cả 2 link trong bundle không?
 
-a) Không. Hash gắn mỗi flow (kết nối) vào một link cố định; chỉ khi có nhiều flow khác nhau thì
-   tổng băng thông mới tận dụng được cả hai link
+a) Không. Hash gắn mỗi flow (kết nối) vào một link cố định
 b) Có, LACP tự động chia byte của một kết nối TCP ra đều hai link theo round-robin
 c) Có, nhưng chỉ nếu bật chế độ "active-active" trên cả hai switch đầu cuối
 d) Không, vì LACP giới hạn mỗi server chỉ được dùng 1 link bất kể cấu hình bundle
@@ -144,8 +143,7 @@ passive-passive mới là cặp KHÔNG hình thành bundle (loại d, đảo ng�
 
 a) Vì LACP cho tổng băng thông cao hơn gộp tĩnh với cùng số link vật lý
 b) Vì gộp tĩnh chỉ hoạt động được với cáp quang, không hỗ trợ cáp đồng
-c) LACP phát hiện cấu hình lệch và link hỏng qua trao đổi LACPDU liên tục; gộp tĩnh không có cơ
-   chế thoả thuận nên dễ gây loop hoặc blackhole khi cấu hình hai đầu không khớp
+c) LACP phát hiện cấu hình lệch và link hỏng qua trao đổi LACPDU liên tục
 d) Vì LACP không cần cấu hình gì ở cả hai đầu, tự động dò và gộp link
 
 **Đáp án: c** — LACP phát hiện cấu hình lệch và link hỏng; gộp tĩnh không thoả thuận nên dễ gây
@@ -161,8 +159,7 @@ hình gì" (loại d).
 a) Có, LACP chuẩn hỗ trợ sẵn việc nối tới nhiều switch độc lập mà không cần cấu hình gì thêm
 b) Có, nhưng chỉ khi cả hai switch dùng chung VLAN quản trị
 c) Không, và tuyệt đối không có cách nào (kể cả MLAG/vPC) để làm điều này
-d) Không — LACP chuẩn chỉ hoạt động với một đối tác logic duy nhất; trừ khi hai switch độc lập
-   được ghép thành một hệ logic (MLAG/vPC/stack) để cùng đóng vai trò một đầu LACP
+d) Không — LACP chuẩn chỉ hoạt động với một đối tác logic duy nhất; trừ khi hai switch độc lập được ghép thành một hệ logic
 
 **Đáp án: d** — Không, trừ khi 2 switch tạo thành 1 hệ logic (MLAG/vPC/stack). LACP chuẩn không
 hỗ trợ sẵn nối tới nhiều switch độc lập theo cách đó (loại a); VLAN quản trị chung không đủ để

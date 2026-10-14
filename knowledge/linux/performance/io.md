@@ -166,9 +166,7 @@ bão hoà thật không?
 a) Có, `%util=99%` luôn đồng nghĩa đĩa đã bão hoà bất kể `await` thế nào
 b) Có, vì SSD có `%util` cao hơn sẽ luôn có `await` cao tương ứng — `0.5ms` chỉ là do đo
    sai thời điểm
-c) Nhiều khả năng KHÔNG — SSD xử lý request song song, `%util` cao không đồng nghĩa bão
-   hoà. `await` rất thấp (`0.5ms`) xác nhận request vẫn được xử lý nhanh, chưa có dấu hiệu
-   nghẽn thật
+c) Nhiều khả năng KHÔNG — SSD xử lý request song song, `%util` cao không đồng nghĩa bão hoà. `await` rất thấp
 d) Không xác định được — cần thêm thông tin về RAID bên dưới mới kết luận được
 
 **Đáp án: c** — Nhiều khả năng KHÔNG — SSD xử lý request song song, `%util` cao không đồng
@@ -182,8 +180,7 @@ hiệu nghẽn thật.
 a) Có, `wa` luôn tương ứng trực tiếp với đĩa root filesystem vì đó là đĩa chính của hệ thống
 b) Có, `wa=40%` nghĩa là chính xác 40% I/O đang đến từ một đĩa cụ thể bị nghẽn
 c) Không, nhưng `wa` không liên quan gì tới I/O — đây là chỉ số về network wait
-d) Không — `wa` chỉ là góc nhìn TOÀN HỆ THỐNG (% CPU đang chờ I/O nói chung), không chỉ ra
-   device cụ thể. Cần `iostat -x` (theo từng device) để biết CHÍNH XÁC đĩa nào
+d) Không — `wa` chỉ là góc nhìn TOÀN HỆ THỐNG (% CPU đang chờ I/O nói chung), không chỉ ra device cụ thể
 
 **Đáp án: d** — Không — `wa` chỉ là góc nhìn TOÀN HỆ THỐNG (% CPU đang chờ I/O nói chung),
 không chỉ ra device cụ thể. Cần `iostat -x` (theo từng device) để biết CHÍNH XÁC đĩa nào.
@@ -193,8 +190,7 @@ không chỉ ra device cụ thể. Cần `iostat -x` (theo từng device) để 
 **Câu 3**: Phân biệt IOPS và throughput — một ứng dụng OLTP (nhiều transaction nhỏ) cần ưu
 tiên chỉ số nào hơn?
 
-a) IOPS (số request/giây) — OLTP đặc trưng bởi NHIỀU request NHỎ, cần đĩa xử lý được nhiều
-   request/giây, không cần thông lượng (throughput) lớn cho mỗi request
+a) IOPS (số request/giây) — OLTP đặc trưng bởi NHIỀU request NHỎ, cần đĩa xử lý được nhiều request/giây, không cần thông lượng
 b) Throughput — OLTP cần truyền dữ liệu khối lượng lớn mỗi giao dịch nên băng thông quan
    trọng hơn
 c) Cả hai quan trọng ngang nhau, không có chỉ số nào ưu tiên hơn cho OLTP
@@ -211,9 +207,7 @@ kill và restart" không?
 
 a) Có, trạng thái `D` luôn là dấu hiệu rõ ràng của deadlock trong code ứng dụng, cần kill
    ngay
-b) Không chắc — `D` nghĩa là process đang CHỜ một request I/O cụ thể hoàn tất (uninterruptible
-   sleep), thường do đĩa/thiết bị bên dưới chậm/treo, không phải lỗi LOGIC của chính process
-   đó. Không thể `kill` process ở trạng thái D
+b) Không chắc — `D` nghĩa là process đang CHỜ một request I/O cụ thể hoàn tất
 c) Không chắc, nhưng `kill -9` vẫn có thể dừng ngay process ở trạng thái `D` như bình thường
 d) Có, nên kill và restart ngay vì process `D` luôn chiếm CPU gây ảnh hưởng tới hệ thống
 
@@ -230,9 +224,7 @@ quyết nguyên nhân I/O bên dưới.
 a) Vì `%util` đo chính xác hơn trên HDD còn `await` đo chính xác hơn trên SSD — cần dùng
    đúng chỉ số theo loại đĩa
 b) Vì hai chỉ số này thực chất đo cùng một đại lượng, xem cả hai chỉ để đối chiếu sai số đo
-c) `%util` một mình không đáng tin với SSD/RAID (xử lý song song, có thể cao mà không bão
-   hoà thật). `await` cho biết THỜI GIAN CHỜ THỰC TẾ của mỗi request — kết hợp cả hai mới
-   xác định đúng đĩa có đang bão hoà THẬT hay chỉ "bận nhưng vẫn đáp ứng nhanh"
+c) `%util` một mình không đáng tin với SSD/RAID (xử lý song song, có thể cao mà không bão hoà thật). `await` cho biết THỜI GIAN CHỜ THỰC TẾ của mỗi request
 d) Vì `%util` chỉ áp dụng cho ổ cứng vật lý, `await` chỉ áp dụng cho ổ mạng/NFS — cần chỉ số
    đúng loại đĩa
 

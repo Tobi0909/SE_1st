@@ -235,9 +235,7 @@ Một team muốn migrate database từ bare metal lên Kubernetes. Điểm quy�
 `db-1` còn hay mất?
 
 a) MẤT, vì StatefulSet không hỗ trợ persistent storage như Deployment thường
-b) CÒN. PVC data-mysql-1 không bị xoá khi Pod crash/recreate. Pod mới tên mysql-1 tự bind lại
-   vào PVC data-mysql-1 (vì tên Pod là stable, tên PVC derived từ tên Pod, và K8s tự tìm đúng
-   PVC theo tên). Data trên PVC là persistent storage — không bị ảnh hưởng bởi Pod lifecycle
+b) CÒN. PVC data-mysql-1 không bị xoá khi Pod crash/recreate
 c) CÒN, nhưng chỉ nếu admin backup PVC thủ công trước khi Pod crash
 d) MẤT, vì PVC tự động bị xoá cùng lúc với Pod khi StatefulSet controller recreate
 
@@ -256,9 +254,7 @@ mấy Pod sẽ được tạo thêm?
 a) 0 Pod mới, phải chạy kubectl rollout restart daemonset thủ công để Pod lan ra node mới
 b) 5 Pod mới, vì DaemonSet tạo lại toàn bộ Pod trên mọi node (cũ + mới) mỗi khi topology thay
    đổi
-c) 2 Pod mới, tự động, không cần can thiệp thủ công. DaemonSet controller watch node events —
-   khi node mới join, nó tự schedule Pod lên node đó. Số Pod luôn = số node match
-   selector/toleration của DaemonSet
+c) 2 Pod mới, tự động, không cần can thiệp thủ công. DaemonSet controller watch node events
 d) Không xác định được, số Pod DaemonSet tạo phụ thuộc hoàn toàn vào resources.requests còn
    lại trên node
 
@@ -278,11 +274,7 @@ thường là gì?
 a) Headless Service không hỗ trợ DNS resolve tên Service, chỉ Service thông thường mới có DNS
 b) Cả hai hoàn toàn giống nhau về network, chỉ khác tên gọi trong YAML
 c) Headless Service chỉ dùng được với DaemonSet, không dùng được với StatefulSet
-d) Service thông thường tạo virtual ClusterIP — khi Pod query DNS tên Service, nhận được
-   ClusterIP (rồi kube-proxy DNAT route đến 1 trong các Pod backend). Headless Service KHÔNG
-   có ClusterIP — DNS trả về trực tiếp list IP của các Pod đang match selector. Với
-   StatefulSet, mỗi Pod có hostname riêng nên DNS resolve thẳng vào đúng Pod IP, cho phép ứng
-   dụng address từng replica bằng tên
+d) Service thông thường tạo virtual ClusterIP — khi Pod query DNS tên Service, nhận được ClusterIP
 
 **Đáp án: d** — Service thông thường tạo ClusterIP + DNAT; headless KHÔNG có ClusterIP, DNS
 trả list IP Pod trực tiếp — hữu ích với StatefulSet để address từng replica bằng tên. Headless

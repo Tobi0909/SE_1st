@@ -177,9 +177,7 @@ trải qua cả 2 đĩa vật lý) không? Filesystem bên trên LV đó có c�
 a) Không thể — LV luôn bị giới hạn bởi kích thước của 1 PV đơn lẻ, dù VG có nhiều PV
 b) Có thể, nhưng filesystem bên trên phải tự quản lý việc dữ liệu nằm trên PV nào để tối ưu
    hiệu năng
-c) Có thể, lên tới gần 2TB (giới hạn bởi tổng VG, trừ phần đã cấp cho LV khác). Filesystem
-   KHÔNG cần biết và không biết dữ liệu nằm trên 1 hay nhiều đĩa vật lý — đây là lớp trừu
-   tượng LVM cung cấp
+c) Có thể, lên tới gần 2TB (giới hạn bởi tổng VG, trừ phần đã cấp cho LV khác)
 d) Không thể vượt quá 1TB trừ khi dùng RAID phần cứng gộp 2 PV thành 1 ổ logic trước khi tạo VG
 
 **Đáp án: c** — Có thể, lên tới gần 2TB (giới hạn bởi tổng VG, trừ phần đã cấp cho LV khác).
@@ -196,9 +194,7 @@ a) Có, `df -h` luôn tự nhận không gian mới ngay khi LV được mở r�
 b) Không, và không có cách nào để filesystem nhận thêm không gian đó về sau
 c) Có, nhưng chỉ đúng với filesystem XFS — ext4 luôn cần `resize2fs` riêng dù dùng `-r` hay
    không
-d) Không tự động. `lvextend` không có `-r` chỉ mở rộng LV (không gian cấp phát trong VG),
-   filesystem bên trong không tự biết dùng thêm không gian mới — cần chạy riêng
-   `resize2fs`/`xfs_growfs`, hoặc dùng cờ `-r` ngay từ đầu
+d) Không tự động. `lvextend` không có `-r` chỉ mở rộng LV
 
 **Đáp án: d** — Không tự động. `lvextend` không có `-r` chỉ mở rộng LV (không gian cấp phát
 trong VG), filesystem bên trong (ext4/xfs...) không tự biết dùng thêm không gian mới — cần
@@ -209,9 +205,7 @@ chạy riêng `resize2fs`/`xfs_growfs`, hoặc dùng cờ `-r` ngay từ đầu 
 **Câu 3**: `vgs` báo VG còn 300GB free, nhưng `lvcreate -L 300G` vẫn báo lỗi không đủ dung
 lượng. Hai hướng điều tra hợp lý nhất là gì?
 
-a) (1) Kiểm tra lại đơn vị/cách làm tròn hiển thị (GiB thực tế có thể hơi khác số hiển thị
-   gọn), thử yêu cầu dung lượng nhỏ hơn một chút; (2) kiểm tra có snapshot nào khác trong VG
-   đang giữ thêm không gian dự phòng không
+a) (1) Kiểm tra lại đơn vị/cách làm tròn hiển thị (GiB thực tế có thể hơi khác số hiển thị gọn), thử yêu cầu dung lượng nhỏ hơn một chút
 b) (1) Kiểm tra lại quyền sudo của user hiện tại; (2) restart dịch vụ `lvm2-lvmetad` trước
    khi thử lại
 c) (1) Thử `lvcreate` với cờ `--force` để bỏ qua kiểm tra dung lượng; (2) tăng kích thước VG
@@ -230,10 +224,7 @@ hiển thị đơn giản ở `vgs`).
 partition trần, nhưng `/boot` thường VẪN là partition trần, không qua LVM?
 
 a) Vì `/boot` luôn quá nhỏ để LVM quản lý hiệu quả, dưới ngưỡng tối thiểu của physical extent
-b) LVM cho phép mở rộng/gộp dung lượng linh hoạt mà không cần di chuyển dữ liệu thủ công —
-   lợi ích lớn cho phần dữ liệu thường xuyên thay đổi. `/boot` cần BOOTLOADER đọc trực tiếp ở
-   giai đoạn rất sớm (trước khi driver LVM được nạp) — nhiều bootloader không hỗ trợ đọc qua
-   lớp LVM, nên `/boot` giữ nguyên dạng partition đơn giản
+b) LVM cho phép mở rộng/gộp dung lượng linh hoạt mà không cần di chuyển dữ liệu thủ công
 c) Vì LVM không hỗ trợ filesystem ext2/ext3 thường được dùng cho `/boot`
 d) Vì theo quy định bảo mật chung, `/boot` luôn phải nằm ngoài mọi lớp trừu tượng để tránh bị
    chỉnh sửa trái phép
@@ -251,8 +242,7 @@ Mục đích chính của việc này là gì?
 
 a) `lvextend <vg>/<lv> --add-pv <pv-mới>`. Mục đích: gắn trực tiếp đĩa mới vào một LV cụ thể
 b) `pvcreate <pv-mới> --join <vg>`. Mục đích: tạo một VG mới chia sẻ PV với VG cũ
-c) `vgextend <tên-vg> <pv-mới>` (sau khi đã `pvcreate` cho PV mới đó). Mục đích: tăng tổng
-   dung lượng khả dụng của VG khi cần mở rộng LV nhưng VG hiện tại không còn đủ "Free"
+c) `vgextend <tên-vg> <pv-mới>` (sau khi đã `pvcreate` cho PV mới đó)
 d) `vgcreate <vg> <pv-mới> --extend`. Mục đích: nhân đôi VG hiện có để làm dự phòng
 
 **Đáp án: c** — `vgextend <tên-vg> <pv-mới>` (sau khi đã `pvcreate` cho PV mới đó). Mục đích:

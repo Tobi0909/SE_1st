@@ -22,7 +22,7 @@ import {
   type SkillTree,
   type SubmissionGrade,
 } from "@/lib/llm/schemas";
-import * as quizGenerate from "@prompts/quiz/generate.v2";
+import * as quizGenerate from "@prompts/quiz/generate.v3";
 import * as scenarioGenerate from "@prompts/lab/scenario-generate.v2";
 import * as gradeSubmission from "@prompts/lab/grade-submission.v1";
 import * as chatPrompt from "@prompts/tutor/chat.v1";

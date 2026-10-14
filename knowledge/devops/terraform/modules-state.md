@@ -362,9 +362,7 @@ local (không cần download) cũng cần `init` lại để Terraform cập nh�
 resource cụ thể?
 
 a) `for_each` nhanh hơn vì chạy song song  
-b) `count` dùng index số, xoá phần tử giữa list làm index của các phần tử sau thay đổi →
-   Terraform tính toán lại và có thể destroy/recreate chúng; `for_each` dùng key string, xoá
-   một key không ảnh hưởng các key khác  
+b) `count` dùng index số, xoá phần tử giữa list làm index của các phần tử sau thay đổi → Terraform tính toán lại và có thể destroy/recreate chúng
 c) `for_each` hỗ trợ nhiều provider hơn `count`  
 d) `count` không dùng được trong module
 
@@ -395,7 +393,6 @@ state (plan cũng lock nhưng read-lock), hay state drift detection (đó là `t
 
 a) Đổi tên backend bucket theo môi trường  
 b) Tham chiếu tên workspace hiện tại trong config, dùng để thay đổi giá trị resource
-   (ví dụ: instance_type khác nhau giữa prod và staging)  
 c) Tự động chọn `terraform.tfvars` đúng theo môi trường  
 d) Tạo state file riêng tự động mà không cần remote backend
 
@@ -411,8 +408,7 @@ theo workspace — phải truyền `-var-file=staging.tfvars` tay.
 **Câu 5**: `data "terraform_remote_state"` dùng để làm gì và khi nào nên dùng?
 
 a) Import resource từ state cũ sang state mới  
-b) Đọc output từ state của một Terraform project khác, dùng để truyền giá trị
-   giữa hai project độc lập (ví dụ: đọc VPC ID từ project `network`)  
+b) Đọc output từ state của một Terraform project khác, dùng để truyền giá trị giữa hai project độc lập
 c) Backup state file từ remote về local  
 d) Sync state với thực tế (tương đương `terraform refresh`)
 

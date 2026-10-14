@@ -207,8 +207,7 @@ không ai sửa gì". Phân tích:
 động thất bại. Service gốc có bị coi là fail theo không?
 
 a) Có, vì mọi phụ thuộc khai báo trong `[Unit]` đều kéo theo fail nếu unit kia fail
-b) Không. `Wants=` là phụ thuộc lỏng — nếu `foo.service` fail, service gốc vẫn tiếp tục khởi
-   động bình thường; chỉ `Requires=` mới kéo theo fail
+b) Không. `Wants=` là phụ thuộc lỏng — nếu `foo.service` fail, service gốc vẫn tiếp tục khởi động bình thường
 c) Có, nhưng chỉ khi `foo.service` được khai báo trước trong `After=`
 d) Không, nhưng service gốc sẽ tự chuyển sang trạng thái `inactive` thay vì `active`
 
@@ -223,9 +222,7 @@ mới kéo theo fail.
 ra ngay sau lệnh này?
 
 a) SẼ: service chạy ngay lập tức. SẼ KHÔNG: service tự chạy lại ở các lần boot sau
-b) SẼ: lần boot tiếp theo `myapp.service` sẽ tự được khởi động theo. SẼ KHÔNG: service KHÔNG
-   chạy ngay tại thời điểm chạy lệnh `enable` — cần thêm `systemctl start` (hoặc dùng
-   `enable --now` từ đầu)
+b) SẼ: lần boot tiếp theo `myapp.service` sẽ tự được khởi động theo. SẼ KHÔNG: service KHÔNG chạy ngay tại thời điểm chạy lệnh `enable` — cần thêm `systemctl start`
 c) SẼ: file gốc của `myapp.service` bị copy sang `/etc/systemd/system/`. SẼ KHÔNG: service
    được đăng ký tự chạy ở lần boot sau
 d) SẼ và SẼ KHÔNG đều không áp dụng — output này chỉ là log mang tính thông báo, không có tác
@@ -241,8 +238,7 @@ cần thêm `systemctl start` (hoặc dùng `enable --now` ngay từ đầu) n�
 `/lib/systemd/system/foo.service`?
 
 a) Vì `systemctl edit` cho phép sửa trực tiếp trên service đang chạy mà không cần restart
-b) Vì file trong `/lib/systemd/system/` thuộc gói phần mềm, sẽ bị ghi đè mất chỉnh sửa ở lần
-   update gói kế tiếp — `systemctl edit` tạo file drop-in riêng, độc lập với file gốc
+b) Vì file trong `/lib/systemd/system/` thuộc gói phần mềm, sẽ bị ghi đè mất chỉnh sửa ở lần update gói kế tiếp
 c) Vì sửa file trong `/lib/systemd/system/` yêu cầu quyền root cao hơn `systemctl edit`
 d) Vì `systemctl edit` tự động kiểm tra lỗi cú pháp trước khi lưu, còn sửa file tay thì không
 
@@ -271,8 +267,7 @@ khác (thường là `.service`) khai báo `WantedBy=` trỏ vào, nên không c
 báo trong file gốc của chính unit đó. Đây có phải lỗi không?
 
 a) Có, đây là dấu hiệu file unit bị một gói khác ghi đè một phần
-b) Không. systemd tự thêm một số ràng buộc ngầm định (implicit dependencies) cho hầu hết loại
-   unit; `systemctl show` trả về giá trị ĐÃ GỘP (effective), không phải nguyên văn file
+b) Không. systemd tự thêm một số ràng buộc ngầm định (implicit dependencies) cho hầu hết loại unit
 c) Có, trừ khi unit đó được tạo bằng `systemctl edit` thì mới là bình thường
 d) Không, nhưng chỉ đúng với riêng `.socket` và `.timer`, không áp dụng cho `.service`
 

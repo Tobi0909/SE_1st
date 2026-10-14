@@ -204,8 +204,7 @@ TRƯỚC khi gọi `exec()` có PID khác process cha không? Có cùng bộ nh�
 không?
 
 a) PID giống cha cho tới khi `exec()` chạy xong, chỉ đổi PID sau đó
-b) Có PID khác ngay sau `fork()`; có cùng bộ nhớ tại thời điểm fork (bản sao gần như hoàn
-   chỉnh) nhưng bộ nhớ đó bị `exec()` thay thế hoàn toàn ngay sau đó
+b) Có PID khác ngay sau `fork()`; có cùng bộ nhớ tại thời điểm fork
 c) Có PID khác, nhưng bộ nhớ hoàn toàn độc lập ngay từ lúc `fork()`, không chia sẻ gì với cha
 d) `fork()` chưa cấp PID mới — PID mới chỉ được cấp khi `exec()` chạy xong
 
@@ -223,9 +222,7 @@ a) Vì kernel không đủ tài nguyên để tạo process mới và chạy ch�
 b) Vì `exec()` luôn chạy chậm hơn `fork()`, tách ra để tối ưu hiệu năng tổng thể
 c) Vì `fork()` và `exec()` theo thiết kế kernel bắt buộc phải được gọi từ hai process khác
    nhau
-d) Để process con có thể tự chỉnh sửa môi trường của chính nó (redirect file descriptor, đổi
-   user/group, đổi working directory...) ngay sau `fork` nhưng trước `exec`, không ảnh hưởng
-   tới process cha
+d) Để process con có thể tự chỉnh sửa môi trường của chính nó
 
 **Đáp án: d** — Để process con có thể tự chỉnh sửa môi trường của chính nó (redirect file
 descriptor, đổi user/group, đổi working directory...) NGAY SAU `fork` nhưng TRƯỚC `exec`, mà
@@ -237,8 +234,7 @@ trình đích không cần biết gì về việc đó.
 **Câu 3**: Một process ở trạng thái `D` (uninterruptible sleep) trong `ps` suốt 10 phút, không
 phản hồi `kill -9`. Đây có phải zombie không? Nên nghi ngờ nguyên nhân gì?
 
-a) Không phải zombie — `D` là process còn SỐNG, đang kẹt trong một syscall I/O không thể bị
-   gián đoạn bởi tín hiệu; nên nghi ngờ I/O bên dưới bị treo (disk lỗi, mount NFS/CIFS mất kết nối)
+a) Không phải zombie — `D` là process còn SỐNG, đang kẹt trong một syscall I/O không thể bị gián đoạn bởi tín hiệu
 b) Đây chính là một dạng zombie đặc biệt, vẫn hiển thị `D` vì chưa được cha gọi `wait()`
 c) Có thể là zombie, vì zombie cũng có thể không phản hồi `kill -9` trong một số trường hợp
 d) Không phải zombie, nhưng nguyên nhân là deadlock trong code ứng dụng, không liên quan gì
@@ -257,8 +253,7 @@ script thoát là gì?
 
 a) Process nền bị dừng ngay khi script cha thoát, vì không có `disown`
 b) Process nền tiếp tục chạy, nhưng PPID vẫn giữ nguyên là PID của script đã thoát
-c) Process nền KHÔNG tự bị dừng — nó tiếp tục chạy, được "nhận nuôi" (re-parent) bởi init hoặc
-   subreaper gần nhất (ví dụ `systemd --user` trên session desktop hiện đại)
+c) Process nền KHÔNG tự bị dừng — nó tiếp tục chạy, được "nhận nuôi" (re-parent) bởi init hoặc subreaper gần nhất
 d) Process nền tiếp tục chạy, PPID luôn chuyển thành `1` trên mọi hệ thống Linux, không có
    ngoại lệ
 
@@ -277,9 +272,7 @@ b) Vì zombie process vẫn giữ nguyên toàn bộ vùng nhớ heap/stack cũ,
    còn dư
 c) Vì kernel tự giới hạn số process con tối đa cho mỗi process cha cụ thể, không liên quan
    tới toàn hệ thống
-d) Mỗi subprocess đã exit nhưng chưa được "wait" sẽ tồn đọng dưới dạng zombie, chiếm một slot
-   trong bảng process (process table) của kernel — bảng này có giới hạn kích thước độc lập
-   với CPU/RAM còn trống
+d) Mỗi subprocess đã exit nhưng chưa được "wait" sẽ tồn đọng dưới dạng zombie, chiếm một slot trong bảng process (process table) của kernel
 
 **Đáp án: d** — Mỗi subprocess đã exit nhưng chưa được "wait" sẽ tồn đọng dưới dạng zombie,
 chiếm một slot trong bảng process (process table) của kernel — bảng này có giới hạn kích thước

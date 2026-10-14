@@ -263,11 +263,7 @@ spec:
 **Câu 1**: Secret trong Kubernetes "an toàn hơn" ConfigMap ở điểm nào? Và điểm yếu bảo mật nào
 cần lưu ý?
 
-a) An toàn hơn: K8s không ghi Secret lên disk node (dùng tmpfs trong memory); RBAC có thể giới
-   hạn get Secret chặt hơn ConfigMap; audit log ghi lại mọi access. Điểm yếu: base64 KHÔNG phải
-   mã hoá; etcd mặc định lưu plaintext (phải kích hoạt EncryptionConfiguration riêng); bất kỳ
-   ai có quyền get secret đều đọc được ngay; Secret trong env var có thể xuất hiện trong
-   process listing hoặc log nếu app vô tình in ra
+a) An toàn hơn: K8s không ghi Secret lên disk node (dùng tmpfs trong memory); RBAC có thể giới hạn get Secret chặt hơn ConfigMap
 b) An toàn hơn vì Secret được mã hoá AES-256 mặc định ngay khi tạo, không cần cấu hình thêm gì
 c) An toàn hơn vì chỉ user có quyền cluster-admin mới xem được Secret, không ai khác có thể
    get được dù có RBAC khác
@@ -286,10 +282,7 @@ trữ (tmpfs vs disk) và mức bảo vệ RBAC, không chỉ khác tên (loại
 trị cũ. Nguyên nhân và cách xử lý?
 
 a) Vì ConfigMap chỉ cập nhật được tối đa 1 lần sau khi tạo, lần sửa thứ 2 không có tác dụng
-b) Env var chỉ được đọc khi container start — không có cơ chế tự cập nhật runtime. Container
-   đang chạy không bị ảnh hưởng khi ConfigMap thay đổi. Cách xử lý: kubectl rollout restart
-   deployment/<name> tạo Pod mới với env var mới; hoặc chuyển sang inject qua volume mount
-   (kubelet tự cập nhật file trong ~1 phút mà không cần restart Pod)
+b) Env var chỉ được đọc khi container start — không có cơ chế tự cập nhật runtime
 c) Vì app cần gọi API riêng của Kubernetes để tự fetch giá trị mới, không có cách tự động nào
    khác
 d) Vì env var tự động cập nhật realtime nhưng app code cache giá trị cũ trong biến toàn cục của
@@ -310,11 +303,7 @@ apply` — cách nào nên dùng trong quy trình CI/CD và tại sao?
 a) Luôn dùng YAML + kubectl apply vì đây là cách GitOps chuẩn, commit trực tiếp Secret
    plaintext vào repo để dễ audit
 b) Cả hai cách đều an toàn như nhau, không có khuyến nghị nào về việc commit Secret vào git
-c) Không nên commit Secret YAML có plaintext vào git. Trong CI/CD: dùng kubectl create secret
-   với giá trị từ CI secret store (GitHub Actions Secrets, GitLab CI Variables), hoặc dùng
-   External Secrets Operator để K8s tự kéo Secret từ Vault/AWS Secrets Manager — Secret YAML
-   không bao giờ tồn tại trong repo. Nếu dùng GitOps (ArgoCD/Flux), cần thêm bước encrypt
-   Secret (Sealed Secrets, SOPS) trước khi commit
+c) Không nên commit Secret YAML có plaintext vào git. Trong CI/CD: dùng kubectl create secret với giá trị từ CI secret store
 d) Chỉ nên dùng kubectl create secret generic, tuyệt đối không bao giờ dùng YAML cho Secret dù
    có mã hoá
 

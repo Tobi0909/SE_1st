@@ -236,11 +236,7 @@ Sau khi xác định nguyên nhân (ví dụ: thiếu Secret `db-credentials` tr
 
 **Câu 1**: Khác biệt giữa `kubectl logs` và `kubectl logs --previous`?
 
-a) kubectl logs lấy log của container ĐANG CHẠY (hoặc lần chạy gần nhất nếu đang ở
-   CrashLoopBackOff trong giai đoạn backoff-wait). kubectl logs --previous lấy log của
-   container ĐÃ EXIT trước đó — quan trọng khi container crash và restart lại vì log của lần
-   crash có thể bị overwrite bởi lần start mới. Khi debug CrashLoopBackOff, luôn dùng
-   --previous để thấy lý do crash thật
+a) kubectl logs lấy log của container ĐANG CHẠY (hoặc lần chạy gần nhất nếu đang ở CrashLoopBackOff trong giai đoạn backoff-wait). kubectl logs --previous lấy log của container ĐÃ EXIT trước đó — quan trọng khi container crash và restart lại vì log của lần crash có thể bị overwrite bởi lần start mới
 b) kubectl logs --previous lấy log của Pod trước đó trong lịch sử Deployment, không liên quan
    tới crash/restart
 c) Cả hai lệnh trả về y hệt nhau, --previous chỉ là alias cũ giữ lại cho tương thích ngược
@@ -258,10 +254,7 @@ phải alias (loại c); vai trò bị đảo ngược hoàn toàn trong lựa c
 không?
 
 a) Có, vì Running luôn đồng nghĩa với việc nhận traffic bất kể READY hiển thị gì
-b) Không — Service chỉ route traffic đến Pod trong Endpoints. K8s Endpoints controller chỉ
-   thêm Pod vào Endpoints khi Pod pass readiness probe (READY 1/1). Pod Running READY 0/1 =
-   readiness probe fail = Pod không có trong Endpoints = không nhận traffic từ Service. Pod
-   vẫn chạy (process alive) nhưng bị cô lập khỏi traffic cho đến khi probe pass lại
+b) Không — Service chỉ route traffic đến Pod trong Endpoints
 c) Có, nhưng chỉ giảm tỉ lệ traffic route vào Pod đó xuống 50% thay vì chặn hoàn toàn
 d) Không thể xác định nếu không biết thêm loại Service (ClusterIP/NodePort/LoadBalancer)
 
@@ -278,9 +271,7 @@ tất cả đều dựa trên Endpoints, không cần biết thêm loại Servic
 
 a) Exit code 137 nghĩa là container tự exit thành công với status đặc biệt, không phải bị kill
 b) Exit code 137 là lỗi image không tồn tại (ImagePullBackOff), không liên quan tới memory
-c) OOMKilled — exit code 137 là tín hiệu SIGKILL (128 + 9) do kernel gửi khi container vượt
-   resources.limits.memory. Xác nhận bằng kubectl describe pod → Last State: Terminated,
-   Reason: OOMKilled. Cách xử lý: tăng limits.memory hoặc profile app để tìm memory leak
+c) OOMKilled — exit code 137 là tín hiệu SIGKILL (128 + 9) do kernel gửi khi container vượt resources.limits.memory
 d) Exit code 137 nghĩa là liveness probe fail, kubelet chủ động restart container theo policy
 
 **Đáp án: c** — OOMKilled — exit code 137 là SIGKILL (128+9) do kernel gửi khi vượt

@@ -266,7 +266,7 @@ gian recovery.
 **Câu 1**: Khác biệt giữa incremental và differential backup là gì?
 
 a) Incremental backup lớn hơn differential  
-b) Incremental copy dữ liệu thay đổi kể từ backup **trước** (bất kể full hay incremental); differential copy kể từ **full backup gần nhất** — differential restore đơn giản hơn (full + 1 differential), incremental restore phức tạp hơn (full + chain incrementals)  
+b) Incremental copy dữ liệu thay đổi kể từ backup **trước** (bất kể full hay incremental)
 c) Differential chỉ dùng được với Windows  
 d) Incremental backup không thể restore nếu thiếu một mắt trong chain
 
@@ -289,7 +289,7 @@ d) 3 test restore, 2 loại tool backup, 1 schedule hàng ngày
 
 a) Application-consistent backup nhanh hơn  
 b) Disk snapshot không lưu được schema database  
-c) Snapshot disk trong khi database đang write có thể capture trạng thái không nhất quán — khi restore, database cần chạy crash recovery; application-consistent flush dirty pages xuống disk trước snapshot → restore sạch, không cần recovery  
+c) Snapshot disk trong khi database đang write có thể capture trạng thái không nhất quán
 d) Application-consistent backup tương thích nhiều tool hơn
 
 **Đáp án: c** — Database liên tục write: buffer pool trong RAM, WAL/redo log, data file — 3 thứ này tại một thời điểm bất kỳ có thể không nhất quán với nhau. Crash-consistent snapshot giống như "rút điện" — khi restore, PostgreSQL/MySQL cần chạy recovery để bring WAL và data file đồng bộ. Application-consistent: pg_basebackup hoặc xtrabackup đảm bảo backup tại trạng thái consistent point, restore clean không cần recovery phức tạp.
@@ -299,7 +299,7 @@ d) Application-consistent backup tương thích nhiều tool hơn
 **Câu 4**: Backup job pass hàng ngày nhưng restore thất bại khi cần. Nguyên nhân phổ biến nhất là gì?
 
 a) Backup format không tương thích với version OS mới  
-b) Backup file bị corrupt hoặc incomplete — backup "pass" nghĩa là job chạy xong, không phải data valid; không có periodic restore test → không phát hiện vấn đề  
+b) Backup file bị corrupt hoặc incomplete
 c) Restore chỉ hoạt động trong 30 ngày sau khi backup  
 d) Backup job chạy trong giờ cao điểm làm ảnh hưởng consistency
 

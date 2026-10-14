@@ -180,9 +180,7 @@ a) Vì mỗi gói tin TCP chỉ được phép mang tối đa 2 cờ, nên cần
 b) Vì 2 bước không đủ để mã hoá sequence number, cần bước thứ 3 để trao đổi khoá mã hoá
 c) Vì giao thức quy định cứng số bước bắt tay phải là số lẻ để tránh race condition giữa client
    và server
-d) Mỗi bên cần xác nhận sequence number riêng của mình đã được bên kia nhận; thiếu bước ACK
-   cuối, server không có cách nào biết client đã thực sự nhận được SYN-ACK của nó hay chưa (gói
-   đó có thể đã bị mất giữa đường)
+d) Mỗi bên cần xác nhận sequence number riêng của mình đã được bên kia nhận
 
 **Đáp án: d** — Mỗi bên cần xác nhận sequence number RIÊNG của mình đã được bên kia nhận. Thiếu
 bước ACK cuối, server không có cách nào biết client đã thực sự nhận được SYN-ACK của nó hay
@@ -196,9 +194,7 @@ chiều, không phải từ một luật tuỳ ý (loại c).
 **Câu 2**: DNS chọn UDP làm giao thức mặc định cho truy vấn thông thường. Vì sao lựa chọn này
 hợp lý, dù UDP không đảm bảo gói tin tới đích?
 
-a) Mỗi truy vấn DNS nhỏ, độc lập — nếu mất, client chỉ cần gửi lại toàn bộ query (đơn giản, chi
-   phí thấp), không cần một kết nối TCP đầy đủ (chi phí handshake + duy trì state) cho một thao
-   tác ngắn như vậy; overhead thấp của UDP phù hợp hơn chi phí thiết lập TCP cho tác vụ này
+a) Mỗi truy vấn DNS nhỏ, độc lập — nếu mất, client chỉ cần gửi lại toàn bộ query (đơn giản, chi phí thấp), không cần một kết nối TCP đầy đủ
 b) Vì DNS luôn chạy trên mạng LAN nội bộ, không bao giờ cần vượt qua router nên không cần độ
    tin cậy của TCP
 c) Vì UDP có cơ chế tự động retransmit riêng giống TCP nhưng nhẹ hơn, nên vẫn đảm bảo gói tin
@@ -220,10 +216,7 @@ vụ này. DNS hoạt động cả qua Internet công khai, không chỉ LAN (lo
 đó? Vì sao đây KHÔNG phải hành vi mong muốn cho video call thời gian thực?
 
 a) TCP sẽ bỏ qua frame bị mất và tiếp tục gửi frame tiếp theo ngay, giống hành vi của UDP
-b) TCP sẽ tự động gửi lại (retransmit) frame bị mất, đảm bảo nó tới đích; đây không mong muốn
-   cho real-time vì tới lúc frame đó gửi lại xong, thời điểm hiển thị đúng của nó đã trôi qua —
-   tốt hơn là bỏ qua, tiếp tục hiển thị frame mới nhất (UDP), thay vì dừng lại chờ đảm bảo đủ
-   dữ liệu cũ
+b) TCP sẽ tự động gửi lại (retransmit) frame bị mất, đảm bảo nó tới đích
 c) TCP sẽ tạm dừng toàn bộ kết nối và yêu cầu thiết lập lại handshake mới để đồng bộ lại dữ liệu
 d) TCP sẽ nén frame bị mất cùng các frame kế tiếp thành một gói tin lớn hơn để gửi lại một lần
 
@@ -243,9 +236,7 @@ a) "Treo lâu rồi timeout" nghĩa là server đang bận xử lý request khá
    chỉ IP sai
 b) Cả hai đều do cùng một nguyên nhân (firewall chặn), chỉ khác nhau ở cấu hình timeout của
    client
-c) "Treo lâu rồi timeout" thường là SYN bị drop (im lặng, không phản hồi gì — ví dụ bởi firewall
-   chặn không báo); "Connection refused" là phản hồi ngay bằng TCP RST — máy đích tới được
-   nhưng không có service nào lắng nghe đúng port đó
+c) "Treo lâu rồi timeout" thường là SYN bị drop (im lặng, không phản hồi gì — ví dụ bởi firewall chặn không báo)
 d) "Treo lâu rồi timeout" nghĩa là gói tin bị NAT dịch sai địa chỉ, "refused" nghĩa là route tới
    đích bị loop
 
@@ -266,10 +257,7 @@ a) Vì UDP nhanh hơn TCP tuyệt đối trong mọi trường hợp nên HTTP/3
 b) Vì TCP đã bị loại bỏ khỏi các hệ điều hành hiện đại, buộc giao thức mới phải dùng UDP
 c) Vì UDP hỗ trợ mã hoá TLS tốt hơn TCP nên HTTP/3 bắt buộc phải chạy trên UDP để đảm bảo bảo
    mật
-d) QUIC tự xây lại cơ chế đảm bảo tin cậy của riêng nó trên nền UDP, cho phép kiểm soát tốt hơn
-   việc xử lý mất gói/tối ưu hiệu năng (ví dụ tránh "head-of-line blocking" của TCP khi nhiều
-   stream dùng chung một kết nối) — không mâu thuẫn với nguyên lý TCP/UDP, chỉ là tầng ứng dụng
-   chọn tự xây độ tin cậy riêng thay vì dùng sẵn của TCP
+d) QUIC tự xây lại cơ chế đảm bảo tin cậy của riêng nó trên nền UDP, cho phép kiểm soát tốt hơn việc xử lý mất gói/tối ưu hiệu năng
 
 **Đáp án: d** — QUIC tự xây lại cơ chế đảm bảo tin cậy CỦA RIÊNG NÓ trên nền UDP, cho phép kiểm
 soát tốt hơn việc xử lý mất gói/tối ưu hiệu năng (ví dụ tránh vấn đề "head-of-line blocking" của

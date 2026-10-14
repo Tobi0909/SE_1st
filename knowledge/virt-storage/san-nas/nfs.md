@@ -268,7 +268,7 @@ datastore khác trước (nếu có). Sau upgrade, verify exports trước khi m
 **Câu 1**: Tại sao NFS export không nên dùng `no_root_squash` trừ khi thực sự cần?
 
 a) Vì `no_root_squash` làm NFS chậm hơn  
-b) Vì `no_root_squash` cho phép root trên client (uid 0) hành động như root trên server — nếu bất kỳ client nào bị compromise, attacker có root access lên NFS server và tất cả dữ liệu trên share  
+b) Vì `no_root_squash` cho phép root trên client
 c) Vì `no_root_squash` không tương thích với NFSv4  
 d) Vì `no_root_squash` chỉ hoạt động với UDP, không TCP
 
@@ -279,7 +279,7 @@ d) Vì `no_root_squash` chỉ hoạt động với UDP, không TCP
 **Câu 2**: Trong `/etc/fstab`, tại sao NFS mount phải có option `_netdev`?
 
 a) Để NFS mount nhanh hơn lúc boot  
-b) Để NFS mount chờ đến khi network interface up — nếu không, systemd cố mount NFS trước khi mạng sẵn sàng, fail, và có thể rơi vào emergency mode  
+b) Để NFS mount chờ đến khi network interface up
 c) `_netdev` là tên filesystem type cho NFS  
 d) Để cho phép mount không cần quyền root
 
@@ -291,7 +291,7 @@ d) Để cho phép mount không cần quyền root
 
 a) Cả `hard` và `soft` đều trả lỗi I/O ngay lập tức  
 b) Không có sự khác biệt  
-c) `hard` mount: I/O operation **treo** (hang), retry liên tục chờ server trở lại — application block nhưng không bị lỗi; `soft` mount: sau timeout trả I/O error — application nhận lỗi nhưng có thể corrupt data  
+c) `hard` mount: I/O operation **treo**
 d) `hard` mount restart application tự động
 
 **Đáp án: c** — `hard` mount đảm bảo "at least once" delivery: I/O không được xác nhận sẽ được retry mãi. Điều này bảo toàn data integrity nhưng làm application block. `soft` mount trả lỗi sau timeout — application biết có lỗi nhưng có thể không xử lý được, đặc biệt nếu write chưa được xác nhận bởi server. Database dùng `soft` mount có thể bị data corruption khi NFS server fail.
@@ -300,7 +300,7 @@ d) `hard` mount restart application tự động
 
 **Câu 4**: Một VM trên NFS datastore vSphere chạy database bị I/O latency cao. Thứ tự kiểm tra nên là gì?
 
-a) Kiểm tra NFS server latency (`nfsstat`) → kiểm tra network (packet loss, bandwidth) → kiểm tra NAS storage performance → xem xét tăng `rsize/wsize` hoặc upgrade lên iSCSI  
+a) Kiểm tra NFS server latency
 b) Restart VM trước, sau đó kiểm tra  
 c) Tăng RAM cho VM  
 d) Đổi NFS mount sang SMB
@@ -313,7 +313,7 @@ d) Đổi NFS mount sang SMB
 
 a) `async` vì nhanh hơn  
 b) Không quan trọng — NFS client cache mọi thứ  
-c) `sync`: server xác nhận write sau khi ghi xuống disk — đảm bảo data không mất nếu server crash; `async` nhanh hơn nhưng có thể mất data. Production luôn dùng `sync`, `async` chỉ chấp nhận được cho non-critical backup/archive  
+c) `sync`: server xác nhận write sau khi ghi xuống disk
 d) Dùng `async` cho database, `sync` cho file share
 
 **Đáp án: c** — `async` cho phép NFS server trả lời client "write OK" trước khi thực sự ghi xuống disk — nếu server crash tại thời điểm này, data đã "confirmed" với client nhưng thực sự mất. Với `sync`, server chỉ xác nhận sau khi data ở stable storage. Đây là tương tự `synchronous_commit` trong PostgreSQL. `async` tăng throughput 2-3x nhưng không phù hợp khi data integrity quan trọng.

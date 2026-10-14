@@ -195,9 +195,7 @@ a) Có, `swappiness=0` tắt hoàn toàn swap — kernel không bao giờ dùng 
    hợp
 b) Không, `swappiness=0` chỉ làm chậm tốc độ swap lại 10 lần, không phải tắt hẳn
 c) Có, nhưng chỉ đúng từ kernel 5.x trở lên — các bản cũ hơn vẫn swap bình thường dù đặt 0
-d) Không — `swappiness=0` có nghĩa là kernel ưu tiên thu hồi page cache hết mức trước khi
-   nghĩ tới swap, nhưng NẾU không còn cách nào khác để cấp RAM mới, kernel VẪN SWAP. Không
-   swap tuyệt đối chỉ xảy ra khi không có swap partition/file nào được bật
+d) Không — `swappiness=0` có nghĩa là kernel ưu tiên thu hồi page cache hết mức trước khi nghĩ tới swap, nhưng NẾU không còn cách nào khác để cấp RAM mới, kernel VẪN SWAP
 
 **Đáp án: d** — Không — `swappiness=0` có nghĩa là kernel ưu tiên thu hồi page cache hết
 mức trước khi nghĩ tới swap, nhưng NẾU không còn cách nào khác để cấp RAM mới (page cache đã
@@ -209,9 +207,7 @@ swap partition/file nào được bật (`swapoff -a`).
 **Câu 2**: `sysctl -w net.core.somaxconn=65535` chạy thành công, nhưng vấn đề connection vẫn
 còn sau khi tăng. Còn tham số nào khác cần kiểm tra?
 
-a) `net.ipv4.tcp_max_syn_backlog` — đây là backlog queue KHÁC (half-open connections đang
-   chờ hoàn thành handshake). Tăng `somaxconn` mà không tăng `tcp_max_syn_backlog` chỉ giải
-   quyết được bottleneck ở một trong hai hàng đợi
+a) `net.ipv4.tcp_max_syn_backlog` — đây là backlog queue KHÁC (half-open connections đang chờ hoàn thành handshake)
 b) `net.core.rmem_max` — tăng buffer nhận sẽ giải quyết vấn đề backlog connection
 c) `net.ipv4.ip_forward` — bật forward sẽ giúp xử lý thêm connection đang chờ
 d) Không còn tham số nào khác cần kiểm tra — `somaxconn` là giới hạn duy nhất cho backlog
@@ -226,8 +222,7 @@ connections đang chờ hoàn thành handshake). Tăng `somaxconn` mà không t�
 define `net.core.somaxconn`. File nào thắng?
 
 a) `10-network.conf` thắng, vì kernel đọc theo thứ tự alphabet ngược, số nhỏ hơn đọc sau
-b) `99-tuning.conf` — kernel đọc theo thứ tự lexicographic (số < chữ), `99-` đứng sau `10-`
-   nên ghi đè. Naming convention `99-*` thường dùng cho "site-local override"
+b) `99-tuning.conf` — kernel đọc theo thứ tự lexicographic (số < chữ), `99-` đứng sau `10-` nên ghi đè
 c) Cả hai cùng áp dụng — giá trị cuối cùng là tổng hợp của 2 file
 d) Không xác định được — phụ thuộc ngẫu nhiên vào thứ tự filesystem trả về khi liệt kê thư
    mục

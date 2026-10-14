@@ -180,8 +180,7 @@ Một server mới cấu hình firewall bằng `nftables`, team báo "SSH vẫn 
 10.0.5.20`. Traffic từ `10.0.5.20` có được accept không?
 
 a) Có, vì rule cụ thể hơn (accept 1 IP) luôn được ưu tiên hơn rule dải rộng hơn bất kể thứ tự
-b) Không — traffic này khớp rule (1) TRƯỚC (vì `10.0.5.20` thuộc dải `10.0.0.0/8`) và bị drop
-   ngay, không bao giờ được xét tới rule (2) phía sau
+b) Không — traffic này khớp rule (1) TRƯỚC (vì `10.0.5.20` thuộc dải `10.0.0.0/8`) và bị drop ngay, không bao giờ được xét tới rule
 c) Có, vì firewall luôn xét rule ACCEPT trước rule DROP để tránh chặn nhầm
 d) Không thể xác định nếu không biết thêm loại firewall đang dùng là gì
 
@@ -200,9 +199,7 @@ sao điều này KHÔNG áp dụng được cho firewall STATELESS?
 
 a) Vì stateless không hỗ trợ cú pháp "accept", chỉ hỗ trợ "allow"
 b) Vì stateless chỉ áp dụng được cho UDP, TCP cần stateful mới hoạt động đúng
-c) Stateless không có khái niệm "connection tracking" — mỗi gói được xét ĐỘC LẬP, không nhớ gói
-   nào thuộc kết nối nào. Phải khai báo tường minh rule cho CẢ hai chiều (vào và ra) vì không có
-   cơ chế tự động nhận biết "đây là response của một kết nối đã cho phép"
+c) Stateless không có khái niệm "connection tracking"
 d) Vì stateless luôn mặc định cho phép mọi response, không cần khai rule nào thêm
 
 **Đáp án: c** — Stateless không có khái niệm "connection tracking" — mỗi gói được xét ĐỘC LẬP,
@@ -221,8 +218,7 @@ Traffic đó bị xử lý thế nào?
 a) Được tự động ACCEPT vì không có rule nào khớp nghĩa là không có gì để chặn
 b) Bị đưa vào hàng chờ (queue) cho tới khi admin xử lý thủ công
 c) Firewall sẽ log cảnh báo nhưng vẫn forward traffic đó như bình thường
-d) Bị DROP — khi không rule nào khớp, traffic rơi vào POLICY MẶC ĐỊNH của chain (ở đây là drop).
-   Đây không phải "không có rule nên được phép", mà ngược lại
+d) Bị DROP — khi không rule nào khớp, traffic rơi vào POLICY MẶC ĐỊNH của chain (ở đây là drop)
 
 **Đáp án: d** — Bị DROP — khi không rule nào khớp, traffic rơi vào POLICY MẶC ĐỊNH của chain
 (ở đây là drop). Đây không phải "không có rule nên được phép", mà ngược lại. Không rule khớp
@@ -235,10 +231,7 @@ hành vi "log nhưng vẫn forward" mặc định — traffic bị drop thật, 
 **Câu 4**: Vì sao firewalld dùng khái niệm "zone" thay vì chỉ một bộ rule chung cho mọi
 interface?
 
-a) Một máy có thể có nhiều interface với MỨC ĐỘ TIN CẬY khác nhau (ví dụ interface nội bộ vs
-   interface ra Internet) — zone cho phép gán mỗi interface vào một mức tin cậy riêng, mỗi
-   zone có bộ rule độc lập, tránh phải viết rule phức tạp dựa theo interface trong một bộ rule
-   chung
+a) Một máy có thể có nhiều interface với MỨC ĐỘ TIN CẬY khác nhau (ví dụ interface nội bộ vs interface ra Internet)
 b) Vì mỗi interface vật lý bắt buộc phải thuộc một zone riêng theo chuẩn kernel Linux
 c) Vì zone giúp tăng tốc độ xử lý rule bằng cách chia nhỏ bảng rule theo interface
 d) Vì firewalld không hỗ trợ áp dụng một bộ rule chung, buộc phải chia zone dù chỉ có 1
@@ -259,10 +252,7 @@ hướng kiểm tra ĐẦU TIÊN hợp lý nhất là gì?
 
 a) (1) Kiểm tra lại cú pháp dấu ngoặc của rule; (2) kiểm tra phiên bản firewall đang chạy có hỗ
    trợ port 443 không
-b) (1) Kiểm tra THỨ TỰ — có rule nào đứng TRƯỚC đã chặn/xử lý traffic đó trước khi tới được rule
-   mới thêm không; (2) kiểm tra rule mới có được thêm vào ĐÚNG chain/table (ví dụ đúng hướng
-   input/output/forward) không — một rule đúng cú pháp nhưng ở sai chain không có tác dụng cho
-   traffic mong muốn
+b) (1) Kiểm tra THỨ TỰ — có rule nào đứng TRƯỚC đã chặn/xử lý traffic đó trước khi tới được rule mới thêm không; (2) kiểm tra rule mới có được thêm vào ĐÚNG chain/table
 c) (1) Restart toàn bộ dịch vụ firewall; (2) xoá hết rule cũ rồi thêm lại từ đầu
 d) (1) Kiểm tra port 443 có đang bị ISP chặn từ ngoài không; (2) kiểm tra DNS có trỏ đúng không
 

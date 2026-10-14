@@ -192,9 +192,7 @@ không xuất hiện trên bất kỳ client nào, dù đã `rndc reload` (lện
 nhưng QUÊN tăng `serial`. Điều gì xảy ra với secondary DNS server của domain đó?
 
 a) Secondary tự phát hiện IP thay đổi qua so sánh checksum zone file, không cần serial
-b) Secondary KHÔNG đồng bộ lại — nó chỉ đồng bộ khi thấy `serial` trên primary LỚN HƠN số nó
-   đang lưu. Vì serial không đổi, secondary coi như "không có gì mới", tiếp tục trả lời dữ liệu
-   CŨ
+b) Secondary KHÔNG đồng bộ lại — nó chỉ đồng bộ khi thấy `serial` trên primary LỚN HƠN số nó đang lưu
 c) Secondary vẫn đồng bộ bình thường vì reload trên primary đã kích hoạt notify
 d) Secondary sẽ báo lỗi và dừng phục vụ zone đó ngay khi phát hiện serial không đổi
 
@@ -232,9 +230,7 @@ trả NXDOMAIN nhiều giờ sau. Nguyên nhân khả năng cao nhất là gì?
 a) Vì domain chưa được lan truyền qua DNSSEC, cần chờ ký lại toàn bộ chain of trust
 b) Vì resolver đó bị lỗi phần mềm, cần restart service DNS trên resolver
 c) Vì TTL dương (positive TTL) của record A quá dài nên resolver chưa hỏi lại
-d) Negative caching — resolver đó đã hỏi domain này TRƯỚC KHI nó được cấu hình xong, nhận
-   NXDOMAIN và cache lại trong khoảng thời gian bằng `minimum` TTL của SOA; phải chờ hết khoảng
-   đó, resolver mới hỏi lại và nhận được kết quả đúng
+d) Negative caching — resolver đó đã hỏi domain này TRƯỚC KHI nó được cấu hình xong, nhận NXDOMAIN và cache lại trong khoảng thời gian bằng `minimum` TTL của SOA
 
 **Đáp án: d** — Negative caching — resolver đó đã hỏi domain này TRƯỚC KHI nó được cấu hình
 xong, nhận NXDOMAIN và cache lại trong khoảng thời gian bằng `minimum` TTL của SOA. Phải chờ
@@ -248,9 +244,7 @@ câu trả lời thành công, không giải thích được NXDOMAIN kéo dài 
 **Câu 4**: `www.example.com` là CNAME tới `example.com`. Có thể thêm thêm một record `MX` cho
 đúng tên `www.example.com` không?
 
-a) Không. Theo chuẩn DNS, một tên có CNAME thì KHÔNG được có bất kỳ loại record khác cho CÙNG
-   TÊN đó (trừ một số ngoại lệ DNSSEC) — đây là ràng buộc của chuẩn, không phải hạn chế riêng
-   của một DNS server cụ thể
+a) Không. Theo chuẩn DNS, một tên có CNAME thì KHÔNG được có bất kỳ loại record khác cho CÙNG TÊN đó (trừ một số ngoại lệ DNSSEC)
 b) Có, miễn là MX record trỏ tới đúng mail server đang dùng cho `example.com`
 c) Có, nhưng chỉ nếu CNAME và MX được khai trên hai DNS server khác nhau
 d) Không, nhưng chỉ vì giới hạn kỹ thuật của phần mềm DNS server cụ thể, không phải chuẩn chung
@@ -269,10 +263,7 @@ thông thường từ máy cá nhân?
 
 a) Vì nslookup luôn đánh dấu mọi kết quả là non-authoritative bất kể nguồn trả lời là ai, chỉ
    là quy ước hiển thị
-b) Vì máy cá nhân hỏi qua một RESOLVER (ví dụ stub cục bộ 127.0.0.53, hoặc DNS của ISP) —
-   resolver này không phải authoritative server của domain đang hỏi, nó chỉ trả lời từ dữ liệu
-   đã cache hoặc vừa đi hỏi recursive hộ, nên được đánh dấu "non-authoritative" để phân biệt
-   với câu trả lời trực tiếp từ chính authoritative server
+b) Vì máy cá nhân hỏi qua một RESOLVER (ví dụ stub cục bộ 127.0.0.53, hoặc DNS của ISP)
 c) Vì domain đang hỏi chưa có DNSSEC nên không được coi là câu trả lời chính thức
 d) Vì máy cá nhân không có quyền truy vấn authoritative server trực tiếp theo chính sách bảo
    mật DNS

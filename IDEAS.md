@@ -36,3 +36,15 @@ Ghi lại đây các ý tưởng hay nảy ra trong quá trình làm, không t�
     (hiện chưa có) + mở rộng `presetCommands` — lập plan riêng sau khi quiz ổn.
   - Quyết định còn treo: có giữ bước tự-kiểm-tra bằng LLM (gọi LLM lần 2 tự giải câu không xem
     đáp án, so khớp trước khi import) hay bỏ hẳn, tin hoàn toàn vào grounding + báo sai sau.
+- **82 câu quiz tĩnh còn length bias chưa tự sửa được** — sau khi chạy
+  `scripts/kb-debias-quiz-length.mjs` (2026-10-14, xem CLAUDE.md mục LLMProvider), 82/625 câu
+  "Tự kiểm tra" vẫn có đáp án đúng dài hơn distractor dài nhất > 30% mà script không tìm được
+  điểm cắt an toàn (đáp án đúng quá ngắn/không có dấu câu để cắt). Chạy lại script với
+  `--dry-run` để lấy danh sách file+câu cụ thể. Cần viết lại tay hoặc bằng LLM thật (project
+  hiện chưa có API key thật để tự làm).
+- **Nội dung quiz/lab chưa đủ "sát thực tiễn doanh nghiệp"** — phản hồi từ chủ dự án
+  (2026-10-14): nhiều câu trong `knowledge/**.md` nghiêng về tình huống đơn giản/một máy hơn
+  là vận hành hạ tầng nhiều máy/nhiều service có đánh đổi thật. Đã sửa phần prompt LLM runtime
+  (`prompts/quiz/generate.v3.ts` yêu cầu rõ bối cảnh doanh nghiệp) nhưng phần nội dung TĨNH
+  (625 câu, phần lớn quiz thật) cần viết lại thủ công/bằng LLM thật theo từng bài — không làm
+  được bằng script rule-based (cần hiểu domain, không chỉ đo độ dài chữ).

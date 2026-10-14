@@ -344,10 +344,7 @@ helm push my-api-0.1.0.tgz oci://my-registry.example.com/charts
 **Câu 1**: `{{ .Values.env }}` là map, cần render thành env var list trong Deployment. Cú pháp
 loop đúng trong Helm template là gì?
 
-a) Dùng `range` với key-value destructuring: `{{- range $key, $value := .Values.env }}` theo
-   sau bởi `- name: {{ $key }}` và `value: {{ $value | quote }}`, kết thúc bằng `{{- end }}`.
-   `$key`/`$value` là biến có scope trong range block. `quote` bọc value trong dấu ngoặc kép để
-   xử lý đúng string có ký tự đặc biệt. Lưu ý dấu `-` trước `{{` để trim whitespace trước block
+a) Dùng `range` với key-value destructuring: `{{- range $key, $value := .Values.env }}` theo sau bởi `- name: {{ $key }}` và `value: {{ $value | quote }}`, kết thúc bằng `{{- end }}`. `$key`/`$value` là biến có scope trong range block. `quote` bọc value trong dấu ngoặc kép để xử lý đúng string có ký tự đặc biệt
 b) Dùng `for $key, $value in .Values.env` — cú pháp giống Python, Helm template hỗ trợ trực
    tiếp
 c) Dùng `{{ each .Values.env as $key, $value }} ... {{ /each }}` theo cú pháp Handlebars
@@ -366,12 +363,7 @@ key-value destructuring trực tiếp, không cần lấy list key riêng rồi 
 upgrade tiếp tục hay dừng lại?
 
 a) Helm tiếp tục upgrade bình thường, hook fail chỉ ghi log cảnh báo không chặn gì
-b) Helm dừng lại và đánh dấu release là failed — không apply manifest chính (Deployment mới
-   không được cập nhật). Đây là behaviour mong muốn cho migration: nếu migration thất bại,
-   không deploy app mới lên để tránh app mới chạy với schema DB lỗi. Sau khi fix lỗi migration
-   (sửa code migration, rebuild image), chạy helm upgrade lại. Job cũ bị giữ lại để debug (trừ
-   khi đặt hook-delete-policy: hook-failed — xoá ngay sau khi Job thất bại;
-   before-hook-creation chỉ xoá trước lần upgrade tiếp theo, không xoá ngay)
+b) Helm dừng lại và đánh dấu release là failed — không apply manifest chính (Deployment mới không được cập nhật)
 c) Helm tự động retry hook 3 lần rồi mới quyết định dừng hay tiếp tục
 d) Helm rollback ngay về revision trước đó mà không cần người dùng chạy lệnh gì thêm
 
@@ -390,11 +382,7 @@ viết labels trong mỗi template?
 a) Vì Helm bắt buộc mọi label phải đi qua include, viết trực tiếp labels trong template sẽ bị
    lint báo lỗi cú pháp
 b) Vì include giúp Helm render template nhanh hơn đáng kể so với viết labels trực tiếp
-c) DRY (Don't Repeat Yourself) — labels chuẩn K8s (app.kubernetes.io/name,
-   app.kubernetes.io/instance, app.kubernetes.io/version) phải nhất quán giữa Deployment,
-   Service, và các manifest khác để selector hoạt động đúng. Định nghĩa 1 lần trong
-   _helpers.tpl và include lại tránh inconsistency. nindent 4 đảm bảo output indent đúng với
-   vị trí trong YAML (metadata.labels ở indent 4, spec.selector ở 6)
+c) DRY (Don't Repeat Yourself) — labels chuẩn K8s (app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/version) phải nhất quán giữa Deployment, Service, và các manifest khác để selector hoạt động đúng
 d) Vì nindent 4 là bắt buộc duy nhất cho mọi vị trí trong file YAML, không phụ thuộc độ sâu
    indent thật
 

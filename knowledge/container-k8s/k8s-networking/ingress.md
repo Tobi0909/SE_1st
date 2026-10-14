@@ -240,10 +240,7 @@ Kết quả: 3 khoản phí LB giảm còn 1, routing vẫn hoạt động đún
 
 a) Ingress resource và Ingress controller là hai tên gọi của cùng một thành phần, chỉ khác
    version API
-b) Ingress resource là K8s API object (YAML khai báo rules) — nó CHỈ là config, không làm gì
-   nếu không có controller. Ingress controller là Pod thực sự chạy proxy (nginx, traefik...) và
-   watch Ingress objects để cấu hình routing. Nếu không cài controller, apply Ingress resource
-   không gây lỗi nhưng traffic không được route — không có gì xử lý rules đó cả
+b) Ingress resource là K8s API object (YAML khai báo rules) — nó CHỈ là config, không làm gì nếu không có controller
 c) Ingress resource là Pod proxy chạy thật; Ingress controller chỉ là file YAML khai báo rule
 d) Ingress controller luôn được cài sẵn mặc định trong mọi cluster K8s, không cần cài thêm
 
@@ -260,10 +257,7 @@ traefik...) (loại d).
 
 a) Vì LoadBalancer Service không hỗ trợ HTTPS, chỉ Ingress mới hỗ trợ TLS
 b) Vì mỗi cluster chỉ được phép tạo tối đa 1 LoadBalancer Service theo giới hạn của Kubernetes
-c) Mỗi LoadBalancer Service cần 1 external IP từ cloud provider = 1 khoản phí riêng. Với 10
-   service cần expose, đó là 10 cloud LB. Ingress gom toàn bộ HTTP/HTTPS traffic qua 1 điểm vào
-   (1 LB, 1 IP), routing theo hostname/path — giảm chi phí đáng kể. Ingress còn tập trung TLS
-   termination và cert management thay vì phân tán vào từng Pod
+c) Mỗi LoadBalancer Service cần 1 external IP từ cloud provider = 1 khoản phí riêng
 d) Vì LoadBalancer Service chỉ hoạt động trên cloud AWS, Ingress hoạt động trên mọi hạ tầng
 
 **Đáp án: c** — Mỗi LoadBalancer Service cần 1 external IP = 1 khoản phí; Ingress gom qua 1
@@ -281,10 +275,7 @@ route vào backend nào?
 a) Backend của /, vì rule khai báo trước trong YAML luôn được match trước
 b) Cả hai backend cùng xử lý request này song song rồi gộp kết quả trả về client
 c) Request bị từ chối với lỗi 404 vì có 2 path trùng khớp gây xung đột không xác định được
-d) Backend của /api — Ingress controller (nginx) ưu tiên match path DÀI HƠN trước, không phải
-   thứ tự khai báo trong YAML. /api/users match /api (7 ký tự prefix) tốt hơn / (1 ký tự
-   prefix) nên route vào backend /api. Đây là lý do rule catch-all / phải đặt sau nhưng thực ra
-   thứ tự trong YAML không quan trọng — controller tự chọn match cụ thể nhất
+d) Backend của /api — Ingress controller (nginx) ưu tiên match path DÀI HƠN trước, không phải thứ tự khai báo trong YAML. /api/users match /api
 
 **Đáp án: d** — Backend của `/api` — controller ưu tiên match path DÀI HƠN, không phải thứ tự
 khai báo. Thứ tự trong YAML KHÔNG quyết định — controller tự chọn match cụ thể nhất (dài hơn),

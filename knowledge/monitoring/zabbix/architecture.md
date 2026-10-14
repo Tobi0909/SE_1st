@@ -204,11 +204,7 @@ DB-01  (Agent active) ─────────↗               ↗
 a) Vì Proxy cần database để lưu cấu hình GUI riêng, không liên quan tới buffer data
 b) Vì Agent thực ra cũng cần database riêng, chỉ là mặc định dùng SQLite ẩn không ai thấy
 c) Vì Proxy database dùng để lưu log lỗi debug, không phục vụ mục đích buffer dữ liệu giám sát
-d) Zabbix Proxy buffer data thu thập được LOCAL trước khi gửi về Server — cần database để
-   lưu buffer này khi Server không reach được (WAN gián đoạn, Server bảo trì). Agent là
-   stateless: chỉ đo và trả về giá trị theo yêu cầu (passive) hoặc gửi thẳng (active) — không
-   cần lưu trữ. Proxy về bản chất là một "mini Zabbix Server" bị giới hạn chức năng (không làm
-   alert, không có Frontend), cần đủ hạ tầng để buffer data
+d) Zabbix Proxy buffer data thu thập được LOCAL trước khi gửi về Server
 
 **Đáp án: d** — Proxy buffer data LOCAL trước khi gửi về Server, cần database để lưu buffer
 khi Server không reach được. Agent stateless, không cần lưu trữ. Database của Proxy phục vụ
@@ -221,11 +217,7 @@ của database Proxy là buffer dữ liệu giám sát thu thập được, khô
 **Câu 2**: Agent được cấu hình `Server=10.0.0.1` (passive) nhưng không có `ServerActive`. Có
 sự kiện nào trong Zabbix Frontend sẽ không hoạt động không?
 
-a) Active check sẽ không hoạt động — agent không gửi data chủ động, không nhận list active
-   item từ Server. Tuy nhiên nếu TẤT CẢ item trong template được cấu hình dùng passive check
-   type, thì không có vấn đề. Vấn đề phổ biến: nhiều template dùng cả passive và active item —
-   nếu thiếu ServerActive, active items sẽ không có data, hiện "No data" hoặc trigger cảnh báo
-   sai
+a) Active check sẽ không hoạt động — agent không gửi data chủ động, không nhận list active item từ Server
 b) Passive check sẽ không hoạt động, vì thiếu ServerActive khiến Server không thể polling
    agent
 c) Không có gì bị ảnh hưởng, ServerActive chỉ là tham số tùy chọn không ảnh hưởng chức năng nào
@@ -243,12 +235,7 @@ tới active check — không phải "không ảnh hưởng gì" (loại c); age
 **Câu 3**: Sự khác biệt giữa Zabbix Agent và Zabbix Agent 2?
 
 a) Agent viết bằng Go có plugin framework; Agent 2 viết bằng C không có plugin framework
-b) Agent (legacy) viết bằng C: nhẹ, tương thích rộng, không có plugin framework riêng — mở
-   rộng qua UserParameter (chạy script ngoài). Agent 2 viết bằng Go: có plugin framework
-   native (Docker, MySQL, PostgreSQL, Redis, MongoDB... dùng protocol riêng của plugin, không
-   cần script ngoài), hỗ trợ scheduled checks, concurrency check tốt hơn. Khuyến nghị Agent 2
-   cho deployment mới từ Zabbix 5.4+; Agent legacy vẫn được hỗ trợ cho host cũ hoặc khi
-   constraint binary size
+b) Agent (legacy) viết bằng C: nhẹ, tương thích rộng, không có plugin framework riêng — mở rộng qua UserParameter
 c) Agent và Agent 2 hoàn toàn giống nhau về code, chỉ khác số version hiển thị
 d) Agent 2 chỉ chạy được trên Windows, Agent legacy chỉ chạy được trên Linux
 

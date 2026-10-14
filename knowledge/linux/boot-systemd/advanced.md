@@ -204,8 +204,7 @@ service cần network đã lên để hoạt động đúng, thiếu `After=` c�
 cách kiểm tra nhanh nhất để biết có cần dừng thêm gì không?
 
 a) Vì `stop` chỉ tạm dừng 5 giây rồi service tự khởi động lại theo mặc định của systemd
-b) Nếu service có `.socket` cùng tên đang active, socket activation sẽ tự khởi động lại
-   service khi có kết nối mới tới. Kiểm tra nhanh: `systemctl status foo.socket`
+b) Nếu service có `.socket` cùng tên đang active, socket activation sẽ tự khởi động lại service khi có kết nối mới tới
 c) Vì `stop` yêu cầu xác nhận hai lần, lần đầu chỉ là cảnh báo chứ chưa thực sự dừng
 d) Vì các instance template (`foo@N.service`) không bị ảnh hưởng bởi `stop foo.service`
 
@@ -220,8 +219,7 @@ thấy `active (listening)`, cần dừng luôn socket đó.
 thật của `auto`.
 
 a) Có, vì sau 3 ngày `auto` tự động chuyển sang hành xử như `persistent`
-b) Phụ thuộc việc thư mục `/var/log/journal` đã tồn tại hay chưa tại lần journald khởi động
-   đầu tiên — không có mốc thời gian "sau N ngày sẽ tự đổi"
+b) Phụ thuộc việc thư mục `/var/log/journal` đã tồn tại hay chưa tại lần journald khởi động đầu tiên
 c) Không, `auto` luôn hành xử như `volatile` trừ khi người dùng đổi tay sang `persistent`
 d) Có, nhưng chỉ nếu máy không bị tắt nguồn đột ngột trong 3 ngày đó
 
@@ -237,8 +235,7 @@ trạng thái thư mục tại thời điểm journald start.
 liên quan gì tới `Accept=yes` trong `.socket`?
 
 a) `foo@.service` chỉ là cách viết tắt cũ, hai dạng này hoàn toàn tương đương về hành vi
-b) `foo@.service` là TEMPLATE unit, tạo nhiều instance (`foo@1.service`...). Khi `.socket`
-   khai báo `Accept=yes`, mỗi kết nối mới cần MỘT instance riêng, nên service phải là template
+b) `foo@.service` là TEMPLATE unit, tạo nhiều instance (`foo@1.service`...)
 c) `foo@.service` dùng cho `.timer`, còn `foo.service` dùng cho `.socket` — hai dạng tách biệt
    theo loại unit đi kèm
 d) `Accept=yes` chỉ tương thích với `foo.service` thường, `foo@.service` luôn cần `Accept=no`
@@ -255,8 +252,7 @@ gian boot của một unit cụ thể, khác với việc chỉ xem `After=`/`Re
 file?
 
 a) `systemctl list-dependencies foo.service` — vì lệnh này đã bao gồm cả thời gian khởi động
-b) `systemd-analyze critical-chain foo.service` — cho thấy chuỗi phụ thuộc THỰC TẾ (đã tính
-   toán, kèm thời gian) dẫn tới unit đó active
+b) `systemd-analyze critical-chain foo.service` — cho thấy chuỗi phụ thuộc THỰC TẾ
 c) `journalctl -b -u foo.service` — vì log boot luôn ghi kèm thời gian từng bước phụ thuộc
 d) `systemctl cat foo.service` — vì file unit gốc là nguồn chính xác nhất về phụ thuộc
 

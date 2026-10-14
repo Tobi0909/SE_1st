@@ -189,9 +189,7 @@ Nên chọn site-to-site hay remote access? Vì sao?
 a) Remote access — vì traffic liên tục suốt ngày phù hợp hơn với mô hình client cá nhân kết
    nối linh hoạt
 b) Cả hai đều phù hợp như nhau, lựa chọn chỉ phụ thuộc vào ngân sách
-c) Site-to-site — kết nối giữa HAI MẠNG cố định (qua gateway ở mỗi bên), đúng mô hình
-   site-to-site. Remote access dành cho một THIẾT BỊ CÁ NHÂN kết nối vào một mạng, không phù
-   hợp cho nhu cầu nối hai mạng với nhau
+c) Site-to-site — kết nối giữa HAI MẠNG cố định (qua gateway ở mỗi bên), đúng mô hình site-to-site
 d) Remote access, vì site-to-site chỉ dùng được cho kết nối tạm thời không liên tục
 
 **Đáp án: c** — Site-to-site — kết nối giữa HAI MẠNG cố định (qua gateway ở mỗi bên), đúng mô
@@ -209,8 +207,7 @@ thực/toàn vẹn?
 a) AH cung cấp mã hoá đầy đủ; ESP chỉ xác thực/toàn vẹn, không mã hoá
 b) Cả AH và ESP đều mã hoá, chỉ khác thuật toán mã hoá sử dụng
 c) AH và ESP đều chỉ xác thực/toàn vẹn, không loại nào hỗ trợ mã hoá
-d) ESP cung cấp CẢ mã hoá và xác thực/toàn vẹn. AH CHỈ cung cấp xác thực/toàn vẹn, KHÔNG mã
-   hoá — dữ liệu qua AH vẫn đọc được nếu bị chặn, chỉ không sửa được mà không bị phát hiện
+d) ESP cung cấp CẢ mã hoá và xác thực/toàn vẹn
 
 **Đáp án: d** — ESP cung cấp CẢ mã hoá và xác thực/toàn vẹn. AH CHỈ cung cấp xác thực/toàn vẹn,
 KHÔNG mã hoá. Vai trò AH/ESP bị đảo ngược hoàn toàn (loại a); AH không mã hoá, chỉ ESP mới mã
@@ -221,9 +218,7 @@ hoá (loại b); ESP THỰC SỰ hỗ trợ mã hoá — khẳng định "không
 
 **Câu 3**: Vì sao SSL VPN thường "dễ đi qua" firewall/NAT công cộng hơn IPsec?
 
-a) SSL VPN (như OpenVPN) có thể chạy hoàn toàn trên TCP port 443, trông giống một kết nối
-   HTTPS bình thường với firewall/NAT. IPsec dùng protocol ESP riêng (không phải TCP/UDP tiêu
-   chuẩn), nhiều firewall/NAT công cộng xử lý sai hoặc chặn protocol này
+a) SSL VPN (như OpenVPN) có thể chạy hoàn toàn trên TCP port 443, trông giống một kết nối HTTPS bình thường với firewall/NAT
 b) Vì SSL VPN không cần mã hoá nên firewall luôn cho qua dễ dàng hơn
 c) Vì IPsec chỉ hoạt động được trên IPv6, firewall cũ chỉ hỗ trợ IPv4 nên chặn nhầm
 d) Vì SSL VPN không tạo kết nối thật, chỉ giả lập traffic nên firewall không phát hiện được
@@ -240,9 +235,7 @@ kết nối TCP/TLS thật, không phải giả lập traffic (loại d).
 gateway). Nên dùng Transport mode hay Tunnel mode?
 
 a) Transport mode — vì nó bọc toàn bộ IP header gốc, phù hợp định tuyến cả dải mạng
-b) Tunnel mode — bắt buộc khi có security gateway tham gia, vì nó bọc TOÀN BỘ IP header gốc
-   vào trong một header mới, cho phép định tuyến cả dải mạng qua gateway. Transport mode chỉ
-   phù hợp kết nối host-to-host trực tiếp, không bọc IP header gốc
+b) Tunnel mode — bắt buộc khi có security gateway tham gia, vì nó bọc TOÀN BỘ IP header gốc vào trong một header mới, cho phép định tuyến cả dải mạng qua gateway
 c) Cả hai đều dùng được như nhau cho site-to-site, không có khác biệt về khả năng định tuyến
 d) Transport mode, vì Tunnel mode chỉ dùng cho kết nối host-to-host trực tiếp
 
@@ -259,10 +252,7 @@ mode bị đảo ngược trong lựa chọn d (loại d).
 a) Vì WireGuard chưa hỗ trợ xác thực hai chiều, nên không cần tới khái niệm chứng chỉ
 b) Vì WireGuard bắt buộc chạy trong mạng nội bộ tin cậy sẵn, không cần xác thực bằng chứng chỉ
    hay khoá nào cả
-c) WireGuard CHỦ Ý thiết kế đơn giản hơn, dùng mô hình cặp khoá public/private (tương tự SSH
-   key) để xác thực giữa các peer, thay vì hệ thống PKI phức tạp (CA, chứng chỉ, chuỗi tin
-   cậy) của IPsec/OpenVPN — đây là lựa chọn thiết kế có chủ đích, không phải tính năng còn
-   thiếu
+c) WireGuard CHỦ Ý thiết kế đơn giản hơn, dùng mô hình cặp khoá public/private
 d) Vì chứng chỉ chỉ dùng được với giao thức TCP, WireGuard chạy trên UDP nên không áp dụng được
 
 **Đáp án: c** — WireGuard CHỦ Ý thiết kế đơn giản hơn, dùng mô hình cặp khoá public/private

@@ -135,8 +135,7 @@ không liên quan tới thuật toán STP, STP hoạt động ở Layer 2 dựa 
 
 a) Vì switch cần đợi DHCP cấp địa chỉ IP xong mới cho phép port chuyển sang forwarding
 b) Vì cáp mạng cần thời gian tự thương lượng tốc độ (auto-negotiation) kéo dài đúng 30 giây
-c) Port đi qua Listening (15 s) + Learning (15 s) trước khi forwarding; dùng RSTP và PortFast/
-   edge port để bỏ qua các bước chờ này cho port kết nối máy trạm
+c) Port đi qua Listening (15 s) + Learning (15 s) trước khi forwarding
 d) Vì BPDU Guard luôn chặn port mới trong 30 giây đầu để kiểm tra switch lạ
 
 **Đáp án: c** — Port đi qua Listening (15 s) + Learning (15 s). Dùng RSTP và PortFast/edge
@@ -152,8 +151,7 @@ port. Độ trễ này hoàn toàn thuộc cơ chế STP (Listening/Learning), k
 a) Bảo vệ switch khỏi bị quá tải CPU khi nhận quá nhiều broadcast storm
 b) Tự động hạ priority của switch lạ xuống mức thấp nhất để nó không thể làm root bridge
 c) Mã hoá nội dung BPDU để ngăn switch khác giả mạo thông tin topology
-d) Port edge (PortFast) nhận được BPDU sẽ bị err-disable ngay, ngăn một switch lạ (vô tình hoặc
-   cố ý) chen vào và làm sai lệch topology STP
+d) Port edge (PortFast) nhận được BPDU sẽ bị err-disable ngay, ngăn một switch lạ
 
 **Đáp án: d** — Port edge nhận BPDU sẽ bị err-disable, ngăn switch lạ chen vào topology. BPDU
 Guard không nhằm giảm tải CPU do storm — đó là vai trò của storm control (loại a); BPDU Guard
