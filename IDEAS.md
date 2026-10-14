@@ -48,3 +48,12 @@ Ghi lại đây các ý tưởng hay nảy ra trong quá trình làm, không t�
   (`prompts/quiz/generate.v3.ts` yêu cầu rõ bối cảnh doanh nghiệp) nhưng phần nội dung TĨNH
   (625 câu, phần lớn quiz thật) cần viết lại thủ công/bằng LLM thật theo từng bài — không làm
   được bằng script rule-based (cần hiểu domain, không chỉ đo độ dài chữ).
+- **Vị trí đáp án đúng lệch về option b)** — đo trên 625 câu "Tự kiểm tra" tĩnh (2026-10-14,
+  cùng đợt rà soát length bias ở trên): b) chiếm 37.8% (236 câu) trong khi phân phối đều phải
+  là 25%/lựa chọn (a=20.2%, c=24.3%, d=17.8%). Nếu học viên đoán "b" khi không chắc sẽ đúng
+  cao hơn ngẫu nhiên — cùng họ bug với length bias nhưng khó khai thác hơn (phải làm nhiều câu
+  mới nhận ra pattern). Chủ dự án quyết định hoãn, ưu tiên thấp hơn length bias. Khi làm: cần
+  script xáo trộn ngẫu nhiên thứ tự 4 lựa chọn mỗi câu, cập nhật đồng thời letter đáp án đúng
+  VÀ dòng `**Đáp án: X** — ...` cho khớp lại — rủi ro cao hơn script length bias (sửa 2 chỗ
+  liên kết với nhau thay vì 1 chỗ text thuần), nên dry-run + lấy mẫu duyệt trước khi áp dụng
+  thật.
