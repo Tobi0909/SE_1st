@@ -98,6 +98,39 @@ Router# show ip ospf interface eth0
 thường giữa 2 DROTHER; `Init`/`ExStart` kéo dài bất thường là dấu hiệu cấu hình sai (area,
 hello timer, MTU).
 
+**Mạng nhiều area** — router nối cả area 0 và area 1 (ABR, Area Border Router) cần khai `network`
+riêng cho từng interface theo đúng area của nó; LSA loại 1/2 (nội bộ area) không vượt ra ngoài
+area, chỉ LSA tổng hợp loại 3 (summary, do ABR tạo) đi giữa các area — đây là lý do LSDB của
+router trong area 1 KHÔNG thấy chi tiết topology area 2, chỉ thấy route tổng hợp:
+
+```
+router ospf
+ ospf router-id 10.0.0.1
+ network 192.168.10.0/24 area 0     ! interface nối về backbone
+ network 10.1.1.0/24 area 1         ! interface nối vào area 1
+```
+
+Xem toàn bộ LSDB mà router đang giữ (hữu ích khi nghi SPF tính sai do thiếu/lệch LSA):
+
+```
+router# show ip ospf database
+
+            OSPF Router with ID (10.0.0.1)
+
+                Router Link States (Area 0)
+Link ID         ADV Router      Age         Seq#       Link count
+10.0.0.1        10.0.0.1        45          0x80000003 2
+10.0.0.2        10.0.0.2        50          0x80000005 3
+
+                Summary Net Link States (Area 0)
+Link ID         ADV Router      Age         Seq#
+10.1.1.0        10.0.0.1        45          0x80000002
+```
+
+"Router Link States" là LSA loại 1 (mỗi router tự quảng bá link của mình, chỉ trong area);
+"Summary Net Link States" là LSA loại 3 do ABR tạo để đưa route của area 1 (`10.1.1.0`) vào
+area 0 — dạng tổng hợp, không mang chi tiết topology bên trong area 1.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Neighbor không bao giờ lên Full, kẹt ở `Init` hoặc `2-Way`**

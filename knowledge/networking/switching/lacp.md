@@ -81,6 +81,42 @@ interface Port-channel1
 
 Kiểm tra: `show etherchannel summary` — cờ `P` (bundled in port-channel) là tốt; `I` (stand-alone), `s` (suspended), `D` (down) là có vấn đề.
 
+**Output đầy đủ `show etherchannel summary`** — cách đọc nhanh 1 link có vào bundle thật không:
+
+```
+Switch# show etherchannel summary
+Flags:  D - down   P - bundled in port-channel   I - stand-alone
+        s - suspended   R - Layer3   S - Layer2   U - in use
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+-----------------------------------------
+1      Po1(SU)       LACP        Gi0/1(P)  Gi0/2(P)
+2      Po2(SD)       LACP        Gi0/3(s)  Gi0/4(D)
+```
+
+`Po1` lành mạnh: cả `Gi0/1`/`Gi0/2` đều `(P)` — bundled thật, port-channel ở trạng thái `SU`
+(Layer2, in Use). `Po2` có vấn đề: `(s)` là suspended (đối tác không chạy LACP hoặc config
+lệch) và `(D)` là down — port-channel `SD` (down), toàn bộ bundle 2 KHÔNG chuyển được traffic
+dù interface vật lý có thể vẫn "up/up" ở lớp dưới.
+
+**Chi tiết từng thành viên qua `show lacp neighbor`** — dùng khi `show etherchannel summary`
+đã báo nghi vấn nhưng cần xem đối tác (switch kia) khai báo gì:
+
+```
+Switch# show lacp neighbor
+Flags:  S - Device is requesting Slow LACPDUs
+        A - Device is in Active mode    P - Device is in Passive mode
+
+Channel group 1 neighbors
+Port      Flags  State        Port Priority  Port Number  Age   Key
+Gi0/1     SA     bndl         32768           5            12s   0x1
+Gi0/2     SA     bndl         32768           6            9s    0x1
+```
+
+`State: bndl` = đã vào bundle thành công. Nếu thấy `State: indep` (independent) hoặc không có
+dòng nào cho một port — đối tác chưa thoả thuận LACP cho port đó, kiểm tra lại `channel-group`
+và chế độ active/passive ở phía kia.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Một link thành viên ở trạng thái suspended/stand-alone**

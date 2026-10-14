@@ -95,6 +95,53 @@ interface GigabitEthernet0/24
 
 Kiểm tra: `show vlan brief`, `show interfaces trunk`.
 
+**Output đầy đủ của `show interfaces trunk`** — đây là lệnh quan trọng nhất khi debug VLAN
+không qua được trunk, vì nó cho biết VLAN nào thực sự "active" trên link, không chỉ VLAN nào
+được khai trong config:
+
+```
+Switch# show interfaces trunk
+
+Port        Mode             Encapsulation  Status        Native vlan
+Gi0/24      on               802.1q         trunking      99
+
+Port        Vlans allowed on trunk
+Gi0/24      10,20,30
+
+Port        Vlans allowed and active in management domain
+Gi0/24      10,20
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gi0/24      10,20
+```
+
+Ở ví dụ trên, VLAN 30 có trong "allowed" nhưng KHÔNG có trong "active in management domain" —
+nghĩa là VLAN 30 được phép đi qua trunk này nhưng **chưa tồn tại** trên switch đó (chưa `vlan
+30` trong VLAN database) hoặc không có port nào thuộc VLAN 30, nên switch không gửi/nhận tag
+30 thật dù config allowed list đã đúng. Đây chính là bẫy phổ biến nhất khi mở rộng VLAN mới.
+
+**Router-on-a-stick (inter-VLAN routing bằng sub-interface)** — một router/L3 switch có thể
+định tuyến giữa các VLAN qua 1 trunk duy nhất, mỗi VLAN một sub-interface mang địa chỉ IP là
+gateway của VLAN đó:
+
+```
+interface GigabitEthernet0/0.10
+ encapsulation dot1Q 10
+ ip address 10.0.10.1 255.255.255.0
+!
+interface GigabitEthernet0/0.20
+ encapsulation dot1Q 20
+ ip address 10.0.20.1 255.255.255.0
+```
+
+Linux tương đương (dùng chính 2 sub-interface VLAN tạo ở trên, bật forwarding):
+
+```bash
+sysctl -w net.ipv4.ip_forward=1
+ip addr add 10.0.10.1/24 dev eth0.10
+ip addr add 10.0.20.1/24 dev eth0.20
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **VLAN mới không thông qua trunk**

@@ -84,6 +84,37 @@ Chỉnh thời gian aging trên Linux bridge (đơn vị 1/100 giây trong sysfs
 ip link set br0 type bridge ageing_time 30000
 ```
 
+**Quan sát MAC table học thêm theo thời gian thực** — trước khi máy A (vnet0) từng gửi gì tới
+máy B (vnet1), switch chưa biết MAC của B; chỉ sau khi có traffic (hai chiều) thì cả hai MAC
+mới xuất hiện trong bảng:
+
+```bash
+bridge fdb show br br0 | grep -v permanent   # trước: có thể trống hoặc chỉ có MAC cũ còn hạn
+ping -c 2 192.168.1.20                        # A ping B lần đầu
+bridge fdb show br br0 | grep -v permanent   # sau: cả 2 MAC đã được học
+```
+
+```
+52:54:00:aa:bb:01 dev vnet0 master br0        # MAC của A — switch học từ gói ping ĐI RA port này
+52:54:00:aa:bb:02 dev vnet1 master br0        # MAC của B — switch học từ gói reply ĐI RA port này
+```
+
+**Giới hạn số MAC học trên 1 port** (port security) là cách chặn tấn công MAC flooding làm
+tràn bảng (mục 5) — Linux bridge không có tham số per-port y hệt, minh họa phía Cisco IOS:
+
+```
+Switch(config-if)# switchport port-security
+Switch(config-if)# switchport port-security maximum 2
+Switch(config-if)# switchport port-security violation restrict
+Switch# show port-security interface GigabitEthernet0/1
+```
+
+Đếm nhanh tổng số entry trong MAC table (hữu ích khi nghi bảng gần đầy do tấn công flooding):
+
+```
+Switch# show mac address-table count
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **MAC "flapping" — cùng 1 MAC xuất hiện luân phiên ở 2 port**

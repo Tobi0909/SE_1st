@@ -75,6 +75,48 @@ Switch(config-if)# spanning-tree bpduguard enable
 
 Đọc output `show spanning-tree`: dòng "This bridge is the root" xác nhận root; cột Role (Root/Desg/Altn) và Sts (FWD/BLK) cho biết port nào bị chặn.
 
+**Output đầy đủ `show spanning-tree vlan 10`** trên switch KHÔNG phải root, để đối chiếu từng
+cột:
+
+```
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24577
+             Address     0019.0000.1111
+             Cost        4
+             Port        25 (Port-channel1)
+
+  Bridge ID  Priority    32768
+             Address     0019.0000.2222
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Po1              Root FWD 4         128.25   P2p
+Gi0/1            Desg FWD 4         128.1    P2p Edge
+Gi0/2            Altn BLK 4         128.2    P2p
+```
+
+Đọc nhanh: `Root ID` khác `Bridge ID` → switch này KHÔNG phải root (nếu giống nhau, dòng "This
+bridge is the root" sẽ xuất hiện). `Po1` là **Root port** (đường về root rẻ nhất, FWD). `Gi0/2`
+ở trạng thái **Altn/BLK** — port dự phòng, đang bị chặn có chủ đích để cắt loop, KHÔNG phải lỗi
+(chỉ cần lo khi port lẽ ra phải Desg/FWD lại đứng BLK bất thường).
+
+**Trình tự log khi BPDU Guard kích hoạt** (port edge nhận nhầm BPDU):
+
+```
+%SPANTREE-2-BLOCK_BPDUGUARD: Received BPDU on port Gi0/5 with BPDU Guard enabled. Disabling port.
+%PM-4-ERR_DISABLE: bpduguard error detected on Gi0/5, putting Gi0/5 in err-disable state
+%LINK-3-UPDOWN: Interface GigabitEthernet0/5, changed state to down
+```
+
+Khôi phục sau khi gỡ thiết bị gây lỗi (thủ công, hoặc cấu hình `errdisable recovery cause
+bpduguard` để tự phục hồi sau một khoảng thời gian):
+
+```
+Switch(config-if)# shutdown
+Switch(config-if)# no shutdown
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Broadcast storm sau khi cắm cáp/switch mới**

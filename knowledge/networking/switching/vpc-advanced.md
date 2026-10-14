@@ -69,6 +69,35 @@ Lệnh kiểm tra thường dùng: `show vpc`, `show vpc consistency-parameters`
 
 Phía server Linux không cần biết vPC, chỉ cấu hình bond 802.3ad bình thường (xem bài LACP) và nối mỗi NIC vào một peer.
 
+**Output đầy đủ `show vpc`** trên trạng thái lành mạnh — đây là lệnh đầu tiên chạy khi nghi vPC
+có vấn đề:
+
+```
+Switch# show vpc
+Legend: (*) - local vPC is down, forwarding via vPC peer-link
+
+vPC domain id                  : 10
+Peer status                    : peer adjacency formed ok
+vPC keep-alive status          : peer is alive
+Configuration consistency status : success
+Per-vlan consistency status    : success
+Type-2 consistency status      : success
+vPC role                       : primary
+
+vPC Peer-link status
+id   Port   Status Active vlans
+1    Po1    up     1,10,20,30
+
+vPC status
+id   Port   Status Consistency Reason          Active vlans
+20   Po20   up     success     success          10,20
+```
+
+Mọi dòng "status" đều phải là `success`/`up`/`formed ok`. Nếu `Configuration consistency
+status: failed` → chạy tiếp `show vpc consistency-parameters vlan` hoặc `... global` để xem
+CHÍNH XÁC tham số nào lệch (ví dụ MTU, STP mode) giữa 2 peer — vPC sẽ giữ domain ở trạng thái
+suspended cho tới khi đồng bộ lại, không tự đoán "gần giống là được".
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **vPC bị suspended / consistency check fail**

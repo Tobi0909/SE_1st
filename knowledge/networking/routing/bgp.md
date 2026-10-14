@@ -102,6 +102,39 @@ Router# show ip bgp neighbors 203.0.113.1
 Established và nhận 3 prefix; nếu hiện tên trạng thái (`Active`, `Idle`, `Connect`) nghĩa là
 CHƯA lên được phiên — cần chẩn đoán kết nối TCP port 179 trước khi nghi ngờ cấu hình route.
 
+**Chủ động chỉnh path selection bằng LOCAL_PREF** (traffic engineering — giải quyết đúng tình
+huống mục 6: muốn chia tải 2 ISP thay vì để BGP tự dồn vào AS-PATH ngắn nhất). Route-map áp
+LOCAL_PREF cao hơn cho route học từ ISP A, khiến router trong AS mình ưu tiên ISP A cho MỌI
+prefix học qua đó — ghi đè tiêu chí AS-PATH (LOCAL_PREF được xét trước AS-PATH trong path
+selection, xem mục 3):
+
+```
+route-map PREFER-ISP-A permit 10
+ set local-preference 200
+!
+router bgp 65001
+ neighbor 203.0.113.1 remote-as 65002
+ neighbor 203.0.113.1 route-map PREFER-ISP-A in
+```
+
+Kiểm tra LOCAL_PREF đã áp đúng chưa:
+
+```
+router# show ip bgp 198.51.100.0/24
+BGP routing table entry for 198.51.100.0/24
+Paths: (2 available, best #1)
+  65002
+    203.0.113.1 from 203.0.113.1
+      Origin IGP, localpref 200, valid, external, best     ! ISP A, đã nâng LOCAL_PREF
+  65003 65003
+    203.0.114.1 from 203.0.114.1
+      Origin IGP, localpref 100, valid, external            ! ISP B, mặc định
+```
+
+Muốn chia tải CHÍNH XÁC theo khối prefix (ví dụ một nửa dải IP khách hàng đi ISP A, nửa còn
+lại đi ISP B) thì dùng `route-map` kèm `match ip address prefix-list` thay vì áp LOCAL_PREF
+đồng loạt cho mọi prefix từ 1 neighbor như ví dụ trên.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Phiên BGP không lên (`Idle`/`Active`, không phải số)**
