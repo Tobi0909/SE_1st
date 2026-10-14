@@ -185,10 +185,17 @@ export const linuxScenarios = [
     filesystem: [{ name: "/var/log/app/service.log", type: "file", content: "... log dừng đột ngột không có stacktrace ..." }],
     services: [{ name: "report-service", status: "failed" }],
     logs: {
+      dmesg: [
+        "[123456.001] java invoked oom-killer: gfp_mask=0x140cca(GFP_HIGHUSER_MOVABLE), order=0, oom_score_adj=0",
+        "[123456.002] Out of memory: Killed process 8842 (java) total-vm:4200000kB, anon-rss:3100000kB, file-rss:0kB",
+      ],
       "dmesg | grep -i 'killed process'": [
         "Out of memory: Killed process 8842 (java) total-vm:4200000kB, anon-rss:3100000kB",
       ],
-      "journalctl -k -n 5": ["oom-kill:constraint=CONSTRAINT_NONE... oom_score_adj=0", "Out of memory: Killed process 8842 (java)"],
+      "journalctl -k -n 5": [
+        "oom-kill:constraint=CONSTRAINT_NONE,nodemask=(null),cpuset=/,mems_allowed=0,global_oom,task_memcg=/,task=java,pid=8842,uid=1000",
+        "Out of memory: Killed process 8842 (java) total-vm:4200000kB, anon-rss:3100000kB, file-rss:0kB",
+      ],
     },
     rootCauseSummary: "Service Java có memory leak (cache không giới hạn kích thước), heap tăng dần tới khi OOM Killer giết tiến trình.",
     rootCauseExplanation:

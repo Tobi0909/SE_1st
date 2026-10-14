@@ -87,7 +87,10 @@ function splitPipes(command: string): string[] {
 // ---- stage evaluation ----
 
 function evalStage(stage: string, state: SessionState): string | null {
-  const tokens = tokenize(stage);
+  // "sudo" rất hay gõ kèm các lệnh chẩn đoán (sudo dmesg, sudo journalctl...) — bỏ qua nó
+  // hoàn toàn khỏi cả việc chọn handler lẫn việc tra cứu log key, coi như không có.
+  const normalizedStage = stage.replace(/^\s*sudo\s+/, "");
+  const tokens = tokenize(normalizedStage);
   const [cmd, ...args] = tokens;
   if (!cmd) return null;
 
@@ -107,14 +110,19 @@ function evalStage(stage: string, state: SessionState): string | null {
     case "service":
       return handleServiceAlias(args, state);
     case "journalctl":
-      return handleJournalctl(args, state, stage);
+      return handleJournalctl(args, state, normalizedStage);
     case "dmesg":
-      return handleDmesg(state, stage);
+      return handleDmesg(args, state, normalizedStage);
     case "ss":
     case "netstat":
       return handleSocketList(state);
     case "echo":
       return args.join(" ");
+    case "clear":
+    case "cls":
+      // Bình thường được chặn ở client (lab-terminal.tsx) trước khi gọi tới đây — xử lý thêm
+      // ở đây chỉ để phòng hờ, không phải đường đi chính.
+      return "";
     default:
       return null;
   }
@@ -225,29 +233,58 @@ function formatIsActive(svc: SessionState["services"][string] | undefined): stri
 function handleJournalctl(args: string[], state: SessionState, rawStage: string): string | null {
   const uIdx = args.indexOf("-u");
   const service = uIdx !== -1 ? args[uIdx + 1] : undefined;
+  const isKernel = args.includes("-k");
   const nIdx = args.indexOf("-n");
   const n = nIdx !== -1 && args[nIdx + 1] ? Number.parseInt(args[nIdx + 1], 10) : undefined;
+  const grep = extractGrepOption(args);
 
-  const matchedKey = findBestLogKey(state.logs, rawStage, service ? `-u ${service}` : undefined);
-  if (matchedKey) {
-    const lines = state.logs[matchedKey];
-    return (n ? lines.slice(-n) : lines).join("\n");
-  }
+  let output: string | null = null;
 
-  if (service && state.services[service]) {
-    const svc = state.services[service];
-    if (svc.status === "failed") {
-      return `-- No entries matching exactly, showing summary --\n${service}.service: Main process exited, code=exited, status=1/FAILURE`;
+  if (service) {
+    const matchedKey = findBestLogKey(state.logs, rawStage, `-u ${service}`);
+    if (matchedKey) {
+      output = state.logs[matchedKey].join("\n");
+    } else if (state.services[service]) {
+      const svc = state.services[service];
+      output =
+        svc.status === "failed"
+          ? `-- No entries matching exactly, showing summary --\n${service}.service: Main process exited, code=exited, status=1/FAILURE`
+          : "-- No entries --";
     }
-    return "-- No entries --";
+  } else if (isKernel) {
+    // "-k" đọc kernel ring buffer — cùng nguồn dữ liệu với dmesg, thử khớp theo cả 2 hint.
+    const matchedKey =
+      findBestLogKey(state.logs, rawStage, "-k") ?? findBestLogKey(state.logs, rawStage, "dmesg");
+    if (matchedKey) output = state.logs[matchedKey].join("\n");
+  } else if (state.logs[rawStage]) {
+    output = state.logs[rawStage].join("\n");
   }
-  return null;
+
+  if (output === null) return null;
+  if (grep) output = output.split("\n").filter((l) => matchPattern(l, grep.pattern, grep.ignoreCase)).join("\n");
+  if (n) output = output.split("\n").slice(-n).join("\n");
+  return output;
 }
 
-function handleDmesg(state: SessionState, rawStage: string): string | null {
+function handleDmesg(args: string[], state: SessionState, rawStage: string): string | null {
   const matchedKey = findBestLogKey(state.logs, rawStage, "dmesg");
   if (!matchedKey) return null;
-  return state.logs[matchedKey].join("\n");
+  let output = state.logs[matchedKey].join("\n");
+
+  const grep = extractGrepOption(args);
+  if (grep) output = output.split("\n").filter((l) => matchPattern(l, grep.pattern, grep.ignoreCase)).join("\n");
+  return output;
+}
+
+/** Hỗ trợ cú pháp lọc gắn liền của journalctl/dmesg: `--grep=X`, `--grep X`, `-g X`, kèm `-i`. */
+function extractGrepOption(args: string[]): { pattern: string; ignoreCase: boolean } | null {
+  const ignoreCase = args.includes("-i");
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a.startsWith("--grep=")) return { pattern: a.slice("--grep=".length), ignoreCase };
+    if ((a === "--grep" || a === "-g") && args[i + 1]) return { pattern: args[i + 1], ignoreCase };
+  }
+  return null;
 }
 
 function findBestLogKey(logs: Record<string, string[]>, rawStage: string, hint?: string): string | undefined {
@@ -257,6 +294,11 @@ function findBestLogKey(logs: Record<string, string[]>, rawStage: string, hint?:
   // gốc — nếu không sẽ trả nhầm log của service khác chỉ vì cùng bắt đầu bằng "journalctl".
   if (hint) {
     const hintLower = hint.toLowerCase();
+    // Ưu tiên key trùng khớp CHÍNH XÁC với hint (vd "dmesg") trước khi fallback sang khớp
+    // mờ theo substring — tránh chọn nhầm 1 biến thể khác (vd "dmesg | grep ...") chỉ vì nó
+    // cũng chứa chữ "dmesg".
+    const exact = keys.find((k) => k.toLowerCase() === hintLower);
+    if (exact) return exact;
     return keys.find((k) => k.toLowerCase().includes(hintLower));
   }
   const baseCmd = rawStage.split(" ")[0];

@@ -153,6 +153,10 @@ export const monitoringScenarios = [
     filesystem: [],
     services: [{ name: "prometheus", status: "failed" }],
     logs: {
+      dmesg: [
+        "[456789.001] prometheus invoked oom-killer: gfp_mask=0x140cca(GFP_HIGHUSER_MOVABLE), order=0, oom_score_adj=0",
+        "[456789.002] Out of memory: Killed process 4021 (prometheus) total-vm:28000000kB, anon-rss:26000000kB",
+      ],
       "dmesg | grep -i oom": ["Out of memory: Killed process (prometheus) total-vm:28000000kB"],
       "prometheus tsdb status": ["Head series: 18,420,311", "(bình thường trước đây chỉ khoảng 400,000 series)"],
     },

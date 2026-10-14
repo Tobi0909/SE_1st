@@ -67,6 +67,15 @@ export const LabTerminal = forwardRef<LabTerminalHandle, LabTerminalProps>(funct
         return;
       }
 
+      // "clear" là thao tác xoá màn hình cục bộ của terminal thật, không phải lệnh chẩn đoán
+      // cần server xử lý — chặn ở đây để không tốn round-trip lẫn không bị virtual shell báo
+      // "không được mô phỏng".
+      if (command.trim() === "clear" || command.trim() === "cls") {
+        t.clear();
+        t.write(prompt);
+        return;
+      }
+
       busyRef.current = true;
       onCommandRef
         .current(command)

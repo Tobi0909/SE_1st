@@ -18,6 +18,11 @@ const state: SessionState = {
   logs: {
     "journalctl -u nginx -n 20": ["nginx.service: Main process exited", "Failed with result 'exit-code'"],
     "dmesg | grep -i 'killed process'": ["Out of memory: Killed process 8842 (java)"],
+    dmesg: [
+      "java invoked oom-killer: gfp_mask=0x140cca, order=0, oom_score_adj=0",
+      "Out of memory: Killed process 8842 (java) total-vm:4200000kB",
+    ],
+    "journalctl -k -n 5": ["oom-kill:constraint=CONSTRAINT_NONE", "Out of memory: Killed process 8842 (java)"],
   },
 };
 
@@ -155,6 +160,43 @@ describe("resolveVirtualShellCommand — pipe với grep", () => {
       state,
     );
     expect(out).toBe("Failed with result 'exit-code'");
+  });
+});
+
+describe("resolveVirtualShellCommand — sudo prefix", () => {
+  it("bỏ qua 'sudo' và chạy lệnh như bình thường", () => {
+    expect(resolveVirtualShellCommand("sudo cat /etc/nginx/nginx.conf", state)).toBe(
+      "server {\n  listen 80\n}",
+    );
+  });
+
+  it("bỏ qua 'sudo' kể cả khi có pipe grep theo sau", () => {
+    const out = resolveVirtualShellCommand("sudo dmesg | grep -i oom", state);
+    expect(out).toContain("oom-killer");
+  });
+});
+
+describe("resolveVirtualShellCommand — journalctl -k / --grep", () => {
+  it("journalctl -k đọc kernel ring buffer (cùng nguồn với dmesg)", () => {
+    const out = resolveVirtualShellCommand("journalctl -k -n 5", state);
+    expect(out).toContain("oom-kill:constraint");
+  });
+
+  it("journalctl --grep=PATTERN lọc inline không cần pipe", () => {
+    const out = resolveVirtualShellCommand('journalctl -u nginx --grep="exit-code"', state);
+    expect(out).toBe("Failed with result 'exit-code'");
+  });
+
+  it("dmesg --grep=PATTERN lọc inline không cần pipe", () => {
+    const out = resolveVirtualShellCommand("dmesg --grep=oom-killer", state);
+    expect(out).toContain("oom-killer");
+    expect(out).not.toContain("Killed process");
+  });
+});
+
+describe("resolveVirtualShellCommand — clear", () => {
+  it("clear trả về rỗng (không throw, không báo unsupported)", () => {
+    expect(resolveVirtualShellCommand("clear", state)).toBe("");
   });
 });
 

@@ -8,8 +8,11 @@
  * live để tạo lab mới nữa, tránh phụ thuộc vào độ ổn định/tốc độ của LLM gateway khi người
  * dùng bấm "Bắt đầu lab" (xem CLAUDE.md, mục điều tra lab lỗi tùm lum ngoài Linux/Easy).
  *
- * Idempotent: định danh 1 lab mẫu bằng (topicId, difficulty, title) — nếu đã tồn tại thì bỏ
- * qua, không tạo trùng. Chạy lại an toàn sau khi thêm/sửa lab mẫu trong file data.
+ * Idempotent: định danh 1 lab mẫu bằng (topicId, difficulty, title). Lab mẫu đã tồn tại thì
+ * UPDATE lại cột `data` theo đúng nội dung mới nhất trong file (nếu có thay đổi) thay vì bỏ
+ * qua — cho phép sửa nội dung lab mẫu đã seed rồi deploy lại mà không cần xoá DB. Các
+ * LabSession đã tạo trước đó không bị ảnh hưởng (state của session là bản snapshot riêng,
+ * không tham chiếu ngược lại `data` của scenario).
  */
 import "dotenv/config";
 
@@ -28,7 +31,8 @@ const db = new PrismaClient({ adapter });
 async function main() {
   let validated = 0;
   let created = 0;
-  let skippedExisting = 0;
+  let updated = 0;
+  let unchanged = 0;
   let nodesLinked = 0;
   const errors: string[] = [];
 
@@ -47,12 +51,31 @@ async function main() {
       continue;
     }
 
+    const normalizedData = JSON.parse(JSON.stringify(scenario));
+
     const existing = await db.labScenario.findFirst({
       where: { topicId: topic.id, difficulty: scenario.difficulty, title: scenario.title },
-      select: { id: true },
+      select: { id: true, data: true },
     });
+
     if (existing) {
-      skippedExisting++;
+      // jsonb của Postgres KHÔNG giữ nguyên thứ tự key như lúc insert (khác với kiểu `json`),
+      // nên so sánh JSON.stringify thô sẽ luôn lệch dù nội dung thực chất giống hệt — phải so
+      // sánh qua dạng canonical (key đã sắp xếp đệ quy).
+      const changed = canonicalJson(existing.data) !== canonicalJson(normalizedData);
+      if (!changed) {
+        unchanged++;
+        continue;
+      }
+      if (DRY_RUN) {
+        updated++;
+        continue;
+      }
+      await db.labScenario.update({
+        where: { id: existing.id },
+        data: { data: normalizedData, promptVersion: PROMPT_VERSION },
+      });
+      updated++;
       continue;
     }
 
@@ -67,7 +90,7 @@ async function main() {
         difficulty: scenario.difficulty,
         title: scenario.title,
         promptVersion: PROMPT_VERSION,
-        data: JSON.parse(JSON.stringify(scenario)),
+        data: normalizedData,
         status: "ACTIVE",
       },
     });
@@ -90,12 +113,28 @@ async function main() {
 
   console.log(`${DRY_RUN ? "[dry-run] " : ""}Validate: ${validated}/${ALL_STATIC_LAB_SCENARIOS.length} hợp lệ theo LabScenarioSchema`);
   console.log(`${DRY_RUN ? "Sẽ tạo" : "Đã tạo"}: ${created}`);
-  console.log(`Bỏ qua (đã tồn tại): ${skippedExisting}`);
+  console.log(`${DRY_RUN ? "Sẽ cập nhật" : "Đã cập nhật"}: ${updated}`);
+  console.log(`Giữ nguyên (không đổi): ${unchanged}`);
   if (!DRY_RUN) console.log(`Đã gắn vào skill node: ${nodesLinked}`);
   if (errors.length > 0) {
     console.log(`\nLỗi (${errors.length}):`);
     for (const e of errors) console.log(`  - ${e}`);
   }
+}
+
+/** Stringify ổn định với key object được sắp xếp đệ quy — dùng để so sánh nội dung JSON, không
+ *  phải để lưu (thứ tự key gốc trong file data/*.ts vẫn là nguồn chân lý khi ghi). */
+function canonicalJson(value: unknown): string {
+  return JSON.stringify(sortKeysDeep(value));
+}
+
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortKeysDeep);
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+    return Object.fromEntries(entries.map(([k, v]) => [k, sortKeysDeep(v)]));
+  }
+  return value;
 }
 
 main()
