@@ -161,6 +161,51 @@ describe("resolveVirtualShellCommand — pipe với grep", () => {
     );
     expect(out).toBe("Failed with result 'exit-code'");
   });
+
+  it("grep -v loại bỏ dòng khớp thay vì giữ lại", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | grep -v line", state);
+    expect(out).toBe("ERROR boom");
+  });
+});
+
+describe("resolveVirtualShellCommand — pipe với head/tail/wc/sort/uniq", () => {
+  it("head sau pipe giới hạn đúng số dòng đầu", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | head -n 2", state);
+    expect(out).toBe("line1\nERROR boom");
+  });
+
+  it("tail sau pipe giới hạn đúng số dòng cuối", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | tail -n 2", state);
+    expect(out).toBe("line4\nline5");
+  });
+
+  it("wc -l đếm đúng số dòng", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | wc -l", state);
+    expect(out).toBe("5");
+  });
+
+  it("sort sắp xếp alphabet", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | sort", state);
+    expect(out.split("\n")).toEqual(["ERROR boom", "line1", "line3", "line4", "line5"]);
+  });
+
+  it("sort -r sắp xếp ngược", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | sort -r", state);
+    expect(out.split("\n")[0]).toBe("line5");
+  });
+
+  it("có thể nối nhiều stage pipe liên tiếp (grep rồi wc -l)", () => {
+    const out = resolveVirtualShellCommand(
+      "cat /var/log/app/app.log | grep line | wc -l",
+      state,
+    );
+    expect(out).toBe("4");
+  });
+
+  it("stage pipe không nhận diện được thì giữ nguyên input, không lỗi", () => {
+    const out = resolveVirtualShellCommand("cat /var/log/app/app.log | awk '{print $1}'", state);
+    expect(out).toBe("line1\nERROR boom\nline3\nline4\nline5");
+  });
 });
 
 describe("resolveVirtualShellCommand — sudo prefix", () => {

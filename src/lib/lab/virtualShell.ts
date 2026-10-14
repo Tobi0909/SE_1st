@@ -15,7 +15,7 @@ export function resolveVirtualShellCommand(rawCommand: string, state: SessionSta
 
   let output = first;
   for (let i = 1; i < stages.length; i++) {
-    output = applyGrepFilter(stages[i], output);
+    output = applyPipeStage(stages[i], output);
   }
   return output;
 }
@@ -182,12 +182,13 @@ function handleHeadTail(args: string[], state: SessionState, mode: "head" | "tai
 
 function handleGrepDirect(args: string[], state: SessionState): string | null {
   const ignoreCase = args.includes("-i");
+  const invert = args.includes("-v");
   const positional = args.filter((a) => !a.startsWith("-"));
   const [pattern, path] = positional;
   if (!pattern || !path) return null;
   const content = state.files[path];
   if (content === undefined) return `grep: ${path}: No such file or directory`;
-  const lines = content.split("\n").filter((l) => matchPattern(l, pattern, ignoreCase));
+  const lines = content.split("\n").filter((l) => matchPattern(l, pattern, ignoreCase) !== invert);
   return lines.join("\n");
 }
 
@@ -317,16 +318,54 @@ function handleSocketList(state: SessionState): string {
 
 // ---- pipe filters ----
 
-function applyGrepFilter(stage: string, input: string): string {
+/**
+ * Áp 1 stage sau dấu "|" lên output của stage trước. Chỉ hỗ trợ các lệnh lọc/biến đổi thuần
+ * văn bản, luôn cho kết quả ĐÚNG bất kể dữ liệu scenario là gì (khác các lệnh "nguồn" như ps/
+ * docker — nơi bịa dữ liệu có thể trả lời sai cho chính câu hỏi lab đang hỏi). Stage lạ không
+ * nhận diện được thì giữ nguyên input, không báo lỗi — pipe vẫn chạy tiếp được.
+ */
+function applyPipeStage(stage: string, input: string): string {
   const tokens = tokenize(stage);
-  if (tokens[0] !== "grep") return input;
-  const ignoreCase = tokens.includes("-i");
-  const pattern = tokens.slice(1).filter((t) => !t.startsWith("-")).join(" ");
-  if (!pattern) return input;
-  return input
-    .split("\n")
-    .filter((l) => matchPattern(l, pattern, ignoreCase))
-    .join("\n");
+  const cmd = tokens[0];
+
+  if (cmd === "grep") {
+    const ignoreCase = tokens.includes("-i");
+    const invert = tokens.includes("-v");
+    const pattern = tokens.slice(1).filter((t) => !t.startsWith("-")).join(" ");
+    if (!pattern) return input;
+    return input
+      .split("\n")
+      .filter((l) => matchPattern(l, pattern, ignoreCase) !== invert)
+      .join("\n");
+  }
+
+  if (cmd === "head" || cmd === "tail") {
+    const nArg = tokens.find((t, i) => tokens[i - 1] === "-n") ?? tokens.find((t) => /^-n?\d+$/.test(t));
+    const n = nArg ? Number.parseInt(nArg.replace(/^-n?/, ""), 10) || 10 : 10;
+    const lines = input.split("\n");
+    return (cmd === "head" ? lines.slice(0, n) : lines.slice(-n)).join("\n");
+  }
+
+  if (cmd === "wc" && tokens.includes("-l")) {
+    const count = input === "" ? 0 : input.split("\n").length;
+    return String(count);
+  }
+
+  if (cmd === "sort") {
+    const lines = input.split("\n");
+    lines.sort((a, b) => a.localeCompare(b));
+    if (tokens.includes("-r")) lines.reverse();
+    return lines.join("\n");
+  }
+
+  if (cmd === "uniq") {
+    const lines = input.split("\n");
+    const result: string[] = [];
+    for (const l of lines) if (l !== result[result.length - 1]) result.push(l);
+    return result.join("\n");
+  }
+
+  return input;
 }
 
 function matchPattern(line: string, pattern: string, ignoreCase: boolean): boolean {
