@@ -143,6 +143,27 @@ live
 `refcnt = 0` khớp với `Used by` = 0 trong `lsmod`; `initstate = live` nghĩa là module đã init xong
 và đang hoạt động bình thường (trạng thái khác: `going` = đang unload).
 
+**Xem và chỉnh tham số module đang chạy** (ví dụ module `nf_conntrack` có tham số giới hạn số
+connection theo dõi — cấu hình sai gây drop connection im lặng khi bảng đầy):
+
+```bash
+$ ls /sys/module/nf_conntrack/parameters/
+hashsize
+
+$ cat /proc/sys/net/netfilter/nf_conntrack_max
+262144
+```
+
+Một số tham số chỉ nhận giá trị lúc LOAD module (qua `modprobe <module> <param>=<value>` hoặc
+khai trong `/etc/modprobe.d/`), không đổi được khi module đã chạy — khác tham số sysctl như
+`nf_conntrack_max` ở trên có thể chỉnh runtime qua `/proc/sys/`. Muốn biết tham số nào module
+hỗ trợ lúc load: xem field `parm:` trong `modinfo`:
+
+```bash
+$ modinfo nf_conntrack | grep ^parm
+parm:           hashsize:Hash table size (uint)
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **`modprobe -r <module>` báo "Module is in use", không unload được**

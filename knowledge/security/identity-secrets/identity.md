@@ -148,6 +148,42 @@ echo $(($(date +%s) / 30))
 
 Server và authenticator app tính cùng con số này, dùng làm input cho HMAC-SHA1 với shared secret.
 
+**Xem JWKS endpoint của IdP** (nơi app lấy public key để verify JWT, nhắc ở mục 3) — hữu ích
+khi debug lỗi "invalid signature" hoặc xác nhận IdP đã rotate key:
+
+```bash
+curl -s https://keycloak.example.com/realms/corp/protocol/openid-connect/certs | jq .
+```
+
+```json
+{
+  "keys": [
+    {
+      "kid": "a1b2c3",
+      "kty": "RSA",
+      "alg": "RS256",
+      "use": "sig",
+      "n": "...", "e": "AQAB"
+    }
+  ]
+}
+```
+
+So `kid` (key ID) trong header JWT với `kid` trong JWKS — nếu JWT dùng `kid` không còn trong
+JWKS (đã bị rotate), verify sẽ fail dù token chưa hết `exp`. App production nên cache JWKS có
+TTL ngắn (vài phút), không cache vĩnh viễn, để nhận key mới sau khi IdP rotate.
+
+**Tạo client OIDC mới cho 1 app qua CLI Keycloak** (`kcadm`, thay vì click UI — dễ đưa vào
+script/IaC khi onboard app mới):
+
+```bash
+kcadm.sh create clients -r corp \
+  -s clientId=grafana \
+  -s 'redirectUris=["https://grafana.corp.internal/login/generic_oauth"]' \
+  -s publicClient=false \
+  -s standardFlowEnabled=true
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **"SSO là single point of failure"** — đúng về availability, nhưng sai khi dùng đó làm lý do

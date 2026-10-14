@@ -194,6 +194,22 @@ sudo chattr +a /var/log/audit/audit.log
 # auditd vẫn append được bình thường
 ```
 
+**Xác nhận remote syslog THẬT SỰ đang nhận log** — cấu hình forward xong (mục 3) không có
+nghĩa là nó hoạt động; phải test bằng cách tạo 1 event và kiểm tra ở CẢ HAI đầu (output
+minh họa — cần có server rsyslog trung tâm thật):
+
+```bash
+# Trên máy nguồn: tạo 1 audit event có thể nhận diện dễ
+sudo touch /etc/passwd   # chạm vào file đang watch (mục 3) để trigger event
+
+# Trên server rsyslog trung tâm: xác nhận event vừa xuất hiện
+tail -f /var/log/remote/app-server-01/audit.log | grep identity-change
+```
+
+Nếu không thấy gì xuất hiện ở remote server trong vài giây, việc forward đang KHÔNG hoạt động
+dù config "có vẻ đúng" — kiểm tra lại firewall giữa 2 máy (port 514/TCP) trước khi tin tưởng
+lớp bảo vệ này khi có incident thật.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Log chỉ lưu local, không forward** — khi server bị compromise, attacker xóa

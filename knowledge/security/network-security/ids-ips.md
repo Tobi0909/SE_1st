@@ -234,6 +234,15 @@ suricata -q 0 -c /etc/suricata/suricata.yaml -D
 
 > **Output minh họa** — NFQueue yêu cầu root và kernel module `nf_queue`.
 
+**Kiểm tra cú pháp rule TRƯỚC khi reload** (cùng tư duy "test trước khi apply" đã thấy ở
+`security.os-hardening.checklist` với `sshd -t` — áp dụng y hệt cho Suricata):
+
+```bash
+suricata -T -c /etc/suricata/suricata.yaml -v
+# Nếu có lỗi cú pháp rule, Suricata báo rõ file + số dòng, KHÔNG reload cho tới khi sửa xong
+suricatasc -c reload-rules   # chỉ reload khi -T đã pass, không restart toàn bộ process
+```
+
 **Kiểm tra Wazuh agent nhận log** (output minh họa):
 
 ```bash

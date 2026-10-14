@@ -99,6 +99,45 @@ không có bản sao thứ hai nào được thêm vào.
 `mkdir -p` tự thân cũng idempotent — chạy lại nhiều lần không báo lỗi dù thư mục đã tồn tại
 (khác `mkdir` không có `-p`, lần 2 sẽ báo lỗi `File exists`), đúng như định nghĩa ở mục 2.
 
+**Logging có timestamp + mức độ, kết hợp exit code tường minh** — ghép cả 3 nguyên tắc ở
+mục 2 vào 1 script backup thật, chạy được ngay:
+
+```bash
+$ cat backup-check.sh
+#!/bin/bash
+set -euo pipefail
+
+log() {
+  local level="$1"; shift
+  echo "$(date '+%Y-%m-%d %H:%M:%S') [$level] $*"
+}
+
+BACKUP_FILE="/tmp/kb_shell_demo/backup.tar.gz"
+
+if [[ ! -f "$BACKUP_FILE" ]]; then
+  log "ERROR" "Khong tim thay file backup: $BACKUP_FILE"
+  exit 1
+fi
+
+SIZE=$(stat -c%s "$BACKUP_FILE")
+if [[ "$SIZE" -lt 1024 ]]; then
+  log "WARN" "File backup qua nho ($SIZE bytes) - co the backup loi"
+  exit 1
+fi
+
+log "INFO" "Backup OK, kich thuoc $SIZE bytes"
+exit 0
+
+$ touch /tmp/kb_shell_demo/backup.tar.gz && echo "noi dung gia" > /tmp/kb_shell_demo/backup.tar.gz
+$ ./backup-check.sh; echo "exit code: $?"
+2026-10-14 10:22:03 [WARN] File backup qua nho (11 bytes) - co the backup loi
+exit code: 1
+```
+
+Hệ thống giám sát gọi script này (ví dụ qua cron + `monitoring.alerting-design`) chỉ cần kiểm
+tra `$?` để biết backup có vấn đề — không cần parse nội dung log bằng regex phức tạp, và khi
+cần debug thì log đã có đủ timestamp + mức độ để biết CHÍNH XÁC lần chạy nào, lỗi gì.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Script cron "chạy OK" (không email lỗi) nhưng tác vụ thực tế không hoàn thành**

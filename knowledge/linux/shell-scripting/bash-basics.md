@@ -98,6 +98,33 @@ COUNT lon hon 2
 
 Chạy không có tham số, `${1:-the gioi}` tự dùng giá trị mặc định — xác nhận đúng khớp mục 2.
 
+**Dùng `while` + đọc danh sách từ output lệnh khác** — mẫu thường gặp trong script vận hành
+(ví dụ lặp qua danh sách server để kiểm tra từng cái), chạy thật:
+
+```bash
+$ cat demo2.sh
+#!/bin/bash
+echo -e "web1\nweb2\nweb3" > /tmp/servers.txt
+
+while read -r SERVER; do
+  if [[ "$SERVER" == "web2" ]]; then
+    echo "$SERVER: can luu y (demo dieu kien ==)"
+  else
+    echo "$SERVER: binh thuong"
+  fi
+done < /tmp/servers.txt
+
+$ ./demo2.sh
+web1: binh thuong
+web2: can luu y (demo dieu kien ==)
+web3: binh thuong
+```
+
+`while read -r SERVER; do ... done < file` đọc MỖI DÒNG của file thành biến `SERVER` cho một
+lần lặp — `-r` tắt xử lý ký tự `\` đặc biệt (giữ nguyên backslash trong dữ liệu, ví dụ đường
+dẫn Windows dán nhầm vào file). Đây là cách AN TOÀN hơn `for SERVER in $(cat file)` — cách sau
+bị word-splitting theo khoảng trắng, sẽ tách sai nếu tên server/dòng dữ liệu có dấu cách.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Dùng toán tử so sánh số (`-gt`, `-eq`) cho biến chuỗi, hoặc ngược lại, gặp lỗi lạ**

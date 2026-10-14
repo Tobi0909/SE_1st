@@ -283,6 +283,40 @@ done
 stat /etc/passwd /etc/shadow /etc/sudoers | grep -E "File:|Access:"
 ```
 
+**Script áp dụng hàng loạt** (idempotent — chạy lại nhiều lần không gây lỗi, dùng được trong
+Ansible/cloud-init cho server mới, xem `devops.ansible.fundamentals`):
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Nhóm 2: SSH — chỉ sửa nếu chưa đúng (grep -q tránh thêm trùng dòng)
+grep -q "^PermitRootLogin no" /etc/ssh/sshd_config || \
+  sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config || \
+  sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+sshd -t && systemctl reload sshd    # luôn test cú pháp trước reload (xem mục 3, nhóm 2)
+
+# Nhóm 3: tắt service không cần, bỏ qua nếu đã tắt/không tồn tại
+for svc in avahi-daemon cups bluetooth ModemManager; do
+  systemctl disable --now "$svc" 2>/dev/null || true
+done
+
+# Nhóm 4: kernel params — ghi file riêng, không sửa trực tiếp sysctl.conf
+cat > /etc/sysctl.d/99-hardening.conf <<'EOF'
+kernel.randomize_va_space = 2
+net.ipv4.tcp_syncookies = 1
+fs.protected_hardlinks = 1
+fs.protected_symlinks = 1
+kernel.dmesg_restrict = 1
+kernel.kptr_restrict = 1
+EOF
+sysctl -p /etc/sysctl.d/99-hardening.conf
+```
+
+Chạy xong, lặp lại đúng quy trình đánh giá ở trên (`ss -tlnp`, `sshd -T | grep ...`) để xác
+nhận từng thay đổi có hiệu lực — script apply không thay thế việc verify lại.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Khóa SSH trước khi cấu hình key** — tắt `PasswordAuthentication` khi chưa upload SSH public key

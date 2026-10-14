@@ -119,6 +119,29 @@ $ ss -tln | grep 53
 LISTEN 0      4096   127.0.0.53%lo:53    0.0.0.0:*
 ```
 
+**Split-DNS doanh nghiệp** — máy vừa nối VPN công ty vừa dùng mạng thường: domain nội bộ
+(`*.corp.internal`) phải resolve qua DNS server nội bộ (qua VPN), còn mọi domain khác vẫn qua
+DNS thường. `systemd-resolved` hỗ trợ cấu hình DNS + domain **theo từng interface**:
+
+```bash
+# Gán DNS server nội bộ + domain cụ thể cho interface VPN (ví dụ wg0, tun0)
+resolvectl dns wg0 10.10.0.53
+resolvectl domain wg0 '~corp.internal'     # dấu ~ = "chỉ route domain này qua interface này"
+```
+
+```
+$ resolvectl status wg0
+Link 5 (wg0)
+    Current Scopes: DNS
+         Protocols: +DefaultRoute
+DNS Servers: 10.10.0.53
+ DNS Domain: ~corp.internal
+```
+
+Sau khi cấu hình: `resolvectl query db1.corp.internal` tự động hỏi `10.10.0.53` (qua VPN), còn
+`resolvectl query google.com` vẫn hỏi DNS server thường của interface mạng chính — không cần
+route toàn bộ traffic DNS qua VPN chỉ để resolve vài domain nội bộ.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Đọc `/etc/resolv.conf`, thấy `nameserver 127.0.0.53`, kết luận "DNS bị cấu hình sai thành

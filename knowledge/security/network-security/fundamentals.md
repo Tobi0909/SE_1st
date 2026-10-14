@@ -209,6 +209,32 @@ nc -zv 10.0.2.10 5432 2>&1
 
 > **Output minh họa** — cần có target host thật với IP tương ứng.
 
+**Cùng ruleset DMZ nhưng viết bằng nftables** (thay thế iptables trên distro hiện đại — cú
+pháp table/chain rõ ràng hơn, 1 command áp cả ruleset thay vì nhiều lệnh `iptables -A` rời):
+
+```bash
+# /etc/nftables.conf (output minh họa — cần root để áp dụng)
+table inet filter {
+  chain input {
+    type filter hook input priority 0; policy drop;
+    tcp dport { 80, 443 } accept
+  }
+  chain output {
+    type filter hook output priority 0; policy drop;
+    ip daddr 10.0.2.0/24 tcp dport 5432 accept   # chỉ cho ra database zone, đúng port
+  }
+}
+```
+
+```bash
+nft -f /etc/nftables.conf   # áp toàn bộ ruleset 1 lần, atomic (không có khoảng hở giữa các rule)
+nft list ruleset            # xem ruleset đang active, tương đương iptables -L -v
+```
+
+Ưu điểm so với iptables ở ví dụ trên: `policy drop` khai báo ngay trong chain (không cần lệnh
+riêng `-P INPUT DROP`), và áp dụng atomic — không có khoảng thời gian ngắn ruleset chỉ áp dụng
+một phần (rủi ro bảo mật khi reload iptables rule-by-rule).
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Flat network — không có segmentation** — một máy bị compromise, attacker có thể reach tất cả

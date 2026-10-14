@@ -202,6 +202,20 @@ sudo dnf update --security -y
 sudo dnf needs-restarting -r; echo "Exit: $?"
 ```
 
+**Document — bước cuối của chu trình (mục 2) hay bị bỏ qua nhất.** Ghi lại patch activity vào
+log tập trung (không chỉ trông chờ log của `unattended-upgrades` trên từng máy riêng lẻ) để
+trả lời được "server này đã patch CVE-X chưa" mà không cần SSH vào kiểm tra từng máy:
+
+```bash
+echo "$(date -Iseconds) host=$(hostname) cve=CVE-2024-XXXX package=openssh-server \
+  from=8.9p1-3ubuntu0.10 to=8.9p1-3ubuntu0.17 operator=$(whoami)" \
+  >> /var/log/patch-activity.log
+```
+
+Trong môi trường nhiều server, dòng này nên forward về SIEM/centralized log (xem
+`security.audit-compliance.audit-logging`) ngay lúc patch, không gộp báo cáo cuối tháng —
+để khi có zero-day mới, team trả lời được NGAY "những máy nào đã/chưa patch" bằng 1 câu query.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Vá production mà không test staging trước** — patch glibc hay kernel trên Ubuntu có thể

@@ -125,6 +125,23 @@ file1.txt  file2.log  file3.txt
 (file `.tmp` đã bị xoá bởi `xargs`, 3 file còn lại vẫn nguyên — xác nhận lệnh chỉ tác động đúng
 tập file khớp pattern.)
 
+`xargs -P`: chạy SONG SONG thay vì tuần tự — hữu ích khi tác động lên nhiều host/file độc lập
+(ví dụ ping-check hàng chục server, không cần chờ lần lượt):
+
+```bash
+$ cat hosts.txt
+192.168.1.10
+192.168.1.11
+192.168.1.12
+
+$ cat hosts.txt | xargs -P 3 -I{} ping -c 1 -W 1 {}
+```
+
+`-P 3` chạy tối đa 3 lệnh `ping` ĐỒNG THỜI (thay vì đợi host 1 timeout rồi mới ping host 2) —
+với 50 host và timeout 1 giây/host, tuần tự mất tới 50 giây, song song với `-P 10` chỉ mất
+~5 giây. Cẩn trọng khi dùng `-P` với lệnh có tác dụng phụ (ghi file, gọi API) — chạy song song
+có thể gây race condition nếu các lệnh không độc lập với nhau.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Pattern `grep`/`sed` có `{}`/`+`/`|` nhưng không khớp dù trông "đúng cú pháp"**

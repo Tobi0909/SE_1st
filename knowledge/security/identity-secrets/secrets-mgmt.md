@@ -221,6 +221,29 @@ LANG=en_US.UTF-8
 Không có credential nào lộ ra trong `/proc/$$/environ` — đây là shell sạch. Nếu app set env var
 credential trước khi fork subprocess, subprocess sẽ thấy credential trong `/proc/<child-pid>/environ`.
 
+**Chặn secret ngay tại commit/CI** (biến phát hiện thủ công ở mục 3 thành gate tự động, dùng
+`gitleaks` — nhắc ở mục 3/6 nhưng chưa có cấu hình cụ thể):
+
+```yaml
+# .gitlab-ci.yml (trích, xem devops.cicd.tools cho cú pháp đầy đủ)
+secret-scan:
+  stage: test
+  image: zricethezav/gitleaks:latest
+  script:
+    - gitleaks detect --source . --no-git -v   # quét working tree, không phải toàn history (nhanh hơn)
+  allow_failure: false
+```
+
+Chạy cục bộ trước khi push (pre-commit hook, ngăn secret vào git ngay từ commit đầu tiên,
+rẻ hơn nhiều so với rotate sau khi đã push):
+
+```bash
+gitleaks detect --source . -v
+# leaks found: 1
+# Finding:     DB_PASSWORD=s3cr3t...
+# File:        scripts/deploy.sh
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **"Tôi đã xóa secret khỏi git rồi"** — như đã phân tích ở mục 2, history không mất. Giải pháp

@@ -159,6 +159,22 @@ trivy fs --severity HIGH,CRITICAL /path/to/project
 trivy image --format json --output results.json myapp:latest
 ```
 
+**Security gate trong CI** (minh họa — kết hợp `--exit-code`/`--severity` nhắc ở mục 5/7 thành
+1 job thật, chặn deploy nếu có CVE Critical chưa vá):
+
+```yaml
+# .gitlab-ci.yml (trích, xem devops.cicd.tools cho cú pháp đầy đủ)
+scan-image:
+  stage: test
+  image: aquasec/trivy:latest
+  script:
+    - trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed myapp:$CI_COMMIT_SHA
+  allow_failure: false
+```
+
+`--ignore-unfixed` bỏ qua CVE chưa có bản vá (vá ngay cũng không giải quyết được, chặn pipeline
+vô ích) — chỉ fail khi có CVE Critical ĐÃ CÓ `Fixed Version` mà image chưa dùng.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Quét và không làm gì** — chạy Trivy trong CI nhưng kết quả chỉ là thông tin, không block

@@ -155,6 +155,30 @@ cat /proc/sys/net/ipv4/tcp_syncookies     # SYN flood protection: 0/1
 cat /proc/sys/fs/protected_hardlinks      # hard link protection: 0/1
 ```
 
+**Áp dụng giảm attack surface cho đúng 3 phát hiện ở trên** (chi tiết checklist đầy đủ ở
+`security.os-hardening.checklist`, đây chỉ minh họa nguyên lý → hành động):
+
+```bash
+# Tắt service không cần (avahi/cups/bluetooth) — mask để không bị khởi động lại sau reboot
+systemctl disable --now avahi-daemon cups bluetooth
+systemctl mask avahi-daemon cups bluetooth
+
+# Gỡ SUID của binary không cần SUID (ví dụ pppd nếu server không dùng dial-up/PPP)
+chmod u-s /usr/sbin/pppd
+
+# Bật kernel hardening cơ bản — ghi vào /etc/sysctl.d/99-hardening.conf để giữ qua reboot
+cat <<'EOF' >> /etc/sysctl.d/99-hardening.conf
+kernel.randomize_va_space = 2
+net.ipv4.tcp_syncookies = 1
+fs.protected_hardlinks = 1
+EOF
+sysctl --system
+```
+
+**Thận trọng với `chmod u-s`**: chỉ gỡ SUID của binary đã XÁC NHẬN không cần (qua test trên
+staging trước) — gỡ nhầm SUID của `sudo`/`passwd`/`su` sẽ khiến các lệnh đó không hoạt động
+đúng cho user thường, có thể tự khóa mình ra khỏi quyền quản trị.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Hardening quá mức** — tắt service cần thiết, khóa cấu hình sản xuất. Nguyên tắc: hardening

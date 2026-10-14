@@ -176,6 +176,29 @@ Undoing transaction 12...
 Complete!
 ```
 
+**Thêm repository nội bộ** (ví dụ repo công ty tự host package riêng, không có trên repo công
+khai) — tạo file `.repo` trong `/etc/yum.repos.d/`, nhắc ở mục 2 nhưng chưa có ví dụ cụ thể:
+
+```
+$ cat /etc/yum.repos.d/company-internal.repo
+[company-internal]
+name=Company Internal Packages
+baseurl=https://repo.company.internal/rhel9/x86_64/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.company.internal/RPM-GPG-KEY-company
+
+$ sudo dnf repolist
+repo id                     repo name
+appstream                   Rocky Linux 9 - AppStream
+baseos                      Rocky Linux 9 - BaseOS
+company-internal            Company Internal Packages
+```
+
+`gpgcheck=1` buộc `dnf` verify chữ ký GPG của mọi package từ repo này trước khi cài — không
+nên đặt `gpgcheck=0` dù là repo nội bộ "đáng tin", vì nếu repo server bị compromise, package
+giả mạo sẽ được cài mà không có cảnh báo gì.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Chạy `dnf update` trên RHEL với kỳ vọng hành vi giống `apt update` (chỉ kiểm tra), vô tình
