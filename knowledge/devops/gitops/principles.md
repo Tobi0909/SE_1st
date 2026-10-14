@@ -176,6 +176,24 @@ Ticket: INFRA-512
 
 Audit trail hoàn chỉnh từ `git log` — ai thay đổi gì, khi nào, tại sao.
 
+### Kiểm tra drift tự động trong CI (trước khi GitOps agent kịp phát hiện)
+
+Dù agent sẽ tự reconcile, nhiều team vẫn chạy thêm 1 job CI kiểm tra PR không tạo ra diff
+bất ngờ so với cluster hiện tại — bắt lỗi sớm hơn vòng reconcile (vài phút) của agent:
+
+```yaml
+# .gitlab-ci.yml (trích)
+check-drift:
+  stage: validate
+  script:
+    - kubectl diff -f apps/api/ || true   # không fail job, chỉ hiển thị diff để reviewer thấy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+```
+
+Job này không thay thế GitOps agent — nó chỉ cho reviewer thấy TRƯỚC khi merge rằng PR này sẽ
+tạo ra thay đổi gì thật trên cluster, tránh approve "mù" một YAML diff khó đọc.
+
 ## 5. Lỗi thường gặp
 
 | Lỗi | Hậu quả | Cách tránh |

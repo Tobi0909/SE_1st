@@ -181,6 +181,25 @@ dist/
 Sau khi tạo `.gitignore`: `git add .gitignore && git commit -m "add gitignore"`. File đã được
 track trước đó phải dùng `git rm --cached <file>` để bỏ theo dõi (gitignore không hồi tố).
 
+**Stage từng phần của 1 file** (`git add -p`) — hữu ích khi sửa 1 file cho 2 mục đích khác
+nhau (ví dụ vừa fix bug vừa dọn code thừa) nhưng muốn tách thành 2 commit riêng, đúng tinh
+thần "staging area kiểm soát chính xác nội dung commit" đã nêu ở mục 2:
+
+```bash
+git add -p app.js
+```
+
+```
+diff --git a/app.js b/app.js
+@@ -10,3 +10,4 @@
+-old line
++fixed line
+Stage this hunk [y,n,q,a,d,s,e,?]?
+```
+
+Trả lời `y` cho hunk muốn đưa vào commit này, `n` cho hunk còn để lại working directory (commit
+sau), `s` để chia nhỏ hunk hơn nữa nếu nó vẫn gộp 2 thay đổi không liên quan.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **`git add .` bỏ sót file** — thường do `.gitignore` quá rộng hoặc file đã có trong cache.

@@ -139,6 +139,24 @@ IC mới: "Xác nhận. Tôi là IC từ 14:00."
 
 Handoff phải explicit — không bao giờ "tôi mệt rồi, A tiếp đi" rồi offline.
 
+**ChatOps — khai báo vai trò qua bot Slack/Teams** (nhiều team dùng công cụ như PagerDuty,
+Opsgenie, hoặc bot nội bộ để tự động tạo channel + ghi role, thay vì tạo doc tay):
+
+```
+/incident declare "Payment service trả 503" --severity P1
+→ Bot tạo channel #inc-042-payment-503, tự ghi "Khai báo lúc 09:44 bởi [tên A]"
+
+/incident role ic @userA
+/incident role ops @userB
+/incident role scribe @userC
+→ Bot ghi role vào topic của channel, pin message, và tự log timeline mỗi lần có người @mention bot
+```
+
+Lợi ích so với doc tay: timeline tự động ghi theo timestamp thật của message, role hiển thị
+ngay trong topic channel (ai mới join incident thấy ngay ai là IC), và dữ liệu này có thể
+export thẳng sang draft postmortem (xem `sre.postmortem.writing`) — giảm việc Scribe phải gõ
+lại từ đầu.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **IC tự tay sửa hệ thống** — IC đang debug thì không ai đang coordinate. Ai quyết định

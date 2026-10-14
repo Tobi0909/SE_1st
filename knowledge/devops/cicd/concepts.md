@@ -134,6 +134,34 @@ khác nhau có thể có pipeline khác nhau.
 - **Không hardcode secret**: dùng secret store của platform (GitHub Secrets, GitLab Variables,
   Jenkins Credentials) — không commit password/key vào repo.
 
+**Smoke test + rollback tự động sau deploy** — minh họa cụ thể 2 mục trong checklist trên
+("Smoke test" và "Rollback plan"), viết dưới dạng script platform-agnostic (gọi được từ bất
+kỳ CI tool nào ở stage deploy):
+
+```bash
+#!/usr/bin/env bash
+set -e
+NEW_SHA=$1
+PREV_SHA=$2
+
+echo "Deploy artifact $NEW_SHA..."
+kubectl set image deployment/myapp myapp=myapp:$NEW_SHA
+kubectl rollout status deployment/myapp --timeout=60s
+
+echo "Smoke test..."
+if ! curl -sf https://myapp.example.com/health; then
+  echo "Smoke test FAIL — rollback về $PREV_SHA"
+  kubectl set image deployment/myapp myapp=myapp:$PREV_SHA
+  kubectl rollout status deployment/myapp --timeout=60s
+  exit 1
+fi
+echo "Deploy $NEW_SHA OK"
+```
+
+`kubectl rollout status` chặn pipeline cho tới khi deployment thật sự ổn định (hoặc timeout) —
+tránh báo "deploy thành công" khi pod còn đang crash loop. `PREV_SHA` nên lấy từ artifact của
+lần deploy production trước (lưu trong CI variable hoặc đọc từ `kubectl rollout history`).
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **"Works on my machine"**: code pass local nhưng fail CI — thường do khác version dependency,

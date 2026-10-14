@@ -312,6 +312,30 @@ ansible-playbook deploy.yml -i inventory/staging
 Template `app.conf.j2` dùng cùng biến `{{ db_host }}` và `{{ log_level }}` — giá trị tự động
 theo môi trường. Đây là cách tách config khỏi logic, không hardcode trong playbook.
 
+**Secret khác nhau theo môi trường** (ví dụ DB password) không được để plain-text trong
+`group_vars/production.yml` — dùng **Ansible Vault** để mã hoá riêng file đó, vẫn commit được
+vào Git an toàn:
+
+```bash
+ansible-vault encrypt group_vars/production/vault.yml   # mã hoá tại chỗ, hỏi password
+ansible-vault edit group_vars/production/vault.yml       # sửa nội dung đã mã hoá
+```
+
+```yaml
+# group_vars/production/vault.yml (nội dung thật, trước khi mã hoá)
+vault_db_password: "S3cr3tProdPassword"
+```
+
+```yaml
+# group_vars/production/vars.yml — file thường, KHÔNG mã hoá, tham chiếu biến vault
+db_password: "{{ vault_db_password }}"
+```
+
+Chạy playbook cần thêm vault password: `ansible-playbook deploy.yml -i inventory/production
+--ask-vault-pass` (hỏi tay) hoặc `--vault-password-file ~/.vault_pass` (đọc từ file, dùng
+trong CI/CD). Tách `vars.yml` (không mã hoá, dễ đọc diff trên PR) khỏi `vault.yml` (mã hoá,
+chỉ chứa giá trị nhạy cảm) là pattern phổ biến — review PR vẫn thấy TÊN biến đổi, không lộ giá trị.
+
 ## 7. Tự kiểm tra
 
 **Câu 1**: Ansible là "agentless" có nghĩa là?

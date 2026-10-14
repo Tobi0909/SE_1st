@@ -256,6 +256,38 @@ jobs:
 **Debug pipeline fail**: với GitHub Actions, click vào job fail trong tab Actions → xem từng step.
 Thêm `- run: env` để in environment variables (không in secrets — bị mask tự động).
 
+**Pipeline tối giản cho GitLab CI** (tương đương bài Python ở trên, dùng image base thay vì
+tự cài):
+
+```yaml
+# .gitlab-ci.yml
+test:
+  image: python:3.12-slim
+  script:
+    - pip install -r requirements.txt
+    - pytest
+```
+
+**Pipeline tối giản cho Jenkins** (Scripted thay vì Declarative — ít boilerplate hơn cho pipeline
+đơn giản, nhưng mất các khối `post`/`when` tiện dụng của Declarative):
+
+```groovy
+node {
+    stage('Test') {
+        sh 'pip install -r requirements.txt'
+        sh 'pytest'
+    }
+}
+```
+
+**Validate/test pipeline local trước khi push** (tránh vòng lặp push → chờ CI fail → sửa → push lại):
+- GitHub Actions: [`act`](https://github.com/nektos/act) chạy workflow ngay trên máy bằng Docker:
+  `act -j test`.
+- GitLab CI: `gitlab-ci-local` đọc `.gitlab-ci.yml` và chạy job trong container local, không cần
+  push lên GitLab.
+- Jenkins không có công cụ tương đương phổ biến — cách thực tế nhất là viết logic phức tạp
+  thành script (`.sh`/`Makefile`) rồi gọi từ `Jenkinsfile`, test script đó trực tiếp trên máy.
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **GitHub Actions: `actions/checkout@v4` không clone submodule** — cần thêm `with: submodules: true`.

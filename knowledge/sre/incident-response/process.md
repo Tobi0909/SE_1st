@@ -166,6 +166,46 @@ HTTP 200 | Total 0.458s
 
 Trong incident P1, script này chạy mỗi 30 giây để theo dõi recovery.
 
+**Vòng lặp theo dõi recovery tự động** (thay vì chạy tay lại mỗi 30 giây, để script tự lặp và
+báo khi service phục hồi):
+
+```bash
+until curl -sf -o /dev/null https://api.example.com/health; do
+  echo "$(date +%T) — vẫn lỗi, thử lại sau 30s"
+  sleep 30
+done
+echo "$(date +%T) — health check PASS, service đã phục hồi"
+```
+
+**Escalate qua API thay vì gọi điện thủ công** — nhiều team dùng PagerDuty/Opsgenie API để
+trigger alert cho SME khi cần thêm người ngay giữa đêm, nhanh hơn tìm số điện thoại:
+
+```bash
+curl -X POST https://api.pagerduty.com/incidents \
+  -H "Authorization: Token token=$PD_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "incident": {
+      "type": "incident",
+      "title": "P1: payment-service error rate > 5%",
+      "service": {"id": "PXXXXXX", "type": "service_reference"},
+      "urgency": "high"
+    }
+  }'
+```
+
+**Cập nhật status page cho khách hàng** (vai trò Comms, xem `sre.incident-response.roles`) —
+hầu hết công cụ status page (Statuspage, Cachet) đều có API tương tự, tránh phải đăng nhập UI
+giữa lúc đang bận xử lý incident:
+
+```bash
+curl -X POST https://api.statuspage.io/v1/pages/$PAGE_ID/incidents \
+  -H "Authorization: OAuth $STATUSPAGE_TOKEN" \
+  -d "incident[name]=Payment service degraded" \
+  -d "incident[status]=investigating" \
+  -d "incident[impact_override]=major"
+```
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **"Chúng ta sẽ fix luôn cho xong"** — trong P1, KHÔNG đồng thời investigate + fix. Tách biệt:

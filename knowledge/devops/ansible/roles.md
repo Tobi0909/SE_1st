@@ -236,6 +236,20 @@ ansible-playbook site.yml -i inventory/production --tags deploy
 ansible-playbook site.yml -i inventory/production --skip-tags packages
 ```
 
+**Test role tự động bằng Molecule** — thay vì chỉ `--check` thủ công, team vận hành nhiều role
+thường chạy Molecule trong CI (xem `devops.cicd.tools`) để đảm bảo role vẫn idempotent và
+không lỗi khi có người sửa:
+
+```bash
+pip install molecule molecule-plugins[docker]
+cd roles/nginx
+molecule init scenario -d docker    # tạo molecule/default/ với converge.yml, verify.yml
+molecule test                       # dựng container → apply role → verify → apply LẦN 2 (kiểm tra idempotent) → hủy container
+```
+
+`molecule test` fail ở bước "idempotence" nghĩa là role không thực sự idempotent — chạy lại
+lần 2 vẫn báo `changed` (thường do dùng `shell:`/`command:` thay module chuyên biệt, xem mục 5).
+
 ## 5. Lỗi thường gặp và cách chẩn đoán
 
 **Role không tìm thấy** (`ERROR! the role 'nginx' was not found`): Ansible tìm role theo thứ tự:
