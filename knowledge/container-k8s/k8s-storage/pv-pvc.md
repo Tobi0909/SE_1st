@@ -263,7 +263,7 @@ admin chỉ định thủ công cho static binding theo kịch bản thông thư
 
 a) Có, PVC mới tự động bind lại ngay vì Retain nghĩa là giữ nguyên trạng thái Bound
 b) Không, và PV đó sẽ bị xoá vĩnh viễn sau khi chuyển sang Released, không còn cách tái sử dụng
-c) Không trực tiếp — PV ở trạng thái Released có field claimRef vẫn trỏ vào PVC cũ; K8s không tự bind PVC mới vào PV Released
+c) Không trực tiếp — PV ở trạng thái Released có field claimRef vẫn trỏ vào PVC cũ
 d) Có, nhưng chỉ nếu PVC mới có cùng tên chính xác với PVC cũ đã bị xoá
 
 **Đáp án: c** — Không trực tiếp. PV ở trạng thái Released vẫn giữ `claimRef` cũ, K8s không tự

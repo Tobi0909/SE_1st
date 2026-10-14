@@ -292,7 +292,7 @@ a) stats count by service sắp xếp kết quả; sort -count mới là bước
 b) index=production level=error là command tổng hợp, không phải base search lọc events
 c) sort -count sắp xếp tăng dần (ascending) theo count, dấu `-` chỉ là ký tự cú pháp không
    mang nghĩa thứ tự
-d) (1) index=production level=error: lọc events từ index "production" có field level=error — đây là base search, không phải command trong pipe
+d) (1) index=production level=error: lọc events từ index "production" có field level=error
 
 **Đáp án: d** — Base search lọc events, `stats count by service` tổng hợp đếm, `sort -count`
 sắp xếp giảm dần. Vai trò của `stats` và `sort` bị đảo ngược trong lựa chọn a — `stats` làm

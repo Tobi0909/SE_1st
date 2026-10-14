@@ -196,7 +196,7 @@ permission `644` (đọc được cho mọi người) và owner đúng là user 
 service vẫn báo "Permission denied" khi truy cập nó trên server RHEL. Giả thuyết cần kiểm tra
 ngay là gì?
 
-a) SELinux đang ở chế độ `Enforcing` và chặn qua lớp MAC (label/context), độc lập hoàn toàn với permission DAC đã mở hết
+a) SELinux đang ở chế độ `Enforcing` và chặn qua lớp MAC
 b) Giả thuyết là file thực ra chưa được ghi đủ quyền thực thi `x` cho service user cụ thể
 c) Giả thuyết là NFS mount đang stale, cần remount lại filesystem chứa file đó
 d) Giả thuyết là service đang chạy trong container không chia sẻ namespace user với host

@@ -246,7 +246,7 @@ a) Utilization, Availability, Efficiency — ba chiều này đo trực tiếp S
    tới Saturation/Errors
 b) Usage, Scalability, Efficiency — USE là viết tắt của 3 từ này, không phải
    Utilization/Saturation/Errors
-c) Utilization (% bận), Saturation (queue depth / wait time), Errors. Utilization 50% có thể vẫn là bottleneck nếu Saturation cao (run queue dài)
+c) Utilization (% bận), Saturation (queue depth / wait time), Errors. Utilization 50% có thể vẫn là bottleneck nếu Saturation cao
 d) Chỉ cần đo Utilization là đủ, Saturation và Errors chỉ là chỉ số phụ không cần theo dõi
    riêng
 

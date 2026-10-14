@@ -288,7 +288,7 @@ partition khi thêm consumer — số partition là giá trị cấu hình cố 
 
 **Câu 4**: Dead letter queue (DLQ) trong RabbitMQ là gì? Khi nào message bị chuyển vào DLQ?
 
-a) DLQ là queue đặc biệt nhận message bị từ chối. Message vào DLQ khi: consumer nack với requeue=false, message hết TTL
+a) DLQ là queue đặc biệt nhận message bị từ chối
 b) DLQ là queue chính dùng để xử lý message bình thường, không phải nơi chứa message lỗi
 c) Message vào DLQ chỉ khi admin xoá queue gốc thủ công, không có cơ chế tự động nào khác
 d) DLQ chỉ tồn tại trong Kafka, RabbitMQ không hỗ trợ khái niệm dead letter queue

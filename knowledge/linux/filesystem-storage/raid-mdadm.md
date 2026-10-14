@@ -183,7 +183,7 @@ degraded" cho server lưu trữ file chia sẻ nội bộ.
 **Câu 1**: Một RAID 0 gồm 4 đĩa. Một đĩa trong số đó hỏng. Có thể khôi phục lại dữ liệu từ 3
 đĩa còn lại không? Vì sao?
 
-a) Không. RAID 0 không có dự phòng — dữ liệu bị "xé" (stripe) rải đều qua TẤT CẢ đĩa, mỗi đĩa chứa một phần không thể thiếu
+a) Không. RAID 0 không có dự phòng — dữ liệu bị "xé"
 b) Có, khôi phục được khoảng 75% dữ liệu tương ứng với 3/4 đĩa còn hoạt động
 c) Có, nhưng chỉ khi RAID 0 được tạo với tối thiểu 4 đĩa trở lên — ít đĩa hơn thì mất hết
 d) Không, nhưng dữ liệu có thể phục hồi phần nào nhờ parity dự phòng tích hợp sẵn trong

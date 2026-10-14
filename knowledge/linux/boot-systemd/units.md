@@ -222,7 +222,7 @@ mới kéo theo fail.
 ra ngay sau lệnh này?
 
 a) SẼ: service chạy ngay lập tức. SẼ KHÔNG: service tự chạy lại ở các lần boot sau
-b) SẼ: lần boot tiếp theo `myapp.service` sẽ tự được khởi động theo. SẼ KHÔNG: service KHÔNG chạy ngay tại thời điểm chạy lệnh `enable` — cần thêm `systemctl start`
+b) SẼ: lần boot tiếp theo `myapp.service` sẽ tự được khởi động theo. SẼ KHÔNG: service KHÔNG chạy ngay tại thời điểm chạy lệnh `enable`
 c) SẼ: file gốc của `myapp.service` bị copy sang `/etc/systemd/system/`. SẼ KHÔNG: service
    được đăng ký tự chạy ở lần boot sau
 d) SẼ và SẼ KHÔNG đều không áp dụng — output này chỉ là log mang tính thông báo, không có tác

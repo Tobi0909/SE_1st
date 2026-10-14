@@ -191,7 +191,7 @@ cao và tăng dần. Ứng dụng phản hồi chậm. Hướng điều tra hợ
 
 a) Thêm CPU/core ngay — `cs` cao luôn là dấu hiệu thiếu năng lực xử lý tổng thể
 b) Kiểm tra RAM trước tiên — context switch cao thường do thiếu RAM gây swap liên tục
-c) Điều tra NGUYÊN NHÂN tạo quá nhiều process/thread tranh giành CPU liên tục (chi phí context switch cao), KHÔNG phải thêm CPU
+c) Điều tra NGUYÊN NHÂN tạo quá nhiều process/thread tranh giành CPU liên tục
 d) Không cần điều tra thêm — `cs` cao là chỉ số bình thường, không liên quan tới độ trễ ứng
    dụng
 
@@ -208,7 +208,7 @@ b) `r` là giá trị trung bình trong 1 giây gần nhất, giống load avera
    ngắn hơn
 c) `r` đo số CPU core đang hoạt động, load average đo số process — hai khái niệm đo đối
    tượng khác nhau hoàn toàn
-d) `r` là số process runnable (đang chờ hoặc đang chạy CPU) NGAY TẠI THỜI ĐIỂM đo — một snapshot. Load average là giá trị TRUNG BÌNH theo thời gian
+d) `r` là số process runnable (đang chờ hoặc đang chạy CPU) NGAY TẠI THỜI ĐIỂM đo — một snapshot
 
 **Đáp án: d** — `r` là số process runnable (đang chờ hoặc đang chạy CPU) NGAY TẠI THỜI ĐIỂM
 đo — một snapshot. Load average là giá trị TRUNG BÌNH theo thời gian (1/5/15 phút), phản ánh

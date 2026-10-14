@@ -261,7 +261,7 @@ hoạt động với khoảng thời gian bất kỳ, chỉ là không tự cậ
 
 a) Vì Grafana không có cách lưu dashboard nào khác ngoài git, bắt buộc phải commit để
    dashboard hoạt động
-b) Grafana lưu dashboard trong database nội bộ (SQLite hoặc PostgreSQL). Nếu database mất, migrate sang instance mới, hoặc ai đó vô tình xoá
+b) Grafana lưu dashboard trong database nội bộ (SQLite hoặc PostgreSQL)
 c) Vì JSON trong git giúp Grafana render dashboard nhanh hơn so với đọc từ database
 d) Vì git tự động đồng bộ 2 chiều với Grafana, sửa trên UI sẽ tự commit ngược lại repo
 

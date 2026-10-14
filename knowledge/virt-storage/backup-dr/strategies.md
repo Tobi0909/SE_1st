@@ -266,7 +266,7 @@ gian recovery.
 **Câu 1**: Khác biệt giữa incremental và differential backup là gì?
 
 a) Incremental backup lớn hơn differential  
-b) Incremental copy dữ liệu thay đổi kể từ backup **trước** (bất kể full hay incremental)
+b) Incremental copy dữ liệu thay đổi kể từ backup **trước**
 c) Differential chỉ dùng được với Windows  
 d) Incremental backup không thể restore nếu thiếu một mắt trong chain
 

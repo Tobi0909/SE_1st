@@ -241,7 +241,7 @@ làm gì trước khi query.
 **Câu 1**: Sự khác biệt cốt lõi giữa application log và audit log là gì?
 
 a) Application log dùng JSON, audit log dùng plain text  
-b) Application log ghi hành vi phần mềm (request, error); audit log ghi hành vi con người/tiến trình
+b) Application log ghi hành vi phần mềm (request, error)
 c) Application log lưu ở `/var/log/app/`, audit log lưu ở `/var/log/audit/`  
 d) Không có sự khác biệt, chỉ là tên gọi khác nhau
 

@@ -159,7 +159,7 @@ hình gì" (loại d).
 a) Có, LACP chuẩn hỗ trợ sẵn việc nối tới nhiều switch độc lập mà không cần cấu hình gì thêm
 b) Có, nhưng chỉ khi cả hai switch dùng chung VLAN quản trị
 c) Không, và tuyệt đối không có cách nào (kể cả MLAG/vPC) để làm điều này
-d) Không — LACP chuẩn chỉ hoạt động với một đối tác logic duy nhất; trừ khi hai switch độc lập được ghép thành một hệ logic
+d) Không — LACP chuẩn chỉ hoạt động với một đối tác logic duy nhất
 
 **Đáp án: d** — Không, trừ khi 2 switch tạo thành 1 hệ logic (MLAG/vPC/stack). LACP chuẩn không
 hỗ trợ sẵn nối tới nhiều switch độc lập theo cách đó (loại a); VLAN quản trị chung không đủ để

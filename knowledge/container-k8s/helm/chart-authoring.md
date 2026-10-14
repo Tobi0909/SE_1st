@@ -363,7 +363,7 @@ key-value destructuring trực tiếp, không cần lấy list key riêng rồi 
 upgrade tiếp tục hay dừng lại?
 
 a) Helm tiếp tục upgrade bình thường, hook fail chỉ ghi log cảnh báo không chặn gì
-b) Helm dừng lại và đánh dấu release là failed — không apply manifest chính (Deployment mới không được cập nhật)
+b) Helm dừng lại và đánh dấu release là failed — không apply manifest chính
 c) Helm tự động retry hook 3 lần rồi mới quyết định dừng hay tiếp tục
 d) Helm rollback ngay về revision trước đó mà không cần người dùng chạy lệnh gì thêm
 

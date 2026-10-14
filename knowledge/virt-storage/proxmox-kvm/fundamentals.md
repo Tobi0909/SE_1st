@@ -284,7 +284,7 @@ VM cho thấy `%wa` (I/O wait) thường xuyên 60-80%. Host Linux chạy bình 
 
 a) KVM và QEMU là cùng một phần mềm  
 b) KVM là hypervisor thương mại, QEMU là open source  
-c) KVM là module Linux kernel cung cấp CPU virtualization (khai thác Intel VT-x/AMD-V)
+c) KVM là module Linux kernel cung cấp CPU virtualization
 d) QEMU chỉ dùng để emulate ARM trên x86, không liên quan đến KVM
 
 **Đáp án: c** — KVM một mình không thể chạy VM (chỉ là kernel module). QEMU một mình emulate toàn bộ bằng software (chậm). Kết hợp: QEMU dùng `/dev/kvm` để CPU code chạy native, chỉ dùng software emulation cho device I/O. Đây là lý do đúng khi nói "KVM/QEMU" như một cặp.

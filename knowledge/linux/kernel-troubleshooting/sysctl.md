@@ -207,7 +207,7 @@ swap partition/file nào được bật (`swapoff -a`).
 **Câu 2**: `sysctl -w net.core.somaxconn=65535` chạy thành công, nhưng vấn đề connection vẫn
 còn sau khi tăng. Còn tham số nào khác cần kiểm tra?
 
-a) `net.ipv4.tcp_max_syn_backlog` — đây là backlog queue KHÁC (half-open connections đang chờ hoàn thành handshake)
+a) `net.ipv4.tcp_max_syn_backlog` — đây là backlog queue KHÁC
 b) `net.core.rmem_max` — tăng buffer nhận sẽ giải quyết vấn đề backlog connection
 c) `net.ipv4.ip_forward` — bật forward sẽ giúp xử lý thêm connection đang chờ
 d) Không còn tham số nào khác cần kiểm tra — `somaxconn` là giới hạn duy nhất cho backlog

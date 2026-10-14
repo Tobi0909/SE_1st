@@ -223,7 +223,7 @@ a) Vì CPU limit chỉ là gợi ý không bắt buộc, còn memory limit là r
 b) Vì cả hai đều throttle giống nhau, chỉ khác tên hiển thị trong kubectl describe
 c) Vì memory limit chỉ áp dụng cho container chạy trên cloud, không áp dụng khi chạy
    on-premise
-d) CPU và memory dùng cơ chế kernel khác nhau. CPU được quản lý bởi CFS scheduler — khi process muốn dùng nhiều hơn limit, kernel throttle
+d) CPU và memory dùng cơ chế kernel khác nhau. CPU được quản lý bởi CFS scheduler
 
 **Đáp án: d** — CPU dùng CFS scheduler throttle (process chậm lại, không bị kill); memory
 không có cơ chế throttle, OOM killer phải kill ngay. CPU limit cũng là ràng buộc THẬT (kernel

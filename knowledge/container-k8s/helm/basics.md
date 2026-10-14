@@ -260,7 +260,7 @@ kubectl get svc -n ingress-nginx    # xem LoadBalancer IP/hostname
 **Câu 1**: Sự khác biệt quan trọng nhất giữa Helm 2 và Helm 3 là gì?
 
 a) Helm 3 thêm Tiller làm server-side component mạnh hơn Helm 2 để quản lý tập trung
-b) Helm 3 loại bỏ Tiller (server-side component của Helm 2). Tiller phải chạy trong cluster với ClusterRoleBinding cluster-admin
+b) Helm 3 loại bỏ Tiller (server-side component của Helm 2)
 c) Helm 2 và Helm 3 hoàn toàn giống nhau về kiến trúc, chỉ khác số phiên bản
 d) Helm 3 lưu release metadata trong database riêng bên ngoài cluster, không còn trong K8s
    Secret
